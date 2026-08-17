@@ -509,7 +509,7 @@
 
     <!-- Product Detail Modal -->
     <div id="productDetailModal" class="fixed inset-0 modal-backdrop z-50 hidden flex items-center justify-center p-4">
-        <div class="card modal-panel w-full max-w-lg p-6 relative border border-white/[0.08] space-y-4">
+        <div class="card modal-panel w-full max-w-lg p-6 relative border border-white/[0.08] space-y-4 max-h-[92vh] overflow-y-auto">
             <button onclick="closeProductDetail()" class="absolute top-4 right-4 text-slate-500 hover:text-white p-2 text-lg"><i class="fa-solid fa-xmark"></i></button>
             <div class="flex items-center gap-3 border-b border-white/[0.06] pb-4 pr-8">
                 <div class="w-11 h-11 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 flex items-center justify-center text-lg"><i class="fa-solid fa-shield-halved"></i></div>
@@ -554,6 +554,47 @@
                     <p class="text-slate-200 mt-1 text-xs leading-relaxed whitespace-pre-line" id="detailOwner">—</p>
                 </div>
             </div>
+
+            <!-- Avaliação comunitária do produto -->
+            <section class="p-4 rounded-xl bg-amber-500/[0.04] border border-amber-500/15 space-y-4" aria-labelledby="productRatingTitle">
+                <div class="flex items-start justify-between gap-3">
+                    <div>
+                        <h4 id="productRatingTitle" class="text-xs font-bold text-white flex items-center gap-1.5"><i class="fa-solid fa-star text-amber-400"></i> Avaliação da comunidade</h4>
+                        <p class="text-[10px] text-slate-500 mt-1">Partilhada com todos os utilizadores do Vanty Care</p>
+                    </div>
+                    <div class="text-right shrink-0">
+                        <div id="communityRatingStars" class="text-amber-400 text-xs tracking-wide" aria-label="Sem avaliações">☆☆☆☆☆</div>
+                        <p id="communityRatingSummary" class="text-[10px] text-slate-500 mt-0.5">Ainda sem avaliações</p>
+                    </div>
+                </div>
+
+                <div class="border-t border-white/[0.06] pt-3 space-y-3">
+                    <div>
+                        <label class="block text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1.5">A sua avaliação *</label>
+                        <div id="ratingStarsInput" class="flex gap-1" role="radiogroup" aria-label="Avaliação de uma a cinco estrelas">
+                            <button type="button" onclick="setProductRating(1)" data-rating="1" role="radio" aria-label="1 estrela" aria-checked="false" class="rating-star w-8 h-8 rounded-lg bg-surface-900 border border-white/[0.06] text-slate-600 hover:text-amber-400 hover:border-amber-500/30 transition-all"><i class="fa-solid fa-star"></i></button>
+                            <button type="button" onclick="setProductRating(2)" data-rating="2" role="radio" aria-label="2 estrelas" aria-checked="false" class="rating-star w-8 h-8 rounded-lg bg-surface-900 border border-white/[0.06] text-slate-600 hover:text-amber-400 hover:border-amber-500/30 transition-all"><i class="fa-solid fa-star"></i></button>
+                            <button type="button" onclick="setProductRating(3)" data-rating="3" role="radio" aria-label="3 estrelas" aria-checked="false" class="rating-star w-8 h-8 rounded-lg bg-surface-900 border border-white/[0.06] text-slate-600 hover:text-amber-400 hover:border-amber-500/30 transition-all"><i class="fa-solid fa-star"></i></button>
+                            <button type="button" onclick="setProductRating(4)" data-rating="4" role="radio" aria-label="4 estrelas" aria-checked="false" class="rating-star w-8 h-8 rounded-lg bg-surface-900 border border-white/[0.06] text-slate-600 hover:text-amber-400 hover:border-amber-500/30 transition-all"><i class="fa-solid fa-star"></i></button>
+                            <button type="button" onclick="setProductRating(5)" data-rating="5" role="radio" aria-label="5 estrelas" aria-checked="false" class="rating-star w-8 h-8 rounded-lg bg-surface-900 border border-white/[0.06] text-slate-600 hover:text-amber-400 hover:border-amber-500/30 transition-all"><i class="fa-solid fa-star"></i></button>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="productReviewDescription" class="block text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1.5">Descrição / experiência *</label>
+                        <textarea id="productReviewDescription" maxlength="1000" rows="3" placeholder="Ex.: Produto estável, sem avarias após 18 meses de utilização..." class="w-full input-field p-3 text-xs text-white resize-none"></textarea>
+                        <div class="flex justify-between mt-1 text-[9px] text-slate-600"><span>Não inclua dados pessoais.</span><span id="reviewCharCount">0/1000</span></div>
+                    </div>
+                    <button type="button" id="saveProductReviewBtn" onclick="saveProductReview()" class="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-bold transition-all flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-paper-plane"></i> Publicar avaliação
+                    </button>
+                </div>
+
+                <div id="communityReviewsWrap" class="hidden border-t border-white/[0.06] pt-3">
+                    <p class="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-2">Feedback de utilizadores</p>
+                    <div id="communityReviewsList" class="space-y-2 max-h-44 overflow-y-auto pr-1"></div>
+                </div>
+            </section>
+
             <div class="flex gap-2 pt-1">
                 <button id="detailInvoiceBtn" class="flex-1 px-3 py-2.5 bg-surface-800 hover:bg-surface-700 border border-white/[0.06] text-slate-300 rounded-xl text-xs font-semibold transition-all"><i class="fa-solid fa-file-invoice mr-1"></i> Ver Fatura</button>
                 <button id="detailRmaBtn" class="flex-1 px-3 py-2.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 rounded-xl text-xs font-bold transition-all"><i class="fa-solid fa-wrench mr-1"></i> RMA</button>
@@ -585,7 +626,8 @@
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let selectedReceipt = null, currentProducts = [], activeRmaProduct = null, ocrWorker = null, searchQuery = '';
-        let detailProductIndex = null;
+        let detailProductIndex = null, selectedProductRating = 0, allProductReviews = [];
+        const reviewAuthorId = getOrCreateReviewAuthorId();
 
         function showToast(message, title = 'Aviso', type = 'info') {
             const modal = document.getElementById('toastModal');
@@ -607,6 +649,149 @@
             document.getElementById('toastModal').classList.add('hidden');
         }
         // Nunca usar alert() nativo — tudo passa pelo toast do sistema
+
+        function getOrCreateReviewAuthorId() {
+            let id = localStorage.getItem('vanty_review_author_id');
+            if (!id) {
+                id = (crypto.randomUUID ? crypto.randomUUID() : 'user_' + Date.now() + '_' + Math.random().toString(36).slice(2));
+                localStorage.setItem('vanty_review_author_id', id);
+            }
+            return id;
+        }
+
+        function normalizeProductKey(name) {
+            return String(name || '')
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                .toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim().replace(/\s+/g, '-').slice(0, 160);
+        }
+
+        function getLocalReviews() {
+            try { return JSON.parse(localStorage.getItem('vanty_product_reviews_local') || '[]'); } catch { return []; }
+        }
+
+        function saveLocalReview(record) {
+            const list = getLocalReviews();
+            const i = list.findIndex(r => r.product_key === record.product_key && r.reviewer_id === reviewAuthorId);
+            const full = { ...record, id: i >= 0 ? list[i].id : 'local_review_' + Date.now(), updated_at: new Date().toISOString(), created_at: i >= 0 ? list[i].created_at : new Date().toISOString(), _local: true };
+            if (i >= 0) list[i] = full; else list.unshift(full);
+            localStorage.setItem('vanty_product_reviews_local', JSON.stringify(list));
+            return full;
+        }
+
+        function mergeReviews(remote, local) {
+            const map = new Map();
+            [...local, ...remote].forEach(r => map.set(`${r.product_key}::${r.reviewer_id}`, r));
+            return [...map.values()].sort((a, b) => new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0));
+        }
+
+        async function loadAllProductReviews() {
+            let remote = [];
+            try {
+                const { data, error } = await supabaseClient.from('product_reviews').select('*').order('updated_at', { ascending: false });
+                if (error) throw error;
+                remote = data || [];
+            } catch (err) {
+                console.warn('Avaliações partilhadas indisponíveis:', err.message || err);
+            }
+            allProductReviews = mergeReviews(remote, getLocalReviews());
+        }
+
+        function reviewsForProduct(prod) {
+            const key = normalizeProductKey(prod && prod.nome_produto);
+            return allProductReviews.filter(r => r.product_key === key);
+        }
+
+        function ratingStats(prod) {
+            const reviews = reviewsForProduct(prod);
+            if (!reviews.length) return { count: 0, average: 0 };
+            return { count: reviews.length, average: reviews.reduce((sum, r) => sum + Number(r.rating || 0), 0) / reviews.length };
+        }
+
+        function visualStars(value) {
+            const rounded = Math.round(Number(value) || 0);
+            return '★'.repeat(rounded) + '☆'.repeat(5 - rounded);
+        }
+
+        function setProductRating(value) {
+            selectedProductRating = Math.max(0, Math.min(5, Number(value) || 0));
+            document.querySelectorAll('#ratingStarsInput .rating-star').forEach(btn => {
+                const active = Number(btn.dataset.rating) <= selectedProductRating;
+                btn.classList.toggle('text-amber-400', active);
+                btn.classList.toggle('border-amber-500/30', active);
+                btn.classList.toggle('bg-amber-500/10', active);
+                btn.classList.toggle('text-slate-600', !active);
+                btn.setAttribute('aria-checked', Number(btn.dataset.rating) === selectedProductRating ? 'true' : 'false');
+            });
+        }
+
+        function renderProductReviews(prod) {
+            const reviews = reviewsForProduct(prod);
+            const stats = ratingStats(prod);
+            const stars = document.getElementById('communityRatingStars');
+            stars.innerText = visualStars(stats.average);
+            stars.setAttribute('aria-label', stats.count ? `${stats.average.toFixed(1)} em 5, ${stats.count} avaliações` : 'Sem avaliações');
+            document.getElementById('communityRatingSummary').innerText = stats.count
+                ? `${stats.average.toFixed(1)}/5 · ${stats.count} avaliação${stats.count === 1 ? '' : 'ões'}`
+                : 'Ainda sem avaliações';
+
+            const own = reviews.find(r => r.reviewer_id === reviewAuthorId);
+            selectedProductRating = 0;
+            document.getElementById('productReviewDescription').value = own ? (own.description || '') : '';
+            document.getElementById('reviewCharCount').innerText = `${own ? String(own.description || '').length : 0}/1000`;
+            setProductRating(own ? Number(own.rating) : 0);
+            document.getElementById('saveProductReviewBtn').innerHTML = own
+                ? '<i class="fa-solid fa-floppy-disk"></i> Atualizar avaliação'
+                : '<i class="fa-solid fa-paper-plane"></i> Publicar avaliação';
+
+            const wrap = document.getElementById('communityReviewsWrap');
+            const list = document.getElementById('communityReviewsList');
+            if (!reviews.length) { wrap.classList.add('hidden'); list.innerHTML = ''; return; }
+            wrap.classList.remove('hidden');
+            list.innerHTML = reviews.slice(0, 30).map(r => {
+                const date = new Date(r.updated_at || r.created_at || Date.now()).toLocaleDateString('pt-PT');
+                return `<article class="p-2.5 rounded-lg bg-surface-950/60 border border-white/[0.05]">
+                    <div class="flex justify-between gap-2"><span class="text-[11px] font-semibold text-slate-300">${escapeHtml(r.reviewer_name || 'Utilizador Vanty')}</span><span class="text-amber-400 text-[10px] tracking-wide">${visualStars(r.rating)}</span></div>
+                    <p class="text-[11px] text-slate-400 leading-relaxed mt-1 whitespace-pre-line">${escapeHtml(r.description || '')}</p>
+                    <p class="text-[9px] text-slate-600 mt-1.5">${date}${r._local ? ' · apenas neste dispositivo' : ''}</p>
+                </article>`;
+            }).join('');
+        }
+
+        async function saveProductReview() {
+            if (detailProductIndex == null) return;
+            const prod = currentProducts[detailProductIndex];
+            const description = document.getElementById('productReviewDescription').value.trim();
+            if (!selectedProductRating) { showToast('Escolha uma avaliação de 1 a 5 estrelas.', 'Avaliação', 'warn'); return; }
+            if (description.length < 10) { showToast('Escreva uma descrição com pelo menos 10 caracteres.', 'Avaliação', 'warn'); return; }
+
+            const btn = document.getElementById('saveProductReviewBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> A publicar...';
+            const record = {
+                product_key: normalizeProductKey(prod.nome_produto), product_name: prod.nome_produto,
+                rating: selectedProductRating, description, reviewer_name: userProfile.name || 'Utilizador Vanty',
+                reviewer_id: reviewAuthorId, updated_at: new Date().toISOString()
+            };
+            let shared = false;
+            try {
+                const { error } = await supabaseClient.from('product_reviews').upsert([record], { onConflict: 'product_key,reviewer_id' });
+                if (error) throw error;
+                shared = true;
+                const local = getLocalReviews().filter(r => !(r.product_key === record.product_key && r.reviewer_id === reviewAuthorId));
+                localStorage.setItem('vanty_product_reviews_local', JSON.stringify(local));
+            } catch (err) {
+                console.warn('Publicação da avaliação falhou:', err.message || err);
+                saveLocalReview(record);
+            }
+            await loadAllProductReviews();
+            renderProductReviews(prod);
+            renderProductLists();
+            btn.disabled = false;
+            showToast(shared
+                ? 'A sua avaliação foi publicada e já pode ser vista por todos.'
+                : 'A avaliação ficou guardada neste dispositivo. Execute o ficheiro supabase_product_reviews.sql para ativar a partilha.',
+                shared ? 'Avaliação publicada' : 'Guardada localmente', shared ? 'success' : 'warn');
+        }
 
         let userProfile = JSON.parse(localStorage.getItem('vanty_profile')) || {
             name: "João Silva", nif: "245 890 123", email: "joao.silva@email.com", country: "PT", address: ""
@@ -1288,6 +1473,7 @@
                 invBtn.classList.add('opacity-40');
             }
             document.getElementById('detailRmaBtn').onclick = () => { closeProductDetail(); openRmaModal(index); };
+            renderProductReviews(prod);
             document.getElementById('productDetailModal').classList.remove('hidden');
         }
         function closeProductDetail() {
@@ -1401,6 +1587,7 @@
                             <div class="min-w-0">
                                 <h3 class="font-bold text-white text-sm truncate">${escapeHtml(prod.nome_produto || 'Produto sem nome')}</h3>
                                 <p class="text-[11px] text-slate-500 mt-0.5"><span class="text-slate-400 font-medium">${escapeHtml(prod.loja || 'Loja')}</span> · ${formatDate(purchaseDate)}</p>
+                                ${(() => { const rs = ratingStats(prod); return rs.count ? `<p class="text-[10px] text-amber-400 mt-1 tracking-wide">${visualStars(rs.average)} <span class="text-slate-500 tracking-normal">${rs.average.toFixed(1)} · ${rs.count}</span></p>` : '<p class="text-[10px] text-slate-600 mt-1">Ainda sem avaliações</p>'; })()}
                             </div>
                         </div>
                         <div class="sm:text-right shrink-0">
@@ -1456,6 +1643,7 @@
             const remoteIds = new Set(remote.map(p => String(p.id)));
             const localOnly = local.filter(p => !remoteIds.has(String(p.id)));
             currentProducts = [...localOnly, ...remote];
+            await loadAllProductReviews();
 
             const invoiceStore = getInvoicesStore();
             let totalSum = 0, totalInvoices = 0;
@@ -1596,6 +1784,10 @@
             document.getElementById('invoiceModal').classList.remove('hidden');
         }
         function closeInvoiceModal() { document.getElementById('invoiceModal').classList.add('hidden'); document.getElementById('invoiceModalContent').innerHTML = ''; }
+
+        document.getElementById('productReviewDescription').addEventListener('input', e => {
+            document.getElementById('reviewCharCount').innerText = `${e.target.value.length}/1000`;
+        });
 
         document.getElementById('rmaModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeRmaModal(); });
         document.getElementById('invoiceModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeInvoiceModal(); });
