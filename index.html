@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <script>
         tailwind.config = {
@@ -183,7 +184,7 @@
                     <div class="live-dot"></div>
                     <div>
                         <div class="text-[11px] font-semibold text-emerald-400">Supabase Live</div>
-                        <div class="text-[10px] text-slate-500">v0.5 · TerraFlux layout</div>
+                        <div class="text-[10px] text-slate-500">v0.7 · OCR JPG+PDF</div>
                     </div>
                 </div>
             </div>
@@ -316,7 +317,8 @@
                                         <div id="uploadPlaceholder" class="space-y-2">
                                             <div class="w-12 h-12 mx-auto rounded-xl bg-surface-800 text-slate-500 group-hover:text-cyan-400 group-hover:bg-cyan-500/10 flex items-center justify-center text-xl transition-all"><i class="fa-solid fa-cloud-arrow-up"></i></div>
                                             <p class="text-sm text-slate-300 font-medium">Arraste ou clique para anexar</p>
-                                            <p class="text-[11px] text-slate-600">PNG, JPG, WEBP ou PDF</p>
+                                            <p class="text-[11px] text-slate-500">IA lê: <span class="text-cyan-400 font-semibold">JPG, PNG, WEBP</span> e <span class="text-cyan-400 font-semibold">PDF</span></p>
+                                            <p class="text-[10px] text-slate-600 mt-0.5">PDF → 1.ª página convertida e analisada automaticamente</p>
                                         </div>
                                         <div id="uploadProcessing" class="hidden space-y-3">
                                             <div class="w-12 h-12 mx-auto rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center text-xl"><i class="fa-solid fa-brain animate-pulse"></i></div>
@@ -829,10 +831,30 @@
             });
         })();
 
+        /** Converte a 1.ª página de um PDF para dataURL de imagem (para OCR) */
+        async function pdfFirstPageToImage(arrayBuffer) {
+            if (typeof pdfjsLib === 'undefined') {
+                throw new Error('PDF.js não carregou');
+            }
+            pdfjsLib.GlobalWorkerOptions.workerSrc =
+                'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+            const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+            const page = await pdf.getPage(1);
+            const scale = 2.0; // mais resolução = melhor OCR
+            const viewport = page.getViewport({ scale });
+            const canvas = document.createElement('canvas');
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            const ctx = canvas.getContext('2d');
+            await page.render({ canvasContext: ctx, viewport }).promise;
+            return canvas.toDataURL('image/png');
+        }
+
         async function processFile(file) {
             if (!file) return;
-            if (file.size > 8 * 1024 * 1024) {
-                alert('Ficheiro demasiado grande (máx. 8 MB).');
+            if (file.size > 12 * 1024 * 1024) {
+                alert('Ficheiro demasiado grande (máx. 12 MB).');
                 return;
             }
 
@@ -842,6 +864,7 @@
             const preview = document.getElementById('extractedPreview');
             const summary = document.getElementById('extractSummary');
             const fileNameEl = document.getElementById('fileNameText');
+            const statusEl = document.getElementById('ocrStatusText');
 
             if (placeholder) placeholder.classList.add('hidden');
             if (success) success.classList.add('hidden');
@@ -850,46 +873,89 @@
 
             const isImage = (file.type && file.type.startsWith('image/')) ||
                 /\.(jpe?g|png|webp|gif|bmp)$/i.test(file.name || '');
+            const isPdf = (file.type === 'application/pdf') ||
+                /\.pdf$/i.test(file.name || '');
 
-            const reader = new FileReader();
-            reader.onload = async function(evt) {
-                const dataUrl = evt.target.result;
+            try {
+                let ocrImageUrl = null;
+                let storeDataUrl = null;
+
+                if (isImage) {
+                    if (statusEl) statusEl.innerText = 'A carregar imagem...';
+                    storeDataUrl = await new Promise((resolve, reject) => {
+                        const r = new FileReader();
+                        r.onload = () => resolve(r.result);
+                        r.onerror = reject;
+                        r.readAsDataURL(file);
+                    });
+                    ocrImageUrl = storeDataUrl;
+                } else if (isPdf) {
+                    if (statusEl) statusEl.innerText = 'A converter PDF (1.ª página)...';
+                    const arrayBuffer = await file.arrayBuffer();
+                    // Guardar PDF original como dataURL para prova de compra
+                    storeDataUrl = await new Promise((resolve, reject) => {
+                        const r = new FileReader();
+                        r.onload = () => resolve(r.result);
+                        r.onerror = reject;
+                        r.readAsDataURL(file);
+                    });
+                    ocrImageUrl = await pdfFirstPageToImage(arrayBuffer);
+                    if (statusEl) statusEl.innerText = 'PDF convertido · a extrair com IA...';
+                } else {
+                    throw new Error('Formato não suportado. Use JPG, PNG, WEBP ou PDF.');
+                }
+
                 selectedReceipt = {
                     name: file.name,
-                    type: file.type || (isImage ? 'image/jpeg' : 'application/octet-stream'),
-                    data: dataUrl,
+                    type: file.type || (isPdf ? 'application/pdf' : 'image/jpeg'),
+                    data: storeDataUrl,
                     size: file.size
                 };
 
-                if (isImage) {
-                    try {
-                        const { extracted, text } = await extractDataFromImage(dataUrl);
-                        applyExtractedData(extracted);
-                        const filled = [extracted.product, extracted.store, extracted.price, extracted.date, extracted.serial].filter(v => v != null && v !== '').length;
-                        if (summary) {
-                            if (filled === 0) {
-                                summary.innerText = text && text.trim().length > 10
-                                    ? 'OCR leu texto, mas não identificou campos · preencha manualmente'
-                                    : 'OCR não detetou texto legível · tente foto mais nítida';
-                            }
-                        }
-                    } catch (err) {
-                        console.warn('OCR failed:', err);
-                        if (summary) summary.innerText = 'OCR falhou: ' + (err.message || 'erro') + ' · preencha manualmente';
-                    }
-                } else {
-                    if (summary) summary.innerText = 'PDF guardado · preencha os campos manualmente';
-                }
+                // Sempre corre OCR quando temos imagem (foto ou página PDF)
+                const { extracted, text } = await extractDataFromImage(ocrImageUrl);
+                applyExtractedData(extracted);
 
-                if (processing) processing.classList.add('hidden');
-                if (success) success.classList.remove('hidden');
-                if (fileNameEl) fileNameEl.innerText = file.name;
-            };
-            reader.onerror = () => {
-                alert('Erro ao ler o ficheiro.');
-                clearReceipt();
-            };
-            reader.readAsDataURL(file);
+                const filled = [extracted.product, extracted.store, extracted.price, extracted.date, extracted.serial]
+                    .filter(v => v != null && v !== '').length;
+                if (summary) {
+                    if (filled > 0) {
+                        summary.innerText = isPdf
+                            ? `${filled} campo(s) extraídos do PDF`
+                            : `${filled} campo(s) preenchido(s)`;
+                    } else if (text && text.trim().length > 10) {
+                        summary.innerText = 'OCR leu texto, mas não identificou campos · preencha manualmente';
+                    } else {
+                        summary.innerText = 'OCR não detetou texto legível · tente imagem/PDF mais nítido';
+                    }
+                }
+            } catch (err) {
+                console.warn('Upload/OCR failed:', err);
+                // Ainda tenta guardar o ficheiro se já lemos algo
+                if (!selectedReceipt) {
+                    try {
+                        const dataUrl = await new Promise((resolve, reject) => {
+                            const r = new FileReader();
+                            r.onload = () => resolve(r.result);
+                            r.onerror = reject;
+                            r.readAsDataURL(file);
+                        });
+                        selectedReceipt = {
+                            name: file.name,
+                            type: file.type || 'application/octet-stream',
+                            data: dataUrl,
+                            size: file.size
+                        };
+                    } catch (_) { /* ignore */ }
+                }
+                if (summary) {
+                    summary.innerText = 'Erro: ' + (err.message || 'falha') + ' · ficheiro guardado, preencha manualmente';
+                }
+            }
+
+            if (processing) processing.classList.add('hidden');
+            if (success) success.classList.remove('hidden');
+            if (fileNameEl) fileNameEl.innerText = file.name;
         }
 
         function clearReceipt(e) {
