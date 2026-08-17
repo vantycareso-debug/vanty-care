@@ -170,6 +170,9 @@
                 <div class="nav-item" data-panel="rma" onclick="switchPanel('rma')">
                     <i class="fa-solid fa-wrench"></i><span>Pedidos RMA</span>
                 </div>
+                <div class="nav-item" data-panel="stats" onclick="switchPanel('stats')">
+                    <i class="fa-solid fa-star-half-stroke"></i><span>Estatísticas</span>
+                </div>
                 <div class="text-[10px] font-bold text-slate-600 uppercase tracking-widest px-3 mb-2 mt-5">Conta</div>
                 <div class="nav-item" data-panel="perfil" onclick="switchPanel('perfil')">
                     <i class="fa-solid fa-user"></i><span>Perfil / Casa</span>
@@ -184,7 +187,7 @@
                     <div class="live-dot"></div>
                     <div>
                         <div class="text-[11px] font-semibold text-emerald-400">Supabase Live</div>
-                        <div class="text-[10px] text-slate-500">v1.1 · IVA multi + Toast</div>
+                        <div class="text-[10px] text-slate-500">v2.0 · Auth + Storage</div>
                     </div>
                 </div>
             </div>
@@ -206,7 +209,10 @@
                     <button onclick="loadProducts()" class="w-9 h-9 rounded-lg bg-surface-800 border border-white/[0.05] flex items-center justify-center text-slate-400 hover:text-cyan-400 hover:border-cyan-500/30 transition-all" title="Atualizar">
                         <i class="fa-solid fa-rotate-right text-xs"></i>
                     </button>
-                    <div class="flex items-center gap-2 pl-2 border-l border-white/[0.06]">
+                    <button id="authHeaderBtn" onclick="openAuthModal()" class="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-surface-800 border border-white/[0.06] text-[11px] font-semibold text-slate-300 hover:text-cyan-300 hover:border-cyan-500/30 transition-all">
+                        <i class="fa-solid fa-right-to-bracket"></i> <span id="authHeaderLabel">Entrar</span>
+                    </button>
+                    <div class="flex items-center gap-2 pl-2 border-l border-white/[0.06] cursor-pointer" onclick="switchPanel('perfil')">
                         <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500/20 to-blue-600/20 border border-cyan-500/20 flex items-center justify-center text-cyan-400 text-xs font-bold" id="avatarInitials">JS</div>
                         <div class="hidden sm:block">
                             <div class="text-xs font-semibold text-slate-200 leading-tight" id="topUserName">João Silva</div>
@@ -220,6 +226,14 @@
                 
                 <!-- DASHBOARD -->
                 <div id="panel-dashboard" class="space-y-5">
+                    <div id="authBanner" class="hidden card p-3.5 border border-amber-500/20 bg-amber-500/5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <p class="text-xs text-amber-200/90"><i class="fa-solid fa-cloud text-amber-400 mr-1.5"></i><strong>Modo local.</strong> Entra na conta para sincronizar garantias e faturas na cloud.</p>
+                        <button type="button" onclick="openAuthModal()" class="shrink-0 px-3 py-1.5 rounded-lg bg-amber-500 text-slate-950 text-xs font-bold hover:bg-amber-400">Criar conta / Entrar</button>
+                    </div>
+                    <div id="expiryAlert" class="hidden card p-3.5 border border-red-500/20 bg-red-500/5">
+                        <p class="text-xs font-bold text-red-300 mb-1.5"><i class="fa-solid fa-clock mr-1"></i> Garantias a expirar (≤90 dias)</p>
+                        <div id="expiryAlertList" class="space-y-1 text-xs text-slate-400"></div>
+                    </div>
                     <div class="grid grid-cols-2 xl:grid-cols-4 gap-3">
                         <div class="kpi p-4 flex items-center gap-3.5">
                             <div class="w-11 h-11 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center text-lg border border-cyan-500/15"><i class="fa-solid fa-shield-halved"></i></div>
@@ -392,11 +406,12 @@
 
                 <!-- RMA -->
                 <div id="panel-rma" class="panel-hidden space-y-4">
-                    <h2 class="text-base font-bold text-white flex items-center gap-2"><i class="fa-solid fa-wrench text-red-400"></i> Pedidos de Reparação (RMA)</h2>
-                    <div class="card p-8 text-center">
-                        <div class="w-14 h-14 mx-auto rounded-2xl bg-red-500/10 text-red-400 flex items-center justify-center text-2xl mb-3 border border-red-500/15"><i class="fa-solid fa-triangle-exclamation"></i></div>
-                        <p class="text-slate-300 font-medium">Para abrir um RMA, vá a <button onclick="switchPanel('garantias')" class="text-cyan-400 hover:underline">Garantias</button> e clique em “Reportar Avaria”.</p>
-                        <p class="text-xs text-slate-500 mt-2">A fatura anexada é enviada automaticamente como prova de compra.</p>
+                    <div class="flex items-center justify-between gap-2">
+                        <h2 class="text-base font-bold text-white flex items-center gap-2"><i class="fa-solid fa-wrench text-red-400"></i> Pedidos de Reparação (RMA)</h2>
+                        <button onclick="switchPanel('garantias')" class="text-[11px] text-cyan-400 font-semibold">Abrir a partir de Garantias →</button>
+                    </div>
+                    <div id="rmaFeed" class="space-y-3">
+                        <div class="card p-8 text-center text-slate-500 text-sm">Sem pedidos RMA ainda.</div>
                     </div>
                 </div>
 
@@ -418,6 +433,7 @@
                                 <div class="flex justify-between items-center py-2.5 border-b border-white/[0.04]"><span class="text-slate-500 text-xs">NIF</span><span class="font-mono font-medium text-slate-200" id="viewNif">245 890 123</span></div>
                                 <div class="flex justify-between items-center py-2.5 border-b border-white/[0.04]"><span class="text-slate-500 text-xs">Email</span><span class="font-medium text-slate-200 truncate max-w-[180px]" id="viewEmail">joao.silva@email.com</span></div>
                                 <div class="flex justify-between items-start py-2.5 border-b border-white/[0.04] gap-3"><span class="text-slate-500 text-xs shrink-0">Morada</span><span class="font-medium text-slate-200 text-right text-xs leading-snug" id="viewAddress">—</span></div>
+                                <div class="flex justify-between items-center py-2.5 border-b border-white/[0.04]"><span class="text-slate-500 text-xs">Zona / Região</span><span class="font-medium text-slate-200" id="viewZone">—</span></div>
                                 <div class="flex justify-between items-center pt-2"><span class="text-slate-500 text-xs">País / Regras</span><span class="font-semibold text-cyan-400" id="viewCountry">🇵🇹 Portugal · 3 Anos</span></div>
                             </div>
                             <form id="profileEditForm" onsubmit="saveProfile(event)" class="space-y-3 hidden pt-1">
@@ -432,7 +448,7 @@
                                     </div>
                                     <div>
                                         <label class="block text-[10px] text-slate-500 mb-1 font-semibold uppercase tracking-wider">País</label>
-                                        <select id="inputCountry" class="w-full input-field p-2.5 text-sm text-white">
+                                        <select id="inputCountry" class="w-full input-field p-2.5 text-sm text-white" onchange="populateZoneSelect('inputZone', this.value)">
                                             <option value="PT">🇵🇹 Portugal (3 Anos)</option>
                                             <option value="ES">🇪🇸 Espanha (3 Anos)</option>
                                             <option value="FR">🇫🇷 França (2 Anos)</option>
@@ -440,6 +456,11 @@
                                             <option value="US">🇺🇸 EUA (1 Ano)</option>
                                         </select>
                                     </div>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] text-slate-500 mb-1 font-semibold uppercase tracking-wider">Zona / Região</label>
+                                    <select id="inputZone" class="w-full input-field p-2.5 text-sm text-white"></select>
+                                    <p class="text-[10px] text-slate-600 mt-1">Usada nas estatísticas de reviews por zona.</p>
                                 </div>
                                 <div>
                                     <label class="block text-[10px] text-slate-500 mb-1 font-semibold uppercase tracking-wider">Email</label>
@@ -453,6 +474,134 @@
                                 <button type="submit" class="w-full bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold p-2.5 rounded-xl text-sm transition-all mt-1">Guardar Perfil</button>
                             </form>
                         </div>
+                    </div>
+                </div>
+
+                <!-- ESTATÍSTICAS / RANKING DE PRODUTOS -->
+                <div id="panel-stats" class="panel-hidden space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+                        <div>
+                            <h2 class="text-base font-bold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-chart-simple text-amber-400"></i> Estatísticas da comunidade
+                            </h2>
+                            <p class="text-[11px] text-slate-500 mt-1">Reviews e estrelas agregadas por produto — ajuda a decidir o que comprar (ou evitar).</p>
+                        </div>
+                        <button type="button" onclick="refreshStatsPanel()" class="px-3 py-2 rounded-lg bg-surface-800 border border-white/[0.06] text-slate-300 text-xs font-semibold hover:border-cyan-500/30 hover:text-cyan-300 transition-all flex items-center gap-1.5">
+                            <i class="fa-solid fa-rotate"></i> Atualizar
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                        <div class="kpi p-3.5">
+                            <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Produtos avaliados</p>
+                            <p class="text-xl font-bold text-white mt-1 tabular-nums" id="statsProductsCount">0</p>
+                        </div>
+                        <div class="kpi p-3.5">
+                            <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Total reviews</p>
+                            <p class="text-xl font-bold text-white mt-1 tabular-nums" id="statsReviewsCount">0</p>
+                        </div>
+                        <div class="kpi p-3.5">
+                            <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Média global</p>
+                            <p class="text-xl font-bold text-amber-400 mt-1 tabular-nums" id="statsGlobalAvg">—</p>
+                        </div>
+                        <div class="kpi p-3.5">
+                            <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">A evitar (≤2.5)</p>
+                            <p class="text-xl font-bold text-red-400 mt-1 tabular-nums" id="statsAvoidCount">0</p>
+                        </div>
+                    </div>
+
+                    <div class="card p-4 space-y-3">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Filtros profissionais</p>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                            <div class="sm:col-span-2 lg:col-span-1">
+                                <label class="block text-[9px] text-slate-600 uppercase font-bold mb-1">Produto</label>
+                                <input type="search" id="statsSearch" placeholder="Nome / modelo..." class="w-full input-field p-2.5 text-sm text-white" oninput="renderStatsPanel()">
+                            </div>
+                            <div>
+                                <label class="block text-[9px] text-slate-600 uppercase font-bold mb-1">Categoria</label>
+                                <select id="statsCategory" class="w-full input-field p-2.5 text-sm text-white" onchange="renderStatsPanel()">
+                                    <option value="">Todas as categorias</option>
+                                    <option value="telemoveis">Telemóveis / Tablets</option>
+                                    <option value="portateis">Portáteis / PCs</option>
+                                    <option value="tvs">TVs / Monitores</option>
+                                    <option value="grandes_eletro">Grandes eletrodomésticos</option>
+                                    <option value="pequenos_eletro">Pequenos eletrodomésticos</option>
+                                    <option value="climatizacao">Climatização</option>
+                                    <option value="audio">Áudio / Wearables</option>
+                                    <option value="gaming">Gaming / Consolas</option>
+                                    <option value="redes">Redes / Câmaras</option>
+                                    <option value="outros">Outros</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[9px] text-slate-600 uppercase font-bold mb-1">País das reviews</label>
+                                <select id="statsCountry" class="w-full input-field p-2.5 text-sm text-white" onchange="onStatsCountryChange()">
+                                    <option value="">Todos os países</option>
+                                    <option value="PT">🇵🇹 Portugal</option>
+                                    <option value="ES">🇪🇸 Espanha</option>
+                                    <option value="FR">🇫🇷 França</option>
+                                    <option value="DE">🇩🇪 Alemanha</option>
+                                    <option value="US">🇺🇸 EUA</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[9px] text-slate-600 uppercase font-bold mb-1">Zona / Região</label>
+                                <select id="statsZone" class="w-full input-field p-2.5 text-sm text-white" onchange="renderStatsPanel()">
+                                    <option value="">Todas as zonas</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[9px] text-slate-600 uppercase font-bold mb-1">Min. estrelas</label>
+                                <select id="statsMinRating" class="w-full input-field p-2.5 text-sm text-white" onchange="renderStatsPanel()">
+                                    <option value="0">Qualquer</option>
+                                    <option value="1">≥ 1 ★</option>
+                                    <option value="2">≥ 2 ★</option>
+                                    <option value="3">≥ 3 ★</option>
+                                    <option value="4">≥ 4 ★</option>
+                                    <option value="4.5">≥ 4.5 ★</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[9px] text-slate-600 uppercase font-bold mb-1">Máx. estrelas</label>
+                                <select id="statsMaxRating" class="w-full input-field p-2.5 text-sm text-white" onchange="renderStatsPanel()">
+                                    <option value="5">Qualquer</option>
+                                    <option value="2.5">≤ 2.5 ★ (fracos)</option>
+                                    <option value="3">≤ 3 ★</option>
+                                    <option value="3.5">≤ 3.5 ★</option>
+                                    <option value="4">≤ 4 ★</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[9px] text-slate-600 uppercase font-bold mb-1">Min. nº reviews</label>
+                                <select id="statsMinCount" class="w-full input-field p-2.5 text-sm text-white" onchange="renderStatsPanel()">
+                                    <option value="1">≥ 1 review</option>
+                                    <option value="2">≥ 2 reviews</option>
+                                    <option value="3">≥ 3 reviews</option>
+                                    <option value="5">≥ 5 reviews</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[9px] text-slate-600 uppercase font-bold mb-1">Ordenação</label>
+                                <select id="statsSort" class="w-full input-field p-2.5 text-sm text-white" onchange="renderStatsPanel()">
+                                    <option value="best">Mais bem avaliados</option>
+                                    <option value="worst">Piores avaliações</option>
+                                    <option value="most">Mais votados (nº reviews)</option>
+                                    <option value="controversial">Mais controversos</option>
+                                    <option value="name">Nome A–Z</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            <button type="button" onclick="setStatsPreset('recommended')" class="px-2.5 py-1.5 rounded-lg text-[11px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/15">Top recomendados</button>
+                            <button type="button" onclick="setStatsPreset('avoid')" class="px-2.5 py-1.5 rounded-lg text-[11px] font-semibold bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/15">A evitar</button>
+                            <button type="button" onclick="setStatsPreset('popular')" class="px-2.5 py-1.5 rounded-lg text-[11px] font-semibold bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 hover:bg-indigo-500/15">Mais votados</button>
+                            <button type="button" onclick="setStatsPreset('all')" class="px-2.5 py-1.5 rounded-lg text-[11px] font-semibold bg-surface-800 text-slate-300 border border-white/[0.06] hover:bg-surface-700">Limpar</button>
+                        </div>
+                        <p class="text-[10px] text-slate-600">Categoria é detetada automaticamente pelo nome do produto. País/zona vêm do perfil de quem publicou a review.</p>
+                    </div>
+
+                    <div id="statsFeed" class="space-y-3">
+                        <div class="card p-10 text-center text-slate-500 text-sm">A carregar estatísticas...</div>
                     </div>
                 </div>
             </main>
@@ -550,6 +699,24 @@
                     <p class="text-[10px] text-slate-600 mt-1">Manual ou foto da etiqueta · IA extrai o SN</p>
                 </div>
                 <div class="p-3 rounded-xl bg-surface-950/60 border border-white/[0.05] col-span-2">
+                    <p class="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1.5">Categoria</p>
+                    <div class="flex gap-2">
+                        <select id="detailCategory" class="flex-1 input-field p-2 text-xs text-white">
+                            <option value="telemoveis">Telemóveis / Tablets</option>
+                            <option value="portateis">Portáteis / PCs</option>
+                            <option value="tvs">TVs / Monitores</option>
+                            <option value="grandes_eletro">Grandes eletrodomésticos</option>
+                            <option value="pequenos_eletro">Pequenos eletrodomésticos</option>
+                            <option value="climatizacao">Climatização</option>
+                            <option value="audio">Áudio / Wearables</option>
+                            <option value="gaming">Gaming / Consolas</option>
+                            <option value="redes">Redes / Câmaras</option>
+                            <option value="outros">Outros</option>
+                        </select>
+                        <button type="button" onclick="saveDetailCategory()" class="px-3 py-2 rounded-lg bg-cyan-500/15 border border-cyan-500/25 text-cyan-300 text-[11px] font-bold">✓</button>
+                    </div>
+                </div>
+                <div class="p-3 rounded-xl bg-surface-950/60 border border-white/[0.05] col-span-2">
                     <p class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Titular / Morada</p>
                     <p class="text-slate-200 mt-1 text-xs leading-relaxed whitespace-pre-line" id="detailOwner">—</p>
                 </div>
@@ -595,10 +762,36 @@
                 </div>
             </section>
 
-            <div class="flex gap-2 pt-1">
+            <div class="flex flex-wrap gap-2 pt-1">
                 <button id="detailInvoiceBtn" class="flex-1 px-3 py-2.5 bg-surface-800 hover:bg-surface-700 border border-white/[0.06] text-slate-300 rounded-xl text-xs font-semibold transition-all"><i class="fa-solid fa-file-invoice mr-1"></i> Ver Fatura</button>
                 <button id="detailRmaBtn" class="flex-1 px-3 py-2.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 rounded-xl text-xs font-bold transition-all"><i class="fa-solid fa-wrench mr-1"></i> RMA</button>
+                <button type="button" onclick="deleteCurrentProduct()" class="w-full px-3 py-2 rounded-xl bg-surface-900 border border-red-500/20 text-red-400 text-xs font-semibold hover:bg-red-500/10"><i class="fa-solid fa-trash-can mr-1"></i> Apagar garantia</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Auth Modal -->
+    <div id="authModal" class="fixed inset-0 modal-backdrop z-[70] hidden flex items-center justify-center p-4">
+        <div class="card modal-panel w-full max-w-sm p-6 border border-white/[0.1] space-y-4">
+            <div class="flex items-center justify-between">
+                <h3 class="text-base font-bold text-white" id="authModalTitle">Entrar no Vanty Care</h3>
+                <button type="button" onclick="closeAuthModal()" class="text-slate-500 hover:text-white p-1"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <p class="text-[11px] text-slate-500">Conta Supabase Auth — sincroniza garantias e faturas entre dispositivos.</p>
+            <div>
+                <label class="block text-[10px] text-slate-500 uppercase font-bold mb-1">Email</label>
+                <input type="email" id="authEmail" class="w-full input-field p-2.5 text-sm text-white" placeholder="o.teu@email.com" autocomplete="email">
+            </div>
+            <div>
+                <label class="block text-[10px] text-slate-500 uppercase font-bold mb-1">Password (mín. 6)</label>
+                <input type="password" id="authPassword" class="w-full input-field p-2.5 text-sm text-white" placeholder="••••••••" autocomplete="current-password">
+            </div>
+            <p id="authError" class="hidden text-xs text-red-400"></p>
+            <div class="flex gap-2">
+                <button type="button" onclick="authSignIn()" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-sm font-bold">Entrar</button>
+                <button type="button" onclick="authSignUp()" class="flex-1 py-2.5 rounded-xl bg-surface-800 border border-white/[0.08] text-slate-200 text-sm font-semibold hover:bg-surface-700">Criar conta</button>
+            </div>
+            <button type="button" id="authSignOutBtn" onclick="authSignOut()" class="hidden w-full py-2 rounded-xl text-xs text-red-400 font-semibold hover:bg-red-500/10">Terminar sessão</button>
         </div>
     </div>
 
@@ -624,10 +817,144 @@
         const SUPABASE_URL = 'https://dhhqrjopwvtxzgfyjdrc.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_Hplq0WcOKp6kM_tN7Kx8Rw_b4lLqYFd';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const STORAGE_BUCKET = 'faturas';
 
         let selectedReceipt = null, currentProducts = [], activeRmaProduct = null, ocrWorker = null, searchQuery = '';
         let detailProductIndex = null, selectedProductRating = 0, allProductReviews = [];
+        let currentUser = null;
         const reviewAuthorId = getOrCreateReviewAuthorId();
+
+        // ---------- AUTH ----------
+        async function initAuth() {
+            const { data: { session } } = await supabaseClient.auth.getSession();
+            currentUser = session?.user || null;
+            updateAuthUI();
+            supabaseClient.auth.onAuthStateChange((_event, session) => {
+                currentUser = session?.user || null;
+                updateAuthUI();
+                loadProducts();
+            });
+        }
+        function updateAuthUI() {
+            const banner = document.getElementById('authBanner');
+            const label = document.getElementById('authHeaderLabel');
+            const outBtn = document.getElementById('authSignOutBtn');
+            const title = document.getElementById('authModalTitle');
+            if (currentUser) {
+                if (banner) banner.classList.add('hidden');
+                if (label) label.innerText = 'Conta';
+                if (outBtn) outBtn.classList.remove('hidden');
+                if (title) title.innerText = 'A tua conta';
+            } else {
+                if (banner) banner.classList.remove('hidden');
+                if (label) label.innerText = 'Entrar';
+                if (outBtn) outBtn.classList.add('hidden');
+                if (title) title.innerText = 'Entrar no Vanty Care';
+            }
+        }
+        function openAuthModal() {
+            document.getElementById('authError').classList.add('hidden');
+            document.getElementById('authModal').classList.remove('hidden');
+        }
+        function closeAuthModal() {
+            document.getElementById('authModal').classList.add('hidden');
+        }
+        async function authSignUp() {
+            const email = document.getElementById('authEmail').value.trim();
+            const password = document.getElementById('authPassword').value;
+            const errEl = document.getElementById('authError');
+            errEl.classList.add('hidden');
+            if (!email || password.length < 6) {
+                errEl.innerText = 'Email e password (mín. 6 caracteres) obrigatórios.';
+                errEl.classList.remove('hidden');
+                return;
+            }
+            const { data, error } = await supabaseClient.auth.signUp({ email, password });
+            if (error) {
+                errEl.innerText = error.message;
+                errEl.classList.remove('hidden');
+                return;
+            }
+            if (data.user && !data.session) {
+                showToast('Conta criada. Confirma o email se o projeto exigir verificação, depois entra.', 'Quase lá', 'info');
+            } else {
+                showToast('Conta criada e sessão iniciada.', 'Bem-vindo', 'success');
+            }
+            closeAuthModal();
+        }
+        async function authSignIn() {
+            const email = document.getElementById('authEmail').value.trim();
+            const password = document.getElementById('authPassword').value;
+            const errEl = document.getElementById('authError');
+            errEl.classList.add('hidden');
+            const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+            if (error) {
+                errEl.innerText = error.message;
+                errEl.classList.remove('hidden');
+                return;
+            }
+            showToast('Sessão iniciada. A sincronizar…', 'Login', 'success');
+            closeAuthModal();
+        }
+        async function authSignOut() {
+            await supabaseClient.auth.signOut();
+            showToast('Sessão terminada. Dados locais mantêm-se neste browser.', 'Logout', 'info');
+            closeAuthModal();
+        }
+
+        async function uploadInvoiceToStorage(productId, receipt) {
+            if (!currentUser || !receipt || !receipt.data) return null;
+            try {
+                const bin = dataUrlToUint8Array(receipt.data);
+                const safeName = (receipt.name || 'fatura').replace(/[^\w.\-]+/g, '_').slice(0, 80);
+                const path = `${currentUser.id}/${productId}/${Date.now()}_${safeName}`;
+                const { error } = await supabaseClient.storage.from(STORAGE_BUCKET).upload(path, bin, {
+                    contentType: receipt.type || 'application/octet-stream',
+                    upsert: true
+                });
+                if (error) throw error;
+                return path;
+            } catch (err) {
+                console.warn('Upload fatura Storage:', err.message || err);
+                return null;
+            }
+        }
+        function dataUrlToUint8Array(dataUrl) {
+            const base64 = dataUrl.split(',')[1] || '';
+            const binary = atob(base64);
+            const len = binary.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) bytes[i] = binary.charCodeAt(i);
+            return bytes;
+        }
+
+        function getRmaStore() {
+            try { return JSON.parse(localStorage.getItem('vanty_rma_local') || '[]'); } catch { return []; }
+        }
+        function saveRmaLocal(entry) {
+            const list = getRmaStore();
+            list.unshift(entry);
+            localStorage.setItem('vanty_rma_local', JSON.stringify(list.slice(0, 100)));
+        }
+        function renderRmaFeed() {
+            const feed = document.getElementById('rmaFeed');
+            if (!feed) return;
+            const list = getRmaStore();
+            if (!list.length) {
+                feed.innerHTML = `<div class="card p-8 text-center text-slate-500 text-sm">Sem pedidos RMA ainda.<p class="mt-2 text-xs">Abre em Garantias → Reportar Avaria.</p></div>`;
+                return;
+            }
+            feed.innerHTML = list.map(r => `
+                <div class="card p-4 space-y-2">
+                    <div class="flex justify-between gap-2">
+                        <h3 class="font-bold text-white text-sm">${escapeHtml(r.produto_nome || 'Produto')}</h3>
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">${escapeHtml(r.estado || 'aberto')}</span>
+                    </div>
+                    <p class="text-[11px] text-slate-500">${escapeHtml(r.loja || '')} · ${new Date(r.created_at).toLocaleDateString('pt-PT')}</p>
+                    <p class="text-xs text-slate-400 leading-relaxed">${escapeHtml(r.descricao || '')}</p>
+                </div>
+            `).join('');
+        }
 
         function showToast(message, title = 'Aviso', type = 'info') {
             const modal = document.getElementById('toastModal');
@@ -768,9 +1095,16 @@
             btn.disabled = true;
             btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> A publicar...';
             const record = {
-                product_key: normalizeProductKey(prod.nome_produto), product_name: prod.nome_produto,
-                rating: selectedProductRating, description, reviewer_name: userProfile.name || 'Utilizador Vanty',
-                reviewer_id: reviewAuthorId, updated_at: new Date().toISOString()
+                product_key: normalizeProductKey(prod.nome_produto),
+                product_name: prod.nome_produto,
+                rating: selectedProductRating,
+                description,
+                reviewer_name: userProfile.name || 'Utilizador Vanty',
+                reviewer_id: reviewAuthorId,
+                country: userProfile.country || null,
+                zone: userProfile.zone || null,
+                category: detectCategory(prod.nome_produto),
+                updated_at: new Date().toISOString()
             };
             let shared = false;
             try {
@@ -780,8 +1114,23 @@
                 const local = getLocalReviews().filter(r => !(r.product_key === record.product_key && r.reviewer_id === reviewAuthorId));
                 localStorage.setItem('vanty_product_reviews_local', JSON.stringify(local));
             } catch (err) {
-                console.warn('Publicação da avaliação falhou:', err.message || err);
-                saveLocalReview(record);
+                // Se colunas country/zone/category ainda não existem no Supabase, tenta sem elas
+                console.warn('Publicação completa falhou, a tentar campos base:', err.message || err);
+                try {
+                    const base = {
+                        product_key: record.product_key, product_name: record.product_name,
+                        rating: record.rating, description: record.description,
+                        reviewer_name: record.reviewer_name, reviewer_id: record.reviewer_id,
+                        updated_at: record.updated_at
+                    };
+                    const { error: e2 } = await supabaseClient.from('product_reviews').upsert([base], { onConflict: 'product_key,reviewer_id' });
+                    if (e2) throw e2;
+                    shared = true;
+                    saveLocalReview(record); // local fica com meta completa
+                } catch (err2) {
+                    console.warn('Publicação da avaliação falhou:', err2.message || err2);
+                    saveLocalReview(record);
+                }
             }
             await loadAllProductReviews();
             renderProductReviews(prod);
@@ -794,18 +1143,78 @@
         }
 
         let userProfile = JSON.parse(localStorage.getItem('vanty_profile')) || {
-            name: "João Silva", nif: "245 890 123", email: "joao.silva@email.com", country: "PT", address: ""
+            name: "João Silva", nif: "245 890 123", email: "joao.silva@email.com", country: "PT", address: "", zone: ""
         };
         if (userProfile.address === undefined) userProfile.address = "";
+        if (userProfile.zone === undefined) userProfile.zone = "";
         const countryLabels = { "PT": "🇵🇹 Portugal · 3 Anos", "ES": "🇪🇸 Espanha · 3 Anos", "FR": "🇫🇷 França · 2 Anos", "DE": "🇩🇪 Alemanha · 2 Anos", "US": "🇺🇸 EUA · 1 Ano" };
         const countryShort = { "PT": "🇵🇹 Portugal", "ES": "🇪🇸 Espanha", "FR": "🇫🇷 França", "DE": "🇩🇪 Alemanha", "US": "🇺🇸 EUA" };
         const warrantyYears = { PT: 3, ES: 3, FR: 2, DE: 2, US: 1 };
+
+        const REGION_MAP = {
+            PT: ['Norte', 'Centro', 'Lisboa e Vale do Tejo', 'Alentejo', 'Algarve', 'Açores', 'Madeira'],
+            ES: ['Madrid', 'Cataluña', 'Andalucía', 'Valencia', 'Galicia', 'País Vasco', 'Otras'],
+            FR: ['Île-de-France', 'Auvergne-Rhône-Alpes', 'PACA', 'Occitanie', 'Nouvelle-Aquitaine', 'Autres'],
+            DE: ['Bayern', 'Berlin', 'NRW', 'Baden-Württemberg', 'Hessen', 'Andere'],
+            US: ['West', 'Midwest', 'South', 'Northeast']
+        };
+
+        const CATEGORY_DEFS = [
+            // Ordem importa: mais específicos primeiro
+            { id: 'climatizacao', label: 'Climatização', re: /cl[ií]?[nm]?at|clima.?tiz|clinatiz|ar[\s.\-]*cond|aquecedor|ventilador|desumidific|bomba[\s.\-]*de[\s.\-]*calor|split\b|fan\s*coil|delba|orlando/i },
+            { id: 'redes', label: 'Redes / Câmaras', re: /router|modem|c[aâ]mar[a]|camera|tapo|tp[\s.\-]*link|wifi|wi[\s.\-]*fi|nas\b|access\s*point|repetidor/i },
+            { id: 'telemoveis', label: 'Telemóveis / Tablets', re: /telem[oó]vel|smartphone|iphone|galaxy|pixel|xiaomi|redmi|huawei|honor|oppo|realme|oneplus|tablet|ipad|samsung\s*[asg]\d/i },
+            { id: 'portateis', label: 'Portáteis / PCs', re: /\bport\.?\b|port[aá]til|laptop|notebook|macbook|surface|thinkpad|ideapad|inspiron|pavilion|\bdell\b|\bhp\b|lenovo|acer|asus|msi\b|\bpc\b|desktop|mini[\s.\-]*pc|chromebook|coolbox|base\s*port/i },
+            { id: 'tvs', label: 'TVs / Monitores', re: /\btv\b|televis|oled|qled|smart[\s.\-]*tv|monitor|ecr[aã]/i },
+            { id: 'grandes_eletro', label: 'Grandes eletrodomésticos', re: /m[aá]quina[\s.\-]*de[\s.\-]*roupa|lavadora|m[aá]quina[\s.\-]*de[\s.\-]*lavar|secadora|frigor|congelador|lava[\s.\-]*loi|dishwasher|forno|placa[\s.\-]*de[\s.\-]*induc|maquina\s*roupa/i },
+            { id: 'pequenos_eletro', label: 'Pequenos eletrodomésticos', re: /aspirador|microondas|ferro\b|torradeira|cafeteira|liquidificador|robot[\s.\-]*de[\s.\-]*cozinha|air[\s.\-]*fryer|varinha|batedeira/i },
+            { id: 'audio', label: 'Áudio / Wearables', re: /auscultador|headphones|earbuds|airpods|soundbar|coluna|speaker|smartwatch|\bwatch\b|pulseira|jbl|bose/i },
+            { id: 'gaming', label: 'Gaming / Consolas', re: /playstation|xbox|nintendo|switch|consola|joystick|gaming|gpu|placa\s*gr[aá]fica|ps[45]\b/i }
+        ];
+
+        function detectCategory(name) {
+            const n = String(name || '')
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // remove acentos
+                .replace(/\s+/g, ' ')
+                .trim();
+            if (!n) return 'outros';
+            for (const c of CATEGORY_DEFS) {
+                if (c.re.test(n)) return c.id;
+            }
+            // Fallback por marcas comuns em talões PT
+            if (/\b(delba|orlando|beko|balay|siemens|bosch|whirlpool)\b/i.test(n) && /clima|ar\b/i.test(n)) return 'climatizacao';
+            return 'outros';
+        }
+        function categoryLabel(id) {
+            const c = CATEGORY_DEFS.find(x => x.id === id);
+            return c ? c.label : (id === 'outros' ? 'Outros' : id);
+        }
+
+        function populateZoneSelect(selectId, country, selected) {
+            const el = document.getElementById(selectId);
+            if (!el) return;
+            const zones = REGION_MAP[country] || [];
+            el.innerHTML = `<option value="">${selectId === 'statsZone' ? 'Todas as zonas' : 'Selecionar zona'}</option>` +
+                zones.map(z => `<option value="${z}">${z}</option>`).join('');
+            if (selected && zones.includes(selected)) el.value = selected;
+        }
+
+        function onStatsCountryChange() {
+            const c = document.getElementById('statsCountry').value;
+            populateZoneSelect('statsZone', c || 'PT', '');
+            if (!c) {
+                document.getElementById('statsZone').innerHTML = '<option value="">Todas as zonas</option>';
+            }
+            renderStatsPanel();
+        }
 
         function renderProfile() {
             document.getElementById('viewName').innerText = userProfile.name;
             document.getElementById('viewNif').innerText = userProfile.nif;
             document.getElementById('viewEmail').innerText = userProfile.email;
             document.getElementById('viewAddress').innerText = userProfile.address || '—';
+            const vz = document.getElementById('viewZone');
+            if (vz) vz.innerText = userProfile.zone || '—';
             document.getElementById('viewCountry').innerText = countryLabels[userProfile.country] || userProfile.country;
             document.getElementById('dashName').innerText = userProfile.name;
             document.getElementById('dashNif').innerText = userProfile.nif;
@@ -829,6 +1238,7 @@
                 document.getElementById('inputNif').value = userProfile.nif;
                 document.getElementById('inputEmail').value = userProfile.email;
                 document.getElementById('inputCountry').value = userProfile.country;
+                populateZoneSelect('inputZone', userProfile.country, userProfile.zone || '');
                 document.getElementById('inputAddress').value = userProfile.address || '';
                 view.classList.add('hidden'); edit.classList.remove('hidden'); btnText.innerText = 'Cancelar';
             } else {
@@ -843,6 +1253,7 @@
                 nif: document.getElementById('inputNif').value.trim(),
                 email: document.getElementById('inputEmail').value.trim(),
                 country: document.getElementById('inputCountry').value,
+                zone: document.getElementById('inputZone').value || '',
                 address: document.getElementById('inputAddress').value.trim()
             };
             localStorage.setItem('vanty_profile', JSON.stringify(userProfile));
@@ -850,7 +1261,7 @@
         }
 
         function switchPanel(id) {
-            ['dashboard', 'garantias', 'registar', 'rma', 'perfil'].forEach(p => {
+            ['dashboard', 'garantias', 'registar', 'rma', 'perfil', 'stats'].forEach(p => {
                 const el = document.getElementById('panel-' + p);
                 if (el) el.classList.toggle('panel-hidden', p !== id);
             });
@@ -859,6 +1270,181 @@
             });
             document.getElementById('sidebar').classList.remove('open');
             document.getElementById('sidebarOverlay').classList.remove('show');
+            if (id === 'stats') refreshStatsPanel();
+            if (id === 'rma') renderRmaFeed();
+        }
+
+        /** Agrega reviews por product_key → ranking comunitário (com filtros geo) */
+        function buildProductStats(geoFilter) {
+            const countryF = geoFilter && geoFilter.country;
+            const zoneF = geoFilter && geoFilter.zone;
+            const map = new Map();
+            allProductReviews.forEach(r => {
+                if (countryF && r.country && r.country !== countryF) return;
+                if (countryF && !r.country) return; // só reviews com país quando filtramos país
+                if (zoneF && r.zone && r.zone !== zoneF) return;
+                if (zoneF && !r.zone) return;
+                const key = r.product_key || normalizeProductKey(r.product_name);
+                if (!key) return;
+                if (!map.has(key)) {
+                    map.set(key, { key, name: r.product_name || key, ratings: [], reviews: [] });
+                }
+                const entry = map.get(key);
+                const rating = Number(r.rating) || 0;
+                if (rating >= 1 && rating <= 5) entry.ratings.push(rating);
+                entry.reviews.push(r);
+                if (r.product_name && entry.name.length < String(r.product_name).length) entry.name = r.product_name;
+            });
+            return [...map.values()].map(e => {
+                const count = e.ratings.length;
+                const average = count ? e.ratings.reduce((a, b) => a + b, 0) / count : 0;
+                const variance = count > 1
+                    ? e.ratings.reduce((s, x) => s + Math.pow(x - average, 2), 0) / count
+                    : 0;
+                e.reviews.sort((a, b) => new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0));
+                // Sempre re-detetar pelo nome (mais fiável que category antiga guardada)
+                const cat = detectCategory(e.name);
+                return {
+                    key: e.key, name: e.name, count, average, variance, category: cat,
+                    reviews: e.reviews,
+                    avoid: count >= 2 && average <= 2.5,
+                    recommended: count >= 2 && average >= 4
+                };
+            });
+        }
+
+        async function refreshStatsPanel() {
+            await loadAllProductReviews();
+            renderStatsPanel();
+        }
+
+        function setStatsPreset(preset) {
+            const minEl = document.getElementById('statsMinRating');
+            const maxEl = document.getElementById('statsMaxRating');
+            const sortEl = document.getElementById('statsSort');
+            const searchEl = document.getElementById('statsSearch');
+            const minCount = document.getElementById('statsMinCount');
+            const catEl = document.getElementById('statsCategory');
+            if (preset === 'recommended') {
+                minEl.value = '4'; maxEl.value = '5'; sortEl.value = 'best';
+                if (minCount) minCount.value = '2';
+            } else if (preset === 'avoid') {
+                minEl.value = '0'; maxEl.value = '2.5'; sortEl.value = 'worst';
+                if (minCount) minCount.value = '2';
+            } else if (preset === 'popular') {
+                minEl.value = '0'; maxEl.value = '5'; sortEl.value = 'most';
+                if (minCount) minCount.value = '3';
+            } else {
+                minEl.value = '0'; maxEl.value = '5'; sortEl.value = 'best';
+                if (minCount) minCount.value = '1';
+                if (searchEl) searchEl.value = '';
+                if (catEl) catEl.value = '';
+                const sc = document.getElementById('statsCountry');
+                const sz = document.getElementById('statsZone');
+                if (sc) sc.value = '';
+                if (sz) sz.innerHTML = '<option value="">Todas as zonas</option>';
+            }
+            renderStatsPanel();
+        }
+
+        function renderStatsPanel() {
+            const countryF = document.getElementById('statsCountry')?.value || '';
+            const zoneF = document.getElementById('statsZone')?.value || '';
+            const stats = buildProductStats({ country: countryF || null, zone: zoneF || null });
+            const search = (document.getElementById('statsSearch')?.value || '').toLowerCase().trim();
+            const minR = parseFloat(document.getElementById('statsMinRating')?.value || '0');
+            const maxR = parseFloat(document.getElementById('statsMaxRating')?.value || '5');
+            const minCount = parseInt(document.getElementById('statsMinCount')?.value || '1', 10);
+            const categoryF = document.getElementById('statsCategory')?.value || '';
+            const sort = document.getElementById('statsSort')?.value || 'best';
+
+            let filtered = stats.filter(s => {
+                if (search && !s.name.toLowerCase().includes(search) && !s.key.includes(search)) return false;
+                if (categoryF && s.category !== categoryF) return false;
+                if (s.count < minCount) return false;
+                if (s.average < minR) return false;
+                if (s.average > maxR) return false;
+                return true;
+            });
+
+            if (sort === 'best') filtered.sort((a, b) => b.average - a.average || b.count - a.count);
+            else if (sort === 'worst') filtered.sort((a, b) => a.average - b.average || b.count - a.count);
+            else if (sort === 'most') filtered.sort((a, b) => b.count - a.count || b.average - a.average);
+            else if (sort === 'controversial') filtered.sort((a, b) => b.variance - a.variance || b.count - a.count);
+            else filtered.sort((a, b) => a.name.localeCompare(b.name, 'pt'));
+
+            const totalReviews = stats.reduce((n, s) => n + s.count, 0);
+            const globalAvg = totalReviews
+                ? stats.reduce((sum, s) => sum + s.average * s.count, 0) / totalReviews
+                : 0;
+            const avoidN = stats.filter(s => s.avoid).length;
+
+            document.getElementById('statsProductsCount').innerText = stats.length;
+            document.getElementById('statsReviewsCount').innerText = totalReviews;
+            document.getElementById('statsGlobalAvg').innerText = totalReviews ? globalAvg.toFixed(1) + ' ★' : '—';
+            document.getElementById('statsAvoidCount').innerText = avoidN;
+
+            const feed = document.getElementById('statsFeed');
+            if (!filtered.length) {
+                feed.innerHTML = `<div class="card p-10 text-center">
+                    <div class="w-12 h-12 mx-auto rounded-xl bg-surface-800 text-slate-600 flex items-center justify-center text-xl mb-3"><i class="fa-solid fa-filter"></i></div>
+                    <p class="font-semibold text-slate-300">Nenhum produto com estes filtros</p>
+                    <p class="text-sm text-slate-500 mt-1">Alarga categoria/país/zona ou publica mais avaliações.</p>
+                </div>`;
+                return;
+            }
+
+            feed.innerHTML = filtered.map((s, idx) => {
+                const badge = s.avoid
+                    ? '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500/10 text-red-400 border border-red-500/20"><i class="fa-solid fa-ban text-[8px]"></i> A evitar</span>'
+                    : s.recommended
+                        ? '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"><i class="fa-solid fa-thumbs-up text-[8px]"></i> Recomendado</span>'
+                        : '';
+                const catBadge = `<span class="inline-flex px-2 py-0.5 rounded-full text-[9px] font-semibold bg-surface-800 text-slate-400 border border-white/[0.06]">${escapeHtml(categoryLabel(s.category))}</span>`;
+                const preview = s.reviews.slice(0, 2).map(r => {
+                    const geo = [r.country ? (countryShort[r.country] || r.country) : null, r.zone].filter(Boolean).join(' · ');
+                    return `
+                    <div class="p-2 rounded-lg bg-surface-950/50 border border-white/[0.04]">
+                        <div class="flex justify-between gap-2 text-[10px]">
+                            <span class="text-slate-400 font-medium truncate">${escapeHtml(r.reviewer_name || 'Utilizador')}${geo ? ` · <span class="text-slate-600">${escapeHtml(geo)}</span>` : ''}</span>
+                            <span class="text-amber-400 shrink-0">${visualStars(r.rating)}</span>
+                        </div>
+                        <p class="text-[11px] text-slate-500 mt-1 line-clamp-2 leading-snug">${escapeHtml((r.description || '').slice(0, 160))}${(r.description || '').length > 160 ? '…' : ''}</p>
+                    </div>`;
+                }).join('');
+                const expandId = 'stats-exp-' + idx;
+                return `
+                <div class="card p-4 space-y-3">
+                    <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+                        <div class="min-w-0">
+                            <div class="flex flex-wrap items-center gap-2">
+                                <h3 class="font-bold text-white text-sm">${escapeHtml(s.name)}</h3>
+                                ${catBadge}
+                                ${badge}
+                            </div>
+                            <p class="text-amber-400 text-sm mt-1 tracking-wide">${visualStars(s.average)}
+                                <span class="text-slate-300 font-bold tabular-nums tracking-normal ml-1">${s.average.toFixed(1)}</span>
+                                <span class="text-slate-500 text-xs tracking-normal">· ${s.count} review${s.count === 1 ? '' : 's'}</span>
+                            </p>
+                        </div>
+                        <button type="button" onclick="document.getElementById('${expandId}').classList.toggle('hidden')" class="text-[11px] text-cyan-400 hover:text-cyan-300 font-semibold shrink-0">
+                            Ver reviews <i class="fa-solid fa-chevron-down text-[9px]"></i>
+                        </button>
+                    </div>
+                    <div id="${expandId}" class="hidden space-y-2 border-t border-white/[0.05] pt-3">
+                        ${s.reviews.map(r => {
+                            const date = new Date(r.updated_at || r.created_at || Date.now()).toLocaleDateString('pt-PT');
+                            const geo = [r.country ? (countryShort[r.country] || r.country) : null, r.zone].filter(Boolean).join(' · ');
+                            return `<article class="p-2.5 rounded-lg bg-surface-950/60 border border-white/[0.05]">
+                                <div class="flex justify-between gap-2"><span class="text-[11px] font-semibold text-slate-300">${escapeHtml(r.reviewer_name || 'Utilizador')}</span><span class="text-amber-400 text-[10px] tracking-wide">${visualStars(r.rating)}</span></div>
+                                <p class="text-[11px] text-slate-400 leading-relaxed mt-1 whitespace-pre-line">${escapeHtml(r.description || '')}</p>
+                                <p class="text-[9px] text-slate-600 mt-1">${date}${geo ? ' · ' + escapeHtml(geo) : ''}${r._local ? ' · local' : ''}</p>
+                            </article>`;
+                        }).join('')}
+                    </div>
+                    ${preview ? `<div class="grid grid-cols-1 sm:grid-cols-2 gap-2">${preview}</div>` : ''}
+                </div>`;
+            }).join('');
         }
 
         function toggleSidebar() {
@@ -1461,9 +2047,11 @@
             document.getElementById('detailSerialInput').value = prod.numero_serie || '';
             document.getElementById('detailOwner').innerText =
                 `${userProfile.name} · NIF ${userProfile.nif}\n${userProfile.address || 'Morada não definida (edite no Perfil)'}`;
+            const catEl = document.getElementById('detailCategory');
+            if (catEl) catEl.value = prod.categoria || detectCategory(prod.nome_produto);
             const invBtn = document.getElementById('detailInvoiceBtn');
             const receipt = getInvoice(prod.id);
-            if (receipt) {
+            if (receipt || prod.fatura_path || prod.fatura_url) {
                 invBtn.disabled = false;
                 invBtn.onclick = () => { closeProductDetail(); viewInvoice(prod.id); };
                 invBtn.classList.remove('opacity-40');
@@ -1479,6 +2067,43 @@
         function closeProductDetail() {
             document.getElementById('productDetailModal').classList.add('hidden');
             detailProductIndex = null;
+        }
+
+        async function saveDetailCategory() {
+            if (detailProductIndex == null) return;
+            const prod = currentProducts[detailProductIndex];
+            if (!prod) return;
+            const cat = document.getElementById('detailCategory').value;
+            prod.categoria = cat;
+            if (prod._local || String(prod.id).startsWith('local_')) {
+                const list = getLocalProducts();
+                const i = list.findIndex(p => String(p.id) === String(prod.id));
+                if (i >= 0) { list[i].categoria = cat; localStorage.setItem('vanty_products_local', JSON.stringify(list)); }
+            } else {
+                try { await supabaseClient.from('produtos_garantias').update({ categoria: cat }).eq('id', prod.id); }
+                catch (err) { console.warn(err); }
+            }
+            showToast('Categoria: ' + categoryLabel(cat), 'Atualizado', 'success');
+            renderProductLists();
+        }
+
+        async function deleteCurrentProduct() {
+            if (detailProductIndex == null) return;
+            const prod = currentProducts[detailProductIndex];
+            if (!prod) return;
+            if (!confirm('Apagar esta garantia?')) return;
+            if (prod._local || String(prod.id).startsWith('local_')) {
+                localStorage.setItem('vanty_products_local', JSON.stringify(getLocalProducts().filter(p => String(p.id) !== String(prod.id))));
+            } else {
+                try { await supabaseClient.from('produtos_garantias').delete().eq('id', prod.id); }
+                catch (err) { showToast(err.message || 'Erro ao apagar', 'Erro', 'error'); return; }
+            }
+            const inv = getInvoicesStore();
+            delete inv[prod.id];
+            localStorage.setItem('vanty_invoices_v2', JSON.stringify(inv));
+            closeProductDetail();
+            showToast('Garantia apagada.', 'OK', 'success');
+            await loadProducts();
         }
 
         async function saveDetailSerial() {
@@ -1656,6 +2281,27 @@
             document.getElementById('stat-invoices').innerText = totalInvoices;
             document.getElementById('navBadgeCount').innerText = currentProducts.length;
             renderProductLists();
+            updateExpiryAlerts();
+            renderRmaFeed();
+        }
+
+        function updateExpiryAlerts() {
+            const box = document.getElementById('expiryAlert');
+            const list = document.getElementById('expiryAlertList');
+            if (!box || !list) return;
+            const now = new Date();
+            const soon = currentProducts.map(p => {
+                if (!p.fim_garantia) return null;
+                const exp = new Date(p.fim_garantia);
+                const days = Math.ceil((exp - now) / 86400000);
+                if (days < 0 || days > 90) return null;
+                return { name: p.nome_produto, days, exp };
+            }).filter(Boolean).sort((a, b) => a.days - b.days);
+            if (!soon.length) { box.classList.add('hidden'); list.innerHTML = ''; return; }
+            box.classList.remove('hidden');
+            list.innerHTML = soon.slice(0, 5).map(s =>
+                `<div class="flex justify-between gap-2"><span class="truncate text-slate-300">${escapeHtml(s.name)}</span><span class="text-red-400 font-semibold shrink-0">${s.days}d</span></div>`
+            ).join('');
         }
 
         document.getElementById('productForm').addEventListener('submit', async function(e) {
@@ -1685,6 +2331,7 @@
 
             let usedLocal = false;
             let savedCount = 0;
+            let cloudOk = 0;
 
             for (let i = 0; i < selectedItems.length; i++) {
                 const it = selectedItems[i];
@@ -1695,16 +2342,17 @@
                     data_compra: dateStr,
                     fim_garantia: fim,
                     preco_com_iva: it.price,
-                    // SN só no 1.º artigo se o user preencheu (restantes ficam vazios)
-                    numero_serie: i === 0 ? serial : null
+                    numero_serie: i === 0 ? serial : null,
+                    categoria: detectCategory(it.name)
                 };
                 if (itemIva != null) record.taxa_iva = itemIva;
+                if (currentUser) record.user_id = currentUser.id;
 
                 let productId = null;
                 try {
                     const { data, error } = await supabaseClient.from('produtos_garantias').insert([record]).select();
                     if (error) throw error;
-                    if (data && data[0]) productId = data[0].id;
+                    if (data && data[0]) { productId = data[0].id; cloudOk++; }
                 } catch (err) {
                     console.warn('Supabase insert falhou, local:', err.message || err);
                     const localProd = saveLocalProduct(record);
@@ -1713,6 +2361,14 @@
                 }
                 if (productId && selectedReceipt) {
                     saveInvoiceToStore(productId, selectedReceipt);
+                    if (currentUser) {
+                        const path = await uploadInvoiceToStorage(productId, selectedReceipt);
+                        if (path && productId && !String(productId).startsWith('local_')) {
+                            try {
+                                await supabaseClient.from('produtos_garantias').update({ fatura_path: path }).eq('id', productId);
+                            } catch (_) {}
+                        }
+                    }
                 }
                 savedCount++;
             }
@@ -1720,10 +2376,12 @@
             btn.disabled = false;
             btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar Garantia & Fatura';
 
-            if (usedLocal) {
-                showToast(`${savedCount} garantia(s) guardada(s) neste browser.\n\nSupabase RLS bloqueou o cloud.\nPermita INSERT anon em produtos_garantias para sincronizar.`, 'Guardado localmente', 'warn');
+            if (usedLocal && !cloudOk) {
+                showToast(`${savedCount} garantia(s) locais.\nEntra na conta e corre o SQL P0 no Supabase para cloud.`, 'Guardado localmente', 'warn');
+            } else if (usedLocal) {
+                showToast(`${cloudOk} na cloud · ${savedCount - cloudOk} local.`, 'Parcial', 'warn');
             } else {
-                showToast(`${savedCount} garantia(s) registada(s) com sucesso.`, 'Sucesso', 'success');
+                showToast(`${savedCount} garantia(s) na cloud` + (currentUser ? ' + fatura no Storage' : '') + '.', 'Sucesso', 'success');
             }
 
             this.reset();
@@ -1762,9 +2420,29 @@
             const storeSlug = (activeRmaProduct.loja || 'loja').toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '');
             const subject = encodeURIComponent(`[RMA] ${activeRmaProduct.nome_produto} — SN: ${activeRmaProduct.numero_serie || 'N/A'}`);
             const body = encodeURIComponent(`Exmos. Senhores do Apoio ao Cliente (${activeRmaProduct.loja}),\n\nVenho solicitar a reparação / acionamento de garantia:\n\n• Produto: ${activeRmaProduct.nome_produto}\n• Loja: ${activeRmaProduct.loja}\n• Data de Compra: ${activeRmaProduct.data_compra}\n• Nº de Série: ${activeRmaProduct.numero_serie || 'N/A'}\n• Titular / NIF: ${userProfile.name} (NIF: ${userProfile.nif})\n• Morada (para assistência ao domicílio): ${userProfile.address || 'A indicar'}\n• Email: ${userProfile.email}\n\nDescrição do Defeito:\n${desc}\n\n[PROVA DE COMPRA]: ${receipt ? receipt.name + ' — guardada no Vanty Care' : 'A enviar'}\n\nCom os melhores cumprimentos,\n${userProfile.name}\n${userProfile.email}\n${userProfile.address || ''}`);
+            saveRmaLocal({
+                id: 'rma_' + Date.now(),
+                produto_id: activeRmaProduct.id,
+                produto_nome: activeRmaProduct.nome_produto,
+                loja: activeRmaProduct.loja,
+                descricao: desc,
+                estado: 'aberto',
+                created_at: new Date().toISOString()
+            });
+            if (currentUser) {
+                supabaseClient.from('rma_pedidos').insert([{
+                    user_id: currentUser.id,
+                    produto_id: String(activeRmaProduct.id).startsWith('local_') ? null : activeRmaProduct.id,
+                    produto_nome: activeRmaProduct.nome_produto,
+                    loja: activeRmaProduct.loja,
+                    descricao: desc,
+                    estado: 'aberto'
+                }]).then(({ error }) => { if (error) console.warn('RMA cloud:', error.message); });
+            }
             window.location.href = `mailto:suporte@${storeSlug}.pt?subject=${subject}&body=${body}`;
-            showToast('A abrir o email com o pedido de reparação.\nA fatura permanece no sistema como prova de compra.', 'RMA enviado', 'success');
+            showToast('RMA registado no sistema.\nA abrir o email…', 'RMA', 'success');
             closeRmaModal();
+            renderRmaFeed();
         }
 
         function viewInvoice(productId) {
@@ -1794,8 +2472,9 @@
         document.getElementById('productDetailModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeProductDetail(); });
 
         renderProfile();
-        loadProducts();
+        initAuth().then(() => loadProducts());
         switchPanel('dashboard');
+        document.getElementById('authModal')?.addEventListener('click', e => { if (e.target === e.currentTarget) closeAuthModal(); });
     </script>
 </body>
 </html>
