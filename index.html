@@ -31,7 +31,7 @@
                     <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
                     Supabase Conectado
                 </span>
-                <span class="text-xs bg-sky-500/10 text-sky-400 border border-sky-500/30 px-3 py-1 rounded-full font-mono font-semibold">v0.2 Live</span>
+                <span class="text-xs bg-sky-500/10 text-sky-400 border border-sky-500/30 px-3 py-1 rounded-full font-mono font-semibold">v0.3 Live</span>
             </div>
         </div>
     </header>
@@ -60,11 +60,11 @@
             </div>
             <div class="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl flex items-center gap-4">
                 <div class="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center text-xl">
-                    <i class="fa-solid fa-clock-rotate-left"></i>
+                    <i class="fa-solid fa-file-invoice"></i>
                 </div>
                 <div>
-                    <p class="text-xs text-slate-400 uppercase font-semibold tracking-wider">A Expirar Brevemente</p>
-                    <p class="text-2xl font-bold text-white mt-0.5" id="stat-expiring">0</p>
+                    <p class="text-xs text-slate-400 uppercase font-semibold tracking-wider">Faturas Guardadas</p>
+                    <p class="text-2xl font-bold text-white mt-0.5" id="stat-invoices">0</p>
                 </div>
             </div>
             <div class="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl flex items-center gap-4">
@@ -115,7 +115,7 @@
                         </div>
                     </div>
 
-                    <!-- Profile Edit Mode (Hidden by default) -->
+                    <!-- Profile Edit Mode -->
                     <form id="profileEditForm" onsubmit="saveProfile(event)" class="space-y-3 hidden pt-2">
                         <div>
                             <label class="block text-[11px] text-slate-400 mb-1">Nome Completo</label>
@@ -182,8 +182,25 @@
                             <input type="text" id="prodSerial" placeholder="Ex: SN-9876543210" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all">
                         </div>
 
+                        <!-- Upload da Fatura / Prova de Compra -->
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Anexar Fatura / Talão (Prova de Compra)</label>
+                            <div class="relative border-2 border-dashed border-slate-800 hover:border-sky-500/50 bg-slate-950/60 rounded-xl p-4 text-center cursor-pointer transition-all group">
+                                <input type="file" id="prodReceipt" accept="image/*,.pdf" onchange="handleFileSelect(event)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                                <div id="uploadPlaceholder" class="space-y-1">
+                                    <i class="fa-solid fa-cloud-arrow-up text-xl text-slate-500 group-hover:text-sky-400 transition-colors"></i>
+                                    <p class="text-xs text-slate-300 font-medium">Anexar Talão / Fatura</p>
+                                    <p class="text-[10px] text-slate-500">PNG, JPG ou PDF (Sera anexado ao RMA)</p>
+                                </div>
+                                <div id="uploadSuccess" class="hidden text-emerald-400 space-y-1">
+                                    <i class="fa-solid fa-circle-check text-xl"></i>
+                                    <p class="text-xs font-semibold" id="fileNameText">Fatura Carregada!</p>
+                                </div>
+                            </div>
+                        </div>
+
                         <button type="submit" id="submitBtn" class="w-full bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-semibold p-3.5 rounded-xl transition-all shadow-lg shadow-sky-500/20 active:scale-[0.99]">
-                            <i class="fa-solid fa-floppy-disk mr-2"></i> Guardar no Supabase
+                            <i class="fa-solid fa-floppy-disk mr-2"></i> Guardar Garantia & Fatura
                         </button>
                     </form>
                 </section>
@@ -194,7 +211,7 @@
                 <div class="flex items-center justify-between">
                     <h2 class="text-lg font-semibold text-white flex items-center gap-2">
                         <i class="fa-solid fa-box-archive text-sky-400"></i>
-                        Garantias Registadas (Base de Dados Real)
+                        Garantias Registadas
                     </h2>
                     <button onclick="loadProducts()" class="px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-xs text-slate-300 font-medium hover:bg-slate-800 transition-all flex items-center gap-1.5">
                         <i class="fa-solid fa-rotate-right"></i> Atualizar
@@ -204,7 +221,7 @@
                 <div id="productsFeed" class="space-y-4">
                     <div class="text-center py-12 text-slate-500 text-sm">
                         <i class="fa-solid fa-spinner animate-spin text-2xl mb-2 text-sky-400"></i>
-                        <p>A carregar produtos da base de dados Supabase...</p>
+                        <p>A carregar produtos...</p>
                     </div>
                 </div>
             </div>
@@ -213,14 +230,80 @@
 
     </main>
 
+    <!-- Modal de Pedido de Reparação / RMA -->
+    <div id="rmaModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 w-full max-w-xl rounded-2xl shadow-2xl p-6 space-y-5 relative">
+            <button onclick="closeRmaModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white p-2 text-lg">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="flex items-center gap-3 border-b border-slate-800 pb-4">
+                <div class="w-10 h-10 rounded-xl bg-red-500/10 text-red-400 border border-red-500/20 flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-wrench"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-white">Pedido de Reparação (RMA)</h3>
+                    <p class="text-xs text-slate-400">Acionamento Formal de Garantia</p>
+                </div>
+            </div>
+
+            <!-- Pre-filled Details -->
+            <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 text-xs space-y-2.5">
+                <div class="flex justify-between border-b border-slate-800/60 pb-1.5">
+                    <span class="text-slate-400">Titular:</span>
+                    <span class="font-medium text-slate-200" id="rmaModalUser">-</span>
+                </div>
+                <div class="flex justify-between border-b border-slate-800/60 pb-1.5">
+                    <span class="text-slate-400">Equipamento:</span>
+                    <span class="font-semibold text-sky-400" id="rmaModalProduct">-</span>
+                </div>
+                <div class="flex justify-between border-b border-slate-800/60 pb-1.5">
+                    <span class="text-slate-400">Loja / Vendedor:</span>
+                    <span class="font-medium text-slate-200" id="rmaModalStore">-</span>
+                </div>
+                <div class="flex justify-between border-b border-slate-800/60 pb-1.5">
+                    <span class="text-slate-400">Nº de Série:</span>
+                    <span class="font-mono text-slate-300" id="rmaModalSerial">-</span>
+                </div>
+                
+                <!-- Anexo da Prova de Compra Status -->
+                <div class="flex justify-between items-center pt-1 text-emerald-400 font-semibold">
+                    <span class="text-slate-400 font-normal">Prova de Compra (Fatura):</span>
+                    <span class="inline-flex items-center gap-1 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded" id="rmaModalReceiptStatus">
+                        <i class="fa-solid fa-paperclip"></i> Anexada Automática
+                    </span>
+                </div>
+            </div>
+
+            <!-- Issue Description Form -->
+            <div>
+                <label class="block text-xs font-medium text-slate-300 mb-1.5">Descrição da Avaria / Defeito *</label>
+                <textarea id="rmaDescription" rows="3" placeholder="Ex: O equipamento deixou de ligar após atualização de firmware..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-sky-500"></textarea>
+            </div>
+
+            <div class="flex gap-3 pt-2">
+                <button onclick="closeRmaModal()" class="w-1/3 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium py-3 rounded-xl transition-all">
+                    Cancelar
+                </button>
+                <button onclick="sendRmaEmail()" class="w-2/3 bg-gradient-to-r from-red-500 to-amber-600 hover:from-red-400 hover:to-amber-500 text-white text-xs font-semibold py-3 rounded-xl transition-all shadow-lg shadow-red-500/20 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-paper-plane"></i> Enviar Pedido com Fatura Anexada
+                </button>
+            </div>
+        </div>
+    </div>
+
     <footer class="border-t border-slate-800 mt-12 py-6 bg-slate-900/50 text-center text-xs text-slate-500">
-        <p>Vanty Care Platform &copy; 2026 — Connected to Supabase Cloud</p>
+        <p>Vanty Care Platform &copy; 2026 — Global Warranty & RMA System</p>
     </footer>
 
     <script>
         const SUPABASE_URL = 'https://dhhqrjopwvtxzgfyjdrc.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_Hplq0WcOKp6kM_tN7Kx8Rw_b4lLqYFd';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let selectedReceipt = null;
+        let currentProducts = [];
+        let activeRmaProduct = null;
 
         // --- PROFILE MANAGEMENT ---
         let userProfile = JSON.parse(localStorage.getItem('vanty_profile')) || {
@@ -279,6 +362,25 @@
             toggleProfileEdit();
         }
 
+        // --- FILE UPLOAD HANDLING ---
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                selectedReceipt = {
+                    name: file.name,
+                    type: file.type,
+                    data: evt.target.result
+                };
+                document.getElementById('uploadPlaceholder').classList.add('hidden');
+                document.getElementById('uploadSuccess').classList.remove('hidden');
+                document.getElementById('fileNameText').innerText = file.name;
+            };
+            reader.readAsDataURL(file);
+        }
+
         // --- PRODUCTS MANAGEMENT ---
         async function loadProducts() {
             const feed = document.getElementById('productsFeed');
@@ -297,23 +399,33 @@
                 return;
             }
 
+            currentProducts = data || [];
+
+            // Load saved invoices from localStorage store if fallback
+            const savedInvoices = JSON.parse(localStorage.getItem('vanty_invoices') || '{}');
+
             if (!data || data.length === 0) {
                 feed.innerHTML = `<div class="bg-slate-900/50 border border-slate-800/80 rounded-2xl p-8 text-center text-slate-400">
                     <i class="fa-solid fa-box-open text-3xl mb-2 text-slate-600"></i>
                     <p class="font-medium text-slate-300">Nenhum produto registado ainda.</p>
-                    <p class="text-xs text-slate-500 mt-1">Preencha o formulário à esquerda para criar a primeira garantia real na base de dados!</p>
+                    <p class="text-xs text-slate-500 mt-1">Preencha o formulário à esquerda para guardar o seu primeiro equipamento e fatura!</p>
                 </div>`;
                 document.getElementById('stat-active').innerText = "0";
                 document.getElementById('stat-value').innerText = "0,00 €";
+                document.getElementById('stat-invoices').innerText = "0";
                 return;
             }
 
             let totalSum = 0;
+            let totalInvoices = 0;
             feed.innerHTML = '';
 
-            data.forEach(prod => {
+            data.forEach((prod, index) => {
                 const price = parseFloat(prod.preco_com_iva || prod.preco || 0);
                 totalSum += price;
+
+                const hasReceipt = prod.fatura_url || savedInvoices[prod.id] || prod.has_receipt;
+                if (hasReceipt) totalInvoices++;
 
                 const purchaseDate = prod.data_compra ? new Date(prod.data_compra) : new Date();
                 const expDate = prod.fim_garantia ? new Date(prod.fim_garantia) : new Date(purchaseDate.getFullYear() + 3, purchaseDate.getMonth(), purchaseDate.getDate());
@@ -321,9 +433,9 @@
                 const formatDate = (d) => d.toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
                 const card = document.createElement('div');
-                card.className = 'bg-slate-900 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition-all shadow-lg';
+                card.className = 'bg-slate-900 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition-all shadow-lg space-y-4';
                 card.innerHTML = `
-                    <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 border-b border-slate-800/80 pb-4 mb-4">
+                    <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 border-b border-slate-800/80 pb-4">
                         <div class="flex items-start gap-3.5">
                             <div class="w-12 h-12 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-400 flex items-center justify-center text-xl shrink-0 mt-0.5">
                                 <i class="fa-solid fa-shield-cat"></i>
@@ -351,9 +463,18 @@
                             <p class="font-mono text-slate-300 mt-0.5">${prod.numero_serie || 'N/A'}</p>
                         </div>
                         <div>
-                            <p class="text-slate-500">ID na BD:</p>
-                            <p class="font-mono text-slate-400 text-[10px] truncate mt-0.5">${prod.id || 'N/A'}</p>
+                            <p class="text-slate-500">Fatura Anexada:</p>
+                            <p class="font-medium ${hasReceipt ? 'text-emerald-400' : 'text-amber-400'} mt-0.5 flex items-center gap-1">
+                                <i class="fa-solid ${hasReceipt ? 'fa-file-circle-check' : 'fa-triangle-exclamation'}"></i>
+                                ${hasReceipt ? 'Guardada' : 'Pendente'}
+                            </p>
                         </div>
+                    </div>
+
+                    <div class="flex justify-end gap-2 pt-1">
+                        <button onclick="openRmaModal(${index})" class="w-full sm:w-auto px-4 py-2 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-triangle-exclamation"></i> Reportar Avaria / RMA (Anexar Fatura)
+                        </button>
                     </div>
                 `;
                 feed.appendChild(card);
@@ -361,13 +482,14 @@
 
             document.getElementById('stat-active').innerText = data.length;
             document.getElementById('stat-value').innerText = totalSum.toLocaleString('pt-PT', { minimumFractionDigits: 2 }) + ' €';
+            document.getElementById('stat-invoices').innerText = totalInvoices;
         }
 
         document.getElementById('productForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const btn = document.getElementById('submitBtn');
             btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin mr-2"></i> a guardar no Supabase...';
+            btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin mr-2"></i> a guardar garantia e fatura...';
 
             const name = document.getElementById('prodName').value;
             const store = document.getElementById('prodStore').value;
@@ -375,36 +497,104 @@
             const price = parseFloat(document.getElementById('prodPrice').value) || 0;
             const serial = document.getElementById('prodSerial').value || null;
 
-            // Warranty logic based on selected country
             const years = userProfile.country === 'US' ? 1 : (userProfile.country === 'FR' ? 2 : 3);
             const purchaseDate = new Date(dateStr);
             const expDate = new Date(purchaseDate);
             expDate.setFullYear(expDate.getFullYear() + years);
 
+            const record = {
+                nome_produto: name,
+                loja: store,
+                data_compra: dateStr,
+                fim_garantia: expDate.toISOString().split('T')[0],
+                preco_com_iva: price,
+                numero_serie: serial
+            };
+
             const { data, error } = await supabaseClient
                 .from('produtos_garantias')
-                .insert([
-                    {
-                        nome_produto: name,
-                        loja: store,
-                        data_compra: dateStr,
-                        fim_garantia: expDate.toISOString().split('T')[0],
-                        preco_com_iva: price,
-                        numero_serie: serial
-                    }
-                ]);
+                .insert([record])
+                .select();
 
             btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-floppy-disk mr-2"></i> Guardar no Supabase';
+            btn.innerHTML = '<i class="fa-solid fa-floppy-disk mr-2"></i> Guardar Garantia & Fatura';
 
             if (error) {
                 alert('Erro ao guardar no Supabase: ' + error.message);
-                console.error(error);
             } else {
+                if (data && data[0] && selectedReceipt) {
+                    const savedInvoices = JSON.parse(localStorage.getItem('vanty_invoices') || '{}');
+                    savedInvoices[data[0].id] = selectedReceipt;
+                    localStorage.setItem('vanty_invoices', JSON.stringify(savedInvoices));
+                }
+
                 this.reset();
+                selectedReceipt = null;
+                document.getElementById('uploadPlaceholder').classList.remove('hidden');
+                document.getElementById('uploadSuccess').classList.add('hidden');
                 loadProducts();
             }
         });
+
+        // --- RMA MODAL FUNCTIONS ---
+        function openRmaModal(index) {
+            activeRmaProduct = currentProducts[index];
+            if (!activeRmaProduct) return;
+
+            document.getElementById('rmaModalUser').innerText = `${userProfile.name} (NIF: ${userProfile.nif})`;
+            document.getElementById('rmaModalProduct').innerText = activeRmaProduct.nome_produto || 'Produto';
+            document.getElementById('rmaModalStore').innerText = activeRmaProduct.loja || 'Loja';
+            document.getElementById('rmaModalSerial').innerText = activeRmaProduct.numero_serie || 'N/A';
+
+            const savedInvoices = JSON.parse(localStorage.getItem('vanty_invoices') || '{}');
+            const receipt = savedInvoices[activeRmaProduct.id];
+
+            const statusEl = document.getElementById('rmaModalReceiptStatus');
+            if (receipt) {
+                statusEl.innerHTML = `<i class="fa-solid fa-paperclip"></i> Anexada: ${receipt.name}`;
+                statusEl.className = 'inline-flex items-center gap-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded';
+            } else {
+                statusEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> Fatura Não Carregada`;
+                statusEl.className = 'inline-flex items-center gap-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded';
+            }
+
+            document.getElementById('rmaModal').classList.remove('hidden');
+        }
+
+        function closeRmaModal() {
+            document.getElementById('rmaModal').classList.add('hidden');
+            document.getElementById('rmaDescription').value = '';
+        }
+
+        function sendRmaEmail() {
+            const desc = document.getElementById('rmaDescription').value;
+            if (!desc) {
+                alert('Por favor, descreva o problema do equipamento.');
+                return;
+            }
+
+            const savedInvoices = JSON.parse(localStorage.getItem('vanty_invoices') || '{}');
+            const receipt = savedInvoices[activeRmaProduct.id];
+
+            const subject = encodeURIComponent(`[RMA / Pedido de Reparação] ${activeRmaProduct.nome_produto} - SN: ${activeRmaProduct.numero_serie || 'N/A'}`);
+            const body = encodeURIComponent(
+                `Exmos. Senhores da Apoio ao Cliente (${activeRmaProduct.loja}),\n\n` +
+                `Venho por este meio solicitar a reparação / acionamento de garantia do seguinte equipamento:\n\n` +
+                `- Produto: ${activeRmaProduct.nome_produto}\n` +
+                `- Loja de Compra: ${activeRmaProduct.loja}\n` +
+                `- Data de Compra: ${activeRmaProduct.data_compra}\n` +
+                `- Nº de Série: ${activeRmaProduct.numero_serie || 'N/A'}\n` +
+                `- Titular / NIF: ${userProfile.name} (NIF: ${userProfile.nif})\n\n` +
+                `Descrição do Defeito/Avaria:\n${desc}\n\n` +
+                `[PROVA DE COMPRA / FATURA ANEXADA]: ${receipt ? receipt.name : 'Talão em anexo'}\n\n` +
+                `Com os melhores cumprimentos,\n${userProfile.name}\n${userProfile.email}`
+            );
+
+            window.location.href = `mailto:suporte@${activeRmaProduct.loja.toLowerCase().replace(/\s+/g, '')}.pt?subject=${subject}&body=${body}`;
+            
+            alert('A preparar o seu pedido de reparação com a fatura anexada!');
+            closeRmaModal();
+        }
 
         // Initial Setup
         renderProfile();
