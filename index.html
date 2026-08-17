@@ -184,7 +184,7 @@
                     <div class="live-dot"></div>
                     <div>
                         <div class="text-[11px] font-semibold text-emerald-400">Supabase Live</div>
-                        <div class="text-[10px] text-slate-500">v0.8 · OCR + IVA + Morada</div>
+                        <div class="text-[10px] text-slate-500">v0.9 · Multi-produto</div>
                     </div>
                 </div>
             </div>
@@ -280,6 +280,7 @@
                                 <div class="space-y-2.5 text-sm">
                                     <div class="flex justify-between"><span class="text-slate-500 text-xs">Nome</span><span class="font-semibold text-slate-200" id="dashName">—</span></div>
                                     <div class="flex justify-between"><span class="text-slate-500 text-xs">NIF</span><span class="font-mono text-slate-300" id="dashNif">—</span></div>
+                                    <div class="flex justify-between gap-2"><span class="text-slate-500 text-xs shrink-0">Morada</span><span class="font-medium text-slate-300 text-right text-[11px] leading-snug" id="dashAddress">—</span></div>
                                     <div class="flex justify-between"><span class="text-slate-500 text-xs">País</span><span class="text-cyan-400 font-medium" id="dashCountry">—</span></div>
                                 </div>
                             </div>
@@ -336,6 +337,14 @@
                                     <div id="extractedPreview" class="hidden mt-3 p-3 rounded-xl bg-cyan-500/5 border border-cyan-500/15">
                                         <p class="text-[10px] font-bold text-cyan-400 uppercase tracking-wider mb-2 flex items-center gap-1.5"><i class="fa-solid fa-sparkles"></i> Dados detetados pela IA</p>
                                         <div id="extractedFields" class="space-y-1 text-xs text-slate-300"></div>
+                                    </div>
+                                    <!-- Multi-produto: selecionar artigos do talão -->
+                                    <div id="multiItemsPanel" class="hidden mt-3 p-3 rounded-xl bg-indigo-500/5 border border-indigo-500/20">
+                                        <p class="text-[10px] font-bold text-indigo-300 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                            <i class="fa-solid fa-list-check"></i> Artigos no talão — selecione os que quer registar
+                                        </p>
+                                        <div id="multiItemsList" class="space-y-2"></div>
+                                        <p class="text-[10px] text-slate-500 mt-2">Cada artigo selecionado cria uma garantia separada com a mesma fatura.</p>
                                     </div>
                                 </div>
                                 <div>
@@ -498,6 +507,50 @@
         </div>
     </div>
 
+    <!-- Product Detail Modal -->
+    <div id="productDetailModal" class="fixed inset-0 modal-backdrop z-50 hidden flex items-center justify-center p-4">
+        <div class="card modal-panel w-full max-w-lg p-6 relative border border-white/[0.08] space-y-4">
+            <button onclick="closeProductDetail()" class="absolute top-4 right-4 text-slate-500 hover:text-white p-2 text-lg"><i class="fa-solid fa-xmark"></i></button>
+            <div class="flex items-center gap-3 border-b border-white/[0.06] pb-4 pr-8">
+                <div class="w-11 h-11 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 flex items-center justify-center text-lg"><i class="fa-solid fa-shield-halved"></i></div>
+                <div class="min-w-0">
+                    <h3 class="text-base font-bold text-white truncate" id="detailName">—</h3>
+                    <p class="text-xs text-slate-500" id="detailStore">—</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3 text-sm">
+                <div class="p-3 rounded-xl bg-surface-950/60 border border-white/[0.05]">
+                    <p class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Preço</p>
+                    <p class="font-bold text-emerald-400 mt-1 tabular-nums" id="detailPrice">—</p>
+                </div>
+                <div class="p-3 rounded-xl bg-surface-950/60 border border-white/[0.05]">
+                    <p class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">IVA</p>
+                    <p class="font-bold text-amber-300 mt-1" id="detailIva">—</p>
+                </div>
+                <div class="p-3 rounded-xl bg-surface-950/60 border border-white/[0.05]">
+                    <p class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Data compra</p>
+                    <p class="font-medium text-slate-200 mt-1" id="detailDate">—</p>
+                </div>
+                <div class="p-3 rounded-xl bg-surface-950/60 border border-white/[0.05]">
+                    <p class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Fim garantia</p>
+                    <p class="font-medium text-slate-200 mt-1" id="detailExp">—</p>
+                </div>
+                <div class="p-3 rounded-xl bg-surface-950/60 border border-white/[0.05] col-span-2">
+                    <p class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Nº de série</p>
+                    <p class="font-mono text-slate-200 mt-1" id="detailSerial">—</p>
+                </div>
+                <div class="p-3 rounded-xl bg-surface-950/60 border border-white/[0.05] col-span-2">
+                    <p class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Titular / Morada</p>
+                    <p class="text-slate-200 mt-1 text-xs leading-relaxed whitespace-pre-line" id="detailOwner">—</p>
+                </div>
+            </div>
+            <div class="flex gap-2 pt-1">
+                <button id="detailInvoiceBtn" class="flex-1 px-3 py-2.5 bg-surface-800 hover:bg-surface-700 border border-white/[0.06] text-slate-300 rounded-xl text-xs font-semibold transition-all"><i class="fa-solid fa-file-invoice mr-1"></i> Ver Fatura</button>
+                <button id="detailRmaBtn" class="flex-1 px-3 py-2.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 rounded-xl text-xs font-bold transition-all"><i class="fa-solid fa-wrench mr-1"></i> RMA</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const SUPABASE_URL = 'https://dhhqrjopwvtxzgfyjdrc.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_Hplq0WcOKp6kM_tN7Kx8Rw_b4lLqYFd';
@@ -521,6 +574,8 @@
             document.getElementById('viewCountry').innerText = countryLabels[userProfile.country] || userProfile.country;
             document.getElementById('dashName').innerText = userProfile.name;
             document.getElementById('dashNif').innerText = userProfile.nif;
+            const dashAddr = document.getElementById('dashAddress');
+            if (dashAddr) dashAddr.innerText = userProfile.address || '— (editar no Perfil)';
             document.getElementById('dashCountry').innerText = countryLabels[userProfile.country] || userProfile.country;
             document.getElementById('topUserName').innerText = userProfile.name;
             document.getElementById('topUserCountry').innerText = countryShort[userProfile.country] || userProfile.country;
@@ -735,105 +790,77 @@
                 result.confidence.push('iva');
             }
 
-            // --- PRODUTO + PREÇO na mesma linha ---
-            // Em talões PT o preço do artigo está muitas vezes à direita da descrição
-            const brands = /asus|samsung|apple|sony|lg|xiaomi|huawei|lenovo|hp|dell|acer|msi|nintendo|playstation|xbox|canon|nikon|bose|jbl|philips|bosch|siemens|whirlpool|dyson|microsoft|google|delba|orlando|climatizador|frigor|máq|maq|aspir|microond|lavadora|secadora|tcl|hisense|sharp|panasonic|toshiba/i;
-            const categories = /climatizador|ar.?condicionado|tv|oled|qled|led|smartphone|telem[oó]vel|iphone|ipad|macbook|laptop|port[aá]til|notebook|auscultador|headphones|monitor|ecr[aã]|ssd|hdd|router|consola|c[aâ]mara|impressora|tablet|smartwatch|airpods|galaxy|frigor[ií]fico|aspirador|microondas|forno|lavadora|secadora|ferro|máquina|maquina/i;
-            const junkLine = /factura|fatura|tal[aã]o|recibo|nif|contribuinte|\biva\b|total|subtotal|morada|c[oó]digo|postal|telefone|email|www\.|http|cliente|vendedor|operador|caixa|pagamento|multibanco|mbway|visa|mastercard|troco|artigos?|qtd|quantidade|desconto|promo|obrigado|volte sempre|loja|worten|fnac|continente|leclerc|processado|certificado|albx|atold|consulte|condi[cç]|troca|devolu|bikini|chamada|terminal|compra\b|sirpee|sirer|nipc|feira|santa\s+maria|rua\s+do|feiriper/i;
+            // --- ARTIGOS: nome + preço NA MESMA LINHA (nunca o total de baixo) ---
+            // Formato típico: "CAMARA TP-LINK TAPO C216 48.99 3"  (desc, preço, código IVA)
+            const brands = /asus|samsung|apple|sony|lg|xiaomi|huawei|lenovo|hp|dell|acer|msi|nintendo|playstation|xbox|canon|nikon|bose|jbl|philips|bosch|siemens|whirlpool|dyson|microsoft|google|delba|orlando|tp.?link|tapo|coolbox|climatizador|frigor|toshiba|panasonic|hisense|tcl/i;
+            const categories = /climatizador|ar.?condicionado|tv|oled|qled|led|smartphone|telem[oó]vel|iphone|ipad|macbook|laptop|port[aá]til|notebook|\bport\.|base\s*port|auscultador|headphones|monitor|ecr[aã]|ssd|hdd|router|consola|c[aâ]mara|camera|impressora|tablet|smartwatch|airpods|galaxy|frigor[ií]fico|aspirador|microondas|forno|lavadora|secadora|ferro|m[aá]quina/i;
+            const junkLine = /factura|fatura|tal[aã]o|recibo|nif|contribuinte|\biva\b|total\s*\d*\s*artigos?|subtotal|morada|c[oó]digo|postal|telefone|email|www\.|http|cliente|vendedor|operador|caixa|pagamento|multibanco|mbway|visa|mastercard|troco|quantidade|desconto|promo|obrigado|volte sempre|loja|worten|fnac|continente|leclerc|processado|certificado|albx|atold|consulte|condi[cç]|troca|devolu|bikini|chamada|terminal|compra\b|sirpee|sirer|nipc|feira|santa\s+maria|rua\s+do|feiriper|utiliza[cç][aã]o|vale|reemb|s\/iva|c\/iva/i;
 
-            const productCandidates = [];
+            const items = [];
             lines.forEach((line, idx) => {
-                if (line.length < 5 || line.length > 120) return;
+                if (line.length < 6 || line.length > 140) return;
                 if (junkLine.test(line)) return;
                 if (/^\d+([.,]\d+)?$/.test(line)) return;
-                if (ocrNoiseScore(line) > 2.8) return;
 
-                // Preço no fim da linha (produto … 84,99)
-                let linePrice = null;
-                const priceAtEnd = line.match(/^(.*?)[\s€]*(\d{1,5}[.,]\d{2})\s*€?\s*$/);
-                let desc = line;
-                if (priceAtEnd) {
-                    const val = parseFloat(priceAtEnd[2].replace(',', '.'));
-                    if (val >= 1 && val < 50000) {
-                        linePrice = val;
-                        desc = priceAtEnd[1].replace(/[\s.\-–—]+$/g, '').trim();
-                    }
-                }
+                // Padrão: DESCRIÇÃO  PREÇO  [código IVA 1|2|3]
+                // Ex: "*PORT.DELL 7420 I7/32GB/512 REC 394.99 3"
+                const m = line.match(/^(.*?)\s+(\d{1,5}[.,]\d{2})\s*€?\s*([123])?\s*$/);
+                if (!m) return;
 
-                let score = 0;
-                if (brands.test(desc)) score += 10;
-                if (categories.test(desc)) score += 12;
-                if (linePrice != null) score += 4; // preço na mesma linha = artigo
-                if (desc.length >= 8 && desc.length <= 60) score += 2;
-                if (/^[A-ZÁÉÍÓÚÂÊÔÃÕ][A-ZÁÉÍÓÚÂÊÔÃÕa-záéíóúâêôãõ0-9\s\-/.]{5,}$/.test(desc)) score += 2;
-                // Penalizar códigos de sistema
-                if (/^[A-Z]{2,5}[-]/.test(desc) && !categories.test(desc)) score -= 8;
-                if (/processado|programa|certificado|terminal/i.test(desc)) score -= 15;
+                let desc = m[1].replace(/^\*+\s*/, '').replace(/[\s.\-–—]+$/g, '').trim();
+                const price = parseFloat(m[2].replace(',', '.'));
+                if (!(price >= 1 && price < 50000)) return;
+                if (desc.length < 4) return;
+                if (ocrNoiseScore(desc) > 3.0) return;
+                // Evitar linhas que são só números/códigos
+                if (/^[\d\s.,€]+$/.test(desc)) return;
+                if (/processado|certificado|terminal|programa/i.test(desc)) return;
+
+                let score = 5;
+                if (brands.test(desc)) score += 8;
+                if (categories.test(desc)) score += 10;
+                if (desc.length >= 8 && desc.length <= 70) score += 2;
                 score -= ocrNoiseScore(desc);
 
-                if (score > 0 && desc.length >= 4) {
-                    productCandidates.push({ desc, price: linePrice, score, idx });
+                if (score >= 4) {
+                    items.push({ name: desc.replace(/\s{2,}/g, ' '), price, score, idx });
                 }
             });
-            productCandidates.sort((a, b) => b.score - a.score);
 
-            if (productCandidates.length) {
-                result.product = productCandidates[0].desc.replace(/\s{2,}/g, ' ').trim();
-                result.confidence.push('produto');
-                // Preço do produto: preferir o da mesma linha do produto escolhido
-                if (productCandidates[0].price != null) {
-                    result.price = productCandidates[0].price;
-                    result.confidence.push('preço');
-                }
+            // Ordenar por posição no talão (ordem de compra), não só score
+            items.sort((a, b) => a.idx - b.idx);
+            // Deduplicar nomes muito parecidos
+            const uniqueItems = [];
+            for (const it of items) {
+                if (uniqueItems.some(u => u.name.toLowerCase() === it.name.toLowerCase())) continue;
+                uniqueItems.push(it);
             }
+            result.items = uniqueItems;
 
-            // --- PREÇO fallback (se não veio na linha do produto) ---
-            if (result.price == null) {
-                const priceCandidates = [];
-                // "Total 1 artigo" / Total / Valor
-                const priceRe = /(?:total\s*\d*\s*artigos?|total|valor|a pagar|montante|líquido|liquido|pago)[^\d]{0,20}(\d{1,5}[.,]\d{2})/gi;
-                let pm;
-                while ((pm = priceRe.exec(text)) !== null) {
-                    const val = parseFloat(pm[1].replace(',', '.'));
-                    if (val >= 1 && val < 100000) priceCandidates.push({ val, score: 12 });
-                }
-                // Linha isolada com valor (ex: "84.99" depois do produto)
-                lines.forEach((line, idx) => {
-                    const only = line.match(/^(\d{1,5}[.,]\d{2})\s*€?$/);
-                    if (only) {
-                        const val = parseFloat(only[1].replace(',', '.'));
-                        if (val >= 5 && val < 50000) {
-                            // Se está perto de uma linha de produto, boost
-                            const nearProduct = productCandidates.some(c => Math.abs(c.idx - idx) <= 2);
-                            priceCandidates.push({ val, score: nearProduct ? 9 : 4 });
-                        }
-                    }
-                });
-                if (priceCandidates.length) {
-                    priceCandidates.sort((a, b) => b.score - a.score || b.val - a.val);
-                    result.price = priceCandidates[0].val;
-                    result.confidence.push('preço');
-                }
+            if (uniqueItems.length) {
+                // Preencher "produto atual" com o 1.º (ou o de maior score se só 1)
+                const best = uniqueItems.length === 1
+                    ? uniqueItems[0]
+                    : [...uniqueItems].sort((a, b) => b.score - a.score)[0];
+                result.product = best.name;
+                result.price = best.price; // SEMPRE o preço da linha do artigo
+                result.confidence.push('produto', 'preço');
             }
+            // NÃO usar "Total X artigos" como preço de um produto individual
 
             return result;
         }
 
+        let lastExtractedItems = []; // artigos multi do último talão
+
         function applyExtractedData(extracted) {
             const fields = [];
-            // SN nunca preenchido automaticamente a partir da fatura
             document.getElementById('prodSerial').value = '';
-            if (extracted.product) {
-                document.getElementById('prodName').value = extracted.product;
-                fields.push(`<div class="flex justify-between gap-2"><span class="text-slate-500">Produto</span><span class="font-medium text-slate-200 truncate max-w-[200px]">${escapeHtml(extracted.product)}</span></div>`);
-            }
+            lastExtractedItems = extracted.items || [];
+
             if (extracted.store) {
                 document.getElementById('prodStore').value = extracted.store;
                 fields.push(`<div class="flex justify-between"><span class="text-slate-500">Loja</span><span class="font-medium text-cyan-300">${escapeHtml(extracted.store)}</span></div>`);
-            }
-            if (extracted.price != null) {
-                document.getElementById('prodPrice').value = extracted.price.toFixed(2);
-                fields.push(`<div class="flex justify-between"><span class="text-slate-500">Preço</span><span class="font-medium text-emerald-300">${extracted.price.toFixed(2)} €</span></div>`);
             }
             if (extracted.date) {
                 document.getElementById('prodDate').value = extracted.date;
@@ -843,16 +870,70 @@
                 document.getElementById('prodIva').value = extracted.iva;
                 fields.push(`<div class="flex justify-between"><span class="text-slate-500">IVA</span><span class="font-medium text-amber-300">${extracted.iva}%</span></div>`);
             }
+
+            // Painel multi-artigos
+            const multiPanel = document.getElementById('multiItemsPanel');
+            const multiList = document.getElementById('multiItemsList');
+            if (lastExtractedItems.length >= 1) {
+                multiList.innerHTML = lastExtractedItems.map((it, i) => `
+                    <label class="flex items-start gap-2.5 p-2.5 rounded-lg bg-surface-950/60 border border-white/[0.06] cursor-pointer hover:border-cyan-500/30 transition-all">
+                        <input type="checkbox" class="multi-item-cb mt-0.5 accent-cyan-500" data-idx="${i}" checked onchange="syncSelectedItemToForm()">
+                        <span class="flex-1 min-w-0">
+                            <span class="block text-xs font-semibold text-slate-100 leading-snug">${escapeHtml(it.name)}</span>
+                            <span class="text-[11px] text-emerald-400 font-bold tabular-nums">${it.price.toFixed(2)} €</span>
+                        </span>
+                    </label>
+                `).join('');
+                multiPanel.classList.remove('hidden');
+                fields.push(`<div class="flex justify-between"><span class="text-slate-500">Artigos</span><span class="font-medium text-indigo-300">${lastExtractedItems.length} no talão</span></div>`);
+                syncSelectedItemToForm();
+            } else {
+                multiPanel.classList.add('hidden');
+                multiList.innerHTML = '';
+                if (extracted.product) {
+                    document.getElementById('prodName').value = extracted.product;
+                    fields.push(`<div class="flex justify-between gap-2"><span class="text-slate-500">Produto</span><span class="font-medium text-slate-200 truncate max-w-[200px]">${escapeHtml(extracted.product)}</span></div>`);
+                }
+                if (extracted.price != null) {
+                    document.getElementById('prodPrice').value = extracted.price.toFixed(2);
+                    fields.push(`<div class="flex justify-between"><span class="text-slate-500">Preço</span><span class="font-medium text-emerald-300">${extracted.price.toFixed(2)} €</span></div>`);
+                }
+            }
+
             const preview = document.getElementById('extractedPreview');
             const container = document.getElementById('extractedFields');
             if (fields.length) {
                 container.innerHTML = fields.join('');
                 preview.classList.remove('hidden');
-                document.getElementById('extractSummary').innerText = `${fields.length} campo(s) preenchido(s)`;
+                document.getElementById('extractSummary').innerText = lastExtractedItems.length > 1
+                    ? `${lastExtractedItems.length} artigos detetados · selecione os que quer guardar`
+                    : `${fields.length} campo(s) preenchido(s)`;
             } else {
                 preview.classList.add('hidden');
                 document.getElementById('extractSummary').innerText = 'Fatura guardada · preencha manualmente';
             }
+        }
+
+        /** Preenche o formulário com o 1.º artigo selecionado (preview) */
+        function syncSelectedItemToForm() {
+            const cbs = [...document.querySelectorAll('.multi-item-cb:checked')];
+            if (!cbs.length || !lastExtractedItems.length) return;
+            const idx = parseInt(cbs[0].dataset.idx, 10);
+            const it = lastExtractedItems[idx];
+            if (!it) return;
+            document.getElementById('prodName').value = it.name;
+            document.getElementById('prodPrice').value = it.price.toFixed(2);
+        }
+
+        function getSelectedItems() {
+            const cbs = [...document.querySelectorAll('.multi-item-cb:checked')];
+            if (!cbs.length) {
+                // Sem multi-panel: usar valores do formulário
+                const name = document.getElementById('prodName').value.trim();
+                const price = parseFloat(document.getElementById('prodPrice').value) || 0;
+                return name ? [{ name, price }] : [];
+            }
+            return cbs.map(cb => lastExtractedItems[parseInt(cb.dataset.idx, 10)]).filter(Boolean);
         }
 
         /** OCR só do nº de série a partir de foto da etiqueta */
@@ -1053,11 +1134,48 @@
         function clearReceipt(e) {
             if (e) e.preventDefault();
             selectedReceipt = null;
+            lastExtractedItems = [];
             document.getElementById('prodReceipt').value = '';
             document.getElementById('uploadPlaceholder').classList.remove('hidden');
             document.getElementById('uploadSuccess').classList.add('hidden');
             document.getElementById('uploadProcessing').classList.add('hidden');
             document.getElementById('extractedPreview').classList.add('hidden');
+            const mp = document.getElementById('multiItemsPanel');
+            if (mp) { mp.classList.add('hidden'); document.getElementById('multiItemsList').innerHTML = ''; }
+        }
+
+        function openProductDetail(index) {
+            const prod = currentProducts[index];
+            if (!prod) return;
+            const price = parseFloat(prod.preco_com_iva || prod.preco || 0);
+            const purchaseDate = prod.data_compra ? new Date(prod.data_compra) : null;
+            const expDate = prod.fim_garantia ? new Date(prod.fim_garantia) : null;
+            const fmt = (d) => d ? d.toLocaleDateString('pt-PT') : '—';
+            document.getElementById('detailName').innerText = prod.nome_produto || '—';
+            document.getElementById('detailStore').innerText = prod.loja || '—';
+            document.getElementById('detailPrice').innerText = price.toLocaleString('pt-PT', { minimumFractionDigits: 2 }) + ' €';
+            document.getElementById('detailIva').innerText = prod.taxa_iva != null ? prod.taxa_iva + '%' : '—';
+            document.getElementById('detailDate').innerText = fmt(purchaseDate);
+            document.getElementById('detailExp').innerText = fmt(expDate);
+            document.getElementById('detailSerial').innerText = prod.numero_serie || '—';
+            document.getElementById('detailOwner').innerText =
+                `${userProfile.name} · NIF ${userProfile.nif}\n${userProfile.address || 'Morada não definida (edite no Perfil)'}`;
+            const invBtn = document.getElementById('detailInvoiceBtn');
+            const receipt = getInvoice(prod.id);
+            if (receipt) {
+                invBtn.disabled = false;
+                invBtn.onclick = () => { closeProductDetail(); viewInvoice(prod.id); };
+                invBtn.classList.remove('opacity-40');
+            } else {
+                invBtn.disabled = true;
+                invBtn.onclick = null;
+                invBtn.classList.add('opacity-40');
+            }
+            document.getElementById('detailRmaBtn').onclick = () => { closeProductDetail(); openRmaModal(index); };
+            document.getElementById('productDetailModal').classList.remove('hidden');
+        }
+        function closeProductDetail() {
+            document.getElementById('productDetailModal').classList.add('hidden');
         }
 
         function filterProducts() {
@@ -1087,8 +1205,9 @@
                 const isValid = expDate >= now;
                 const daysLeft = Math.ceil((expDate - now) / (1000 * 60 * 60 * 24));
                 const globalIndex = currentProducts.indexOf(prod);
+                const ivaLabel = prod.taxa_iva != null ? `${prod.taxa_iva}%` : '—';
                 return `
-                <div class="card card-hover p-4 space-y-3">
+                <div class="card card-hover p-4 space-y-3 cursor-pointer" onclick="openProductDetail(${globalIndex})">
                     <div class="flex flex-col sm:flex-row justify-between sm:items-start gap-3">
                         <div class="flex items-start gap-3 min-w-0">
                             <div class="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/15 text-cyan-400 flex items-center justify-center text-sm shrink-0"><i class="fa-solid fa-shield-halved"></i></div>
@@ -1108,12 +1227,13 @@
                         <div><p class="text-slate-600 text-[9px] uppercase font-bold tracking-wider">Valor</p><p class="font-bold text-slate-100 mt-0.5 tabular-nums">${price.toLocaleString('pt-PT', { minimumFractionDigits: 2 })} €</p></div>
                         <div><p class="text-slate-600 text-[9px] uppercase font-bold tracking-wider">Série</p><p class="font-mono text-slate-300 mt-0.5 truncate">${escapeHtml(prod.numero_serie || '—')}</p></div>
                         <div><p class="text-slate-600 text-[9px] uppercase font-bold tracking-wider">Fatura</p><p class="font-semibold mt-0.5 flex items-center gap-1 ${receipt ? 'text-emerald-400' : 'text-amber-400'}"><i class="fa-solid ${receipt ? 'fa-file-circle-check' : 'fa-triangle-exclamation'} text-[9px]"></i> ${receipt ? 'OK' : 'Pendente'}</p></div>
-                        <div><p class="text-slate-600 text-[9px] uppercase font-bold tracking-wider">ID</p><p class="font-mono text-slate-600 mt-0.5 text-[10px]">#${String(prod.id).slice(0, 8)}</p></div>
+                        <div><p class="text-slate-600 text-[9px] uppercase font-bold tracking-wider">IVA</p><p class="font-medium text-slate-300 mt-0.5">${ivaLabel}</p></div>
                     </div>
-                    <div class="flex flex-wrap gap-2">
-                        ${receipt ? `<button onclick="viewInvoice('${prod.id}')" class="px-3 py-1.5 bg-surface-800 hover:bg-surface-700 border border-white/[0.06] text-slate-300 rounded-lg text-[11px] font-semibold transition-all flex items-center gap-1.5"><i class="fa-solid fa-eye"></i> Ver Fatura</button>` : ''}
+                    <div class="flex flex-wrap gap-2" onclick="event.stopPropagation()">
+                        <button onclick="openProductDetail(${globalIndex})" class="px-3 py-1.5 bg-surface-800 hover:bg-surface-700 border border-white/[0.06] text-slate-300 rounded-lg text-[11px] font-semibold transition-all flex items-center gap-1.5"><i class="fa-solid fa-up-right-from-square"></i> Abrir</button>
+                        ${receipt ? `<button onclick="viewInvoice('${prod.id}')" class="px-3 py-1.5 bg-surface-800 hover:bg-surface-700 border border-white/[0.06] text-slate-300 rounded-lg text-[11px] font-semibold transition-all flex items-center gap-1.5"><i class="fa-solid fa-eye"></i> Fatura</button>` : ''}
                         <button onclick="openRmaModal(${globalIndex})" class="flex-1 sm:flex-none px-3.5 py-1.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 rounded-lg text-[11px] font-bold transition-all flex items-center justify-center gap-1.5">
-                            <i class="fa-solid fa-triangle-exclamation"></i> Reportar Avaria / RMA
+                            <i class="fa-solid fa-triangle-exclamation"></i> RMA
                         </button>
                     </div>
                 </div>`;
@@ -1168,16 +1288,15 @@
             const btn = document.getElementById('submitBtn');
             btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> A guardar...';
 
-            const name = document.getElementById('prodName').value.trim();
             const store = document.getElementById('prodStore').value.trim();
             const dateStr = document.getElementById('prodDate').value;
-            const price = parseFloat(document.getElementById('prodPrice').value) || 0;
             const serial = document.getElementById('prodSerial').value.trim() || null;
             const ivaVal = document.getElementById('prodIva').value;
             const iva = ivaVal !== '' && !isNaN(parseFloat(ivaVal)) ? parseFloat(ivaVal) : null;
 
-            if (!name || !store || !dateStr) {
-                alert('Preencha pelo menos Nome, Loja e Data.');
+            const selectedItems = getSelectedItems();
+            if (!selectedItems.length || !store || !dateStr) {
+                alert('Selecione pelo menos 1 artigo e preencha Loja e Data.');
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar Garantia & Fatura';
                 return;
@@ -1187,46 +1306,55 @@
             const purchaseDate = new Date(dateStr);
             const expDate = new Date(purchaseDate);
             expDate.setFullYear(expDate.getFullYear() + years);
+            const fim = expDate.toISOString().split('T')[0];
 
-            // Colunas base (Supabase); taxa_iva só se a coluna existir — senão fica no local
-            const record = {
-                nome_produto: name,
-                loja: store,
-                data_compra: dateStr,
-                fim_garantia: expDate.toISOString().split('T')[0],
-                preco_com_iva: price,
-                numero_serie: serial
-            };
-            if (iva != null) record.taxa_iva = iva;
-
-            let productId = null;
             let usedLocal = false;
+            let savedCount = 0;
 
-            try {
-                const { data, error } = await supabaseClient.from('produtos_garantias').insert([record]).select();
-                if (error) throw error;
-                if (data && data[0]) productId = data[0].id;
-            } catch (err) {
-                console.warn('Supabase insert falhou (RLS?), a guardar localmente:', err.message || err);
-                // Fallback: guarda no browser para não perder fatura + dados
-                const localProd = saveLocalProduct(record);
-                productId = localProd.id;
-                usedLocal = true;
-            }
+            for (let i = 0; i < selectedItems.length; i++) {
+                const it = selectedItems[i];
+                const record = {
+                    nome_produto: it.name,
+                    loja: store,
+                    data_compra: dateStr,
+                    fim_garantia: fim,
+                    preco_com_iva: it.price,
+                    // SN só no 1.º artigo se o user preencheu (restantes ficam vazios)
+                    numero_serie: i === 0 ? serial : null
+                };
+                if (iva != null) record.taxa_iva = iva;
 
-            if (productId && selectedReceipt) {
-                saveInvoiceToStore(productId, selectedReceipt);
+                let productId = null;
+                try {
+                    const { data, error } = await supabaseClient.from('produtos_garantias').insert([record]).select();
+                    if (error) throw error;
+                    if (data && data[0]) productId = data[0].id;
+                } catch (err) {
+                    console.warn('Supabase insert falhou, local:', err.message || err);
+                    const localProd = saveLocalProduct(record);
+                    productId = localProd.id;
+                    usedLocal = true;
+                }
+                if (productId && selectedReceipt) {
+                    saveInvoiceToStore(productId, selectedReceipt);
+                }
+                savedCount++;
             }
 
             btn.disabled = false;
             btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Guardar Garantia & Fatura';
 
             if (usedLocal) {
-                alert('Supabase bloqueou o insert (RLS).\n\nA garantia e a fatura foram guardadas LOCALMENTE neste browser.\n\nPara gravar na cloud: no Supabase → Authentication/Policies da tabela produtos_garantias, permite INSERT para o role anon (ou desativa RLS em desenvolvimento).');
+                alert(`${savedCount} garantia(s) guardada(s) LOCALMENTE (Supabase RLS).\n\nPara cloud: permita INSERT anon na tabela produtos_garantias.`);
+            } else {
+                alert(`${savedCount} garantia(s) registada(s) com sucesso.`);
             }
 
             this.reset();
             clearReceipt();
+            lastExtractedItems = [];
+            const mp = document.getElementById('multiItemsPanel');
+            if (mp) { mp.classList.add('hidden'); document.getElementById('multiItemsList').innerHTML = ''; }
             await loadProducts();
             switchPanel('garantias');
         });
@@ -1283,6 +1411,7 @@
 
         document.getElementById('rmaModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeRmaModal(); });
         document.getElementById('invoiceModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeInvoiceModal(); });
+        document.getElementById('productDetailModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeProductDetail(); });
 
         renderProfile();
         loadProducts();
