@@ -580,26 +580,53 @@
             const statusEl = document.getElementById('ocrStatusText');
             const progressEl = document.getElementById('ocrProgressText');
             const bar = document.getElementById('ocrBar');
-            statusEl.innerText = 'A iniciar motor OCR...'; bar.style.width = '15%';
+            if (statusEl) statusEl.innerText = 'A iniciar motor OCR...';
+            if (bar) bar.style.width = '15%';
             try {
-                if (!ocrWorker) {
-                    ocrWorker = await Tesseract.createWorker('por+eng', 1, {
-                        logger: m => {
-                            if (m.status === 'recognizing text') {
-                                const pct = Math.round((m.progress || 0) * 100);
-                                bar.style.width = `${20 + pct * 0.7}%`;
-                                progressEl.innerText = `A ler texto... ${pct}%`;
-                            } else if (m.status) progressEl.innerText = m.status;
-                        }
-                    });
+                if (typeof Tesseract === 'undefined') {
+                    throw new Error('Tesseract.js não carregou (CDN bloqueado ou offline)');
                 }
-                statusEl.innerText = 'A extrair texto da fatura...';
+                if (!ocrWorker) {
+                    if (progressEl) progressEl.innerText = 'A descarregar modelos de idioma...';
+                    try {
+                        ocrWorker = await Tesseract.createWorker('por+eng', 1, {
+                            logger: m => {
+                                if (m.status === 'recognizing text') {
+                                    const pct = Math.round((m.progress || 0) * 100);
+                                    if (bar) bar.style.width = `${20 + pct * 0.7}%`;
+                                    if (progressEl) progressEl.innerText = `A ler texto... ${pct}%`;
+                                } else if (m.status && progressEl) {
+                                    progressEl.innerText = String(m.status).slice(0, 40);
+                                }
+                            }
+                        });
+                    } catch (langErr) {
+                        console.warn('por+eng falhou, a tentar eng:', langErr);
+                        ocrWorker = await Tesseract.createWorker('eng', 1, {
+                            logger: m => {
+                                if (m.status === 'recognizing text') {
+                                    const pct = Math.round((m.progress || 0) * 100);
+                                    if (bar) bar.style.width = `${20 + pct * 0.7}%`;
+                                    if (progressEl) progressEl.innerText = `A ler texto... ${pct}%`;
+                                }
+                            }
+                        });
+                    }
+                }
+                if (statusEl) statusEl.innerText = 'A extrair texto da fatura...';
                 const { data: { text } } = await ocrWorker.recognize(dataUrl);
-                bar.style.width = '95%'; statusEl.innerText = 'A interpretar dados...'; progressEl.innerText = 'Parsing inteligente';
-                const extracted = parseInvoiceText(text);
-                bar.style.width = '100%';
-                return { text, extracted };
-            } catch (err) { console.error('OCR error:', err); throw err; }
+                console.log('[Vanty OCR] texto bruto:', text);
+                if (bar) bar.style.width = '95%';
+                if (statusEl) statusEl.innerText = 'A interpretar dados...';
+                if (progressEl) progressEl.innerText = 'Parsing inteligente';
+                const extracted = parseInvoiceText(text || '');
+                console.log('[Vanty OCR] extraído:', extracted);
+                if (bar) bar.style.width = '100%';
+                return { text: text || '', extracted };
+            } catch (err) {
+                console.error('OCR error:', err);
+                throw err;
+            }
         }
 
         function cleanOcrLine(line) {
@@ -727,7 +754,7 @@
                 if (line.length < 6 || line.length > 100) continue;
                 if (junkLine.test(line)) continue;
                 if (/^\d+([.,]\d+)?$/.test(line)) continue;
-                if (ocrNoiseScore(line) > 2.2) continue; // demasiado lixo OCR
+                if (ocrNoiseScore(line) > 2.8) continue; // demasiado lixo OCR
 
                 let score = 0;
                 if (brands.test(line)) score += 8;
@@ -781,31 +808,87 @@
 
         function escapeHtml(str) { return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
-        function handleFileSelect(e) { const file = e.target.files[0]; if (!file) return; processFile(file); }
-        const zone = document.getElementById('uploadZone');
-        ['dragenter','dragover'].forEach(ev => zone.addEventListener(ev, e => { e.preventDefault(); zone.classList.add('dragover'); }));
-        ['dragleave','drop'].forEach(ev => zone.addEventListener(ev, e => { e.preventDefault(); zone.classList.remove('dragover'); }));
-        zone.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if (f) processFile(f); });
+        function handleFileSelect(e) {
+            const file = e.target.files && e.target.files[0];
+            if (!file) return;
+            processFile(file);
+        }
+
+        (function setupUploadZone() {
+            const zone = document.getElementById('uploadZone');
+            if (!zone) return;
+            ['dragenter', 'dragover'].forEach(ev => {
+                zone.addEventListener(ev, e => { e.preventDefault(); zone.classList.add('dragover'); });
+            });
+            ['dragleave', 'drop'].forEach(ev => {
+                zone.addEventListener(ev, e => { e.preventDefault(); zone.classList.remove('dragover'); });
+            });
+            zone.addEventListener('drop', e => {
+                const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+                if (f) processFile(f);
+            });
+        })();
 
         async function processFile(file) {
-            if (file.size > 8 * 1024 * 1024) { alert('Ficheiro demasiado grande (máx. 8 MB).'); return; }
-            document.getElementById('uploadPlaceholder').classList.add('hidden');
-            document.getElementById('uploadSuccess').classList.add('hidden');
-            document.getElementById('extractedPreview').classList.add('hidden');
-            document.getElementById('uploadProcessing').classList.remove('hidden');
+            if (!file) return;
+            if (file.size > 8 * 1024 * 1024) {
+                alert('Ficheiro demasiado grande (máx. 8 MB).');
+                return;
+            }
+
+            const placeholder = document.getElementById('uploadPlaceholder');
+            const success = document.getElementById('uploadSuccess');
+            const processing = document.getElementById('uploadProcessing');
+            const preview = document.getElementById('extractedPreview');
+            const summary = document.getElementById('extractSummary');
+            const fileNameEl = document.getElementById('fileNameText');
+
+            if (placeholder) placeholder.classList.add('hidden');
+            if (success) success.classList.add('hidden');
+            if (preview) preview.classList.add('hidden');
+            if (processing) processing.classList.remove('hidden');
+
+            const isImage = (file.type && file.type.startsWith('image/')) ||
+                /\.(jpe?g|png|webp|gif|bmp)$/i.test(file.name || '');
+
             const reader = new FileReader();
             reader.onload = async function(evt) {
                 const dataUrl = evt.target.result;
-                selectedReceipt = { name: file.name, type: file.type || 'application/octet-stream', data: dataUrl, size: file.size };
-                if (file.type.startsWith('image/')) {
-                    try { const { extracted } = await extractDataFromImage(dataUrl); applyExtractedData(extracted); }
-                    catch (err) { console.warn('OCR failed:', err); document.getElementById('extractSummary').innerText = 'OCR indisponível · preencha manualmente'; }
-                } else { document.getElementById('extractSummary').innerText = 'PDF guardado · preencha manualmente'; }
-                document.getElementById('uploadProcessing').classList.add('hidden');
-                document.getElementById('uploadSuccess').classList.remove('hidden');
-                document.getElementById('fileNameText').innerText = file.name;
+                selectedReceipt = {
+                    name: file.name,
+                    type: file.type || (isImage ? 'image/jpeg' : 'application/octet-stream'),
+                    data: dataUrl,
+                    size: file.size
+                };
+
+                if (isImage) {
+                    try {
+                        const { extracted, text } = await extractDataFromImage(dataUrl);
+                        applyExtractedData(extracted);
+                        const filled = [extracted.product, extracted.store, extracted.price, extracted.date, extracted.serial].filter(v => v != null && v !== '').length;
+                        if (summary) {
+                            if (filled === 0) {
+                                summary.innerText = text && text.trim().length > 10
+                                    ? 'OCR leu texto, mas não identificou campos · preencha manualmente'
+                                    : 'OCR não detetou texto legível · tente foto mais nítida';
+                            }
+                        }
+                    } catch (err) {
+                        console.warn('OCR failed:', err);
+                        if (summary) summary.innerText = 'OCR falhou: ' + (err.message || 'erro') + ' · preencha manualmente';
+                    }
+                } else {
+                    if (summary) summary.innerText = 'PDF guardado · preencha os campos manualmente';
+                }
+
+                if (processing) processing.classList.add('hidden');
+                if (success) success.classList.remove('hidden');
+                if (fileNameEl) fileNameEl.innerText = file.name;
             };
-            reader.onerror = () => { alert('Erro ao ler o ficheiro.'); clearReceipt(); };
+            reader.onerror = () => {
+                alert('Erro ao ler o ficheiro.');
+                clearReceipt();
+            };
             reader.readAsDataURL(file);
         }
 
