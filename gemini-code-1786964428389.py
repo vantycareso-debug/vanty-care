@@ -1,0 +1,414 @@
+html_content = """<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vanty Care - Gestão Global de Garantias</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen antialiased selection:bg-sky-500 selection:text-white">
+
+    <!-- Header Navigation -->
+    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-sky-500/20">
+                    V
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold bg-gradient-to-r from-white via-slate-200 to-sky-400 bg-clip-text text-transparent">Vanty Care</h1>
+                    <p class="text-xs text-slate-400">Global Warranty Management</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    Base de Dados Ativa
+                </span>
+                <span class="text-xs bg-slate-800 text-slate-300 border border-slate-700 px-3 py-1 rounded-full font-mono">v0.1 Prototype</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 py-8 space-y-8">
+
+        <!-- Dashboard Summary Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-400 uppercase font-semibold tracking-wider">Garantias Ativas</p>
+                    <p class="text-2xl font-bold text-white mt-0.5" id="stat-active">2</p>
+                </div>
+            </div>
+            <div class="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-receipt"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-400 uppercase font-semibold tracking-wider">Total Investido</p>
+                    <p class="text-2xl font-bold text-white mt-0.5" id="stat-value">1.849,00 €</p>
+                </div>
+            </div>
+            <div class="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-clock-rotate-left"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-400 uppercase font-semibold tracking-wider">A Expirar Brevemente</p>
+                    <p class="text-2xl font-bold text-white mt-0.5">0</p>
+                </div>
+            </div>
+            <div class="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-xl">
+                    <i class="fa-solid fa-building-circle-check"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-400 uppercase font-semibold tracking-wider">Legislação Aplicada</p>
+                    <p class="text-2xl font-bold text-emerald-400 mt-0.5">UE (3 Anos)</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- Left Column: A Casa + Novo Produto Form -->
+            <div class="space-y-8 lg:col-span-1">
+                
+                <!-- A Casa do Cliente Card -->
+                <section class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl relative overflow-hidden">
+                    <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-sky-500/5 rounded-full blur-2xl pointer-events-none"></div>
+                    <div class="flex items-center justify-between mb-5">
+                        <h2 class="text-base font-semibold text-white flex items-center gap-2">
+                            <i class="fa-solid fa-house-user text-sky-400"></i>
+                            A Casa do Cliente
+                        </h2>
+                        <span class="text-xs bg-sky-500/10 text-sky-400 px-2.5 py-1 rounded-lg font-medium border border-sky-500/20">Perfil Ativo</span>
+                    </div>
+
+                    <div class="space-y-3.5 text-sm">
+                        <div class="flex justify-between pb-2 border-b border-slate-800/80">
+                            <span class="text-slate-400">Nome:</span>
+                            <span class="font-medium text-slate-200">João Silva</span>
+                        </div>
+                        <div class="flex justify-between pb-2 border-b border-slate-800/80">
+                            <span class="text-slate-400">NIF:</span>
+                            <span class="font-mono font-medium text-slate-200">245 890 123</span>
+                        </div>
+                        <div class="flex justify-between pb-2 border-b border-slate-800/80">
+                            <span class="text-slate-400">Email:</span>
+                            <span class="font-medium text-slate-200">joao.silva@email.com</span>
+                        </div>
+                        <div class="flex justify-between pb-2 border-b border-slate-800/80">
+                            <span class="text-slate-400">Telefone:</span>
+                            <span class="font-medium text-slate-200">+351 912 345 678</span>
+                        </div>
+                        <div class="flex justify-between pb-2 border-b border-slate-800/80">
+                            <span class="text-slate-400">Morada:</span>
+                            <span class="font-medium text-slate-200 text-right">Av. da Liberdade 100, Lisboa</span>
+                        </div>
+                        <div class="flex justify-between pt-1">
+                            <span class="text-slate-400">País / Jurisdição:</span>
+                            <span class="font-medium text-sky-400 flex items-center gap-1.5">
+                                🇵🇹 Portugal (UE - 36 meses)
+                            </span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Registar Novo Produto Form -->
+                <section class="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl">
+                    <h2 class="text-base font-semibold text-white mb-5 flex items-center gap-2">
+                        <i class="fa-solid fa-plus-circle text-sky-400"></i>
+                        Registar Nova Garantia
+                    </h2>
+
+                    <form id="productForm" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Nome do Produto *</label>
+                            <input type="text" id="prodName" placeholder="Ex: TV OLED 55'' 4K" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all" required>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-400 mb-1">Marca *</label>
+                                <input type="text" id="prodBrand" placeholder="Ex: LG, Samsung" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-400 mb-1">Loja *</label>
+                                <input type="text" id="prodStore" placeholder="Ex: Worten, Fnac" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all" required>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-400 mb-1">Data de Compra *</label>
+                                <input type="date" id="prodDate" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all" required>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-medium text-slate-400 mb-1">Preço (€) *</label>
+                                <input type="number" step="0.01" id="prodPrice" placeholder="0.00" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all" required>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Nº de Série (Opcional)</label>
+                            <input type="text" id="prodSerial" placeholder="Ex: SN-9876543210" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-sm text-white focus:outline-none focus:border-sky-500 focus:ring-1 focus:ring-sky-500 transition-all">
+                        </div>
+
+                        <div class="p-4 border-2 border-dashed border-slate-800 rounded-xl bg-slate-950/50 text-center hover:border-slate-700 transition-all cursor-pointer">
+                            <i class="fa-solid fa-cloud-arrow-up text-2xl text-slate-500 mb-1"></i>
+                            <p class="text-xs text-slate-400 font-medium">Anexar Talão / Fatura (OCR Auto)</p>
+                            <p class="text-[10px] text-slate-600 mt-0.5">PNG, JPG ou PDF até 5MB</p>
+                        </div>
+
+                        <button type="submit" class="w-full bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-semibold p-3.5 rounded-xl transition-all shadow-lg shadow-sky-500/20 active:scale-[0.99]">
+                            <i class="fa-solid fa-floppy-disk mr-2"></i> Guardar no Vanty Care
+                        </button>
+                    </form>
+                </section>
+            </div>
+
+            <!-- Right Column: Garantias Registadas -->
+            <div class="space-y-6 lg:col-span-2">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-lg font-semibold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-box-archive text-sky-400"></i>
+                        Garantias Registadas
+                    </h2>
+                    <div class="flex gap-2">
+                        <button class="px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-xs text-slate-300 font-medium hover:bg-slate-800 transition-all">
+                            Todas (2)
+                        </button>
+                        <button class="px-3 py-1.5 bg-slate-900 border border-slate-800 rounded-lg text-xs text-slate-400 font-medium hover:bg-slate-800 transition-all">
+                            Válidas
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Products Feed -->
+                <div id="productsFeed" class="space-y-4">
+                    <!-- Default Product 1 -->
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition-all shadow-lg group">
+                        <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 border-b border-slate-800/80 pb-4 mb-4">
+                            <div class="flex items-start gap-3.5">
+                                <div class="w-12 h-12 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-400 flex items-center justify-center text-xl shrink-0 mt-0.5">
+                                    <i class="fa-solid fa-tv"></i>
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <h3 class="font-semibold text-white text-base">Smart TV OLED 55" 4K</h3>
+                                        <span class="text-[11px] font-medium bg-slate-800 text-slate-300 px-2 py-0.5 rounded-md border border-slate-700">LG</span>
+                                    </div>
+                                    <p class="text-xs text-slate-400 mt-0.5">Comprado na <span class="text-slate-300 font-medium">Worten</span> em 12/01/2025</p>
+                                </div>
+                            </div>
+                            <div class="sm:text-right">
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                    <i class="fa-solid fa-circle-check text-[10px]"></i> Garantia Válida
+                                </span>
+                                <p class="text-xs text-slate-400 mt-1">Expira em: <span class="font-medium text-slate-200">12/01/2028</span> (UE 3 Anos)</p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs mb-4 bg-slate-950/60 p-3 rounded-xl border border-slate-800/50">
+                            <div>
+                                <p class="text-slate-500">Valor Pago:</p>
+                                <p class="font-semibold text-slate-200 mt-0.5">1.299,00 €</p>
+                            </div>
+                            <div>
+                                <p class="text-slate-500">Nº de Série:</p>
+                                <p class="font-mono text-slate-300 mt-0.5">LG-992018471</p>
+                            </div>
+                            <div>
+                                <p class="text-slate-500">Comprovativo:</p>
+                                <p class="text-sky-400 font-medium cursor-pointer hover:underline mt-0.5">
+                                    <i class="fa-solid fa-file-pdf mr-1"></i> Fatura_LG.pdf
+                                </p>
+                            </div>
+                            <div>
+                                <p class="text-slate-500">CAT Associado:</p>
+                                <p class="text-slate-300 font-medium mt-0.5">CAT LG Lisboa Norte</p>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end gap-2 pt-1">
+                            <button onclick="reportIssue('Smart TV OLED 55\\\" 4K')" class="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-xl text-xs font-medium transition-all flex items-center gap-1.5">
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                                Reportar Avaria (RMA)
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Default Product 2 -->
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition-all shadow-lg group">
+                        <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 border-b border-slate-800/80 pb-4 mb-4">
+                            <div class="flex items-start gap-3.5">
+                                <div class="w-12 h-12 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center text-xl shrink-0 mt-0.5">
+                                    <i class="fa-solid fa-laptop"></i>
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <h3 class="font-semibold text-white text-base">MacBook Air M2 13"</h3>
+                                        <span class="text-[11px] font-medium bg-slate-800 text-slate-300 px-2 py-0.5 rounded-md border border-slate-700">Apple</span>
+                                    </div>
+                                    <p class="text-xs text-slate-400 mt-0.5">Comprado na <span class="text-slate-300 font-medium">Fnac</span> em 05/06/2024</p>
+                                </div>
+                            </div>
+                            <div class="sm:text-right">
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                                    <i class="fa-solid fa-circle-check text-[10px]"></i> Garantia Válida
+                                </span>
+                                <p class="text-xs text-slate-400 mt-1">Expira em: <span class="font-medium text-slate-200">05/06/2027</span> (UE 3 Anos)</p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs mb-4 bg-slate-950/60 p-3 rounded-xl border border-slate-800/50">
+                            <div>
+                                <p class="text-slate-500">Valor Pago:</p>
+                                <p class="font-semibold text-slate-200 mt-0.5">550,00 €</p>
+                            </div>
+                            <div>
+                                <p class="text-slate-500">Nº de Série:</p>
+                                <p class="font-mono text-slate-300 mt-0.5">C02FX912Q168</p>
+                            </div>
+                            <div>
+                                <p class="text-slate-500">Comprovativo:</p>
+                                <p class="text-sky-400 font-medium cursor-pointer hover:underline mt-0.5">
+                                    <i class="fa-solid fa-file-pdf mr-1"></i> Fatura_Fnac.pdf
+                                </p>
+                            </div>
+                            <div>
+                                <p class="text-slate-500">CAT Associado:</p>
+                                <p class="text-slate-300 font-medium mt-0.5">Apple Authorized PT</p>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end gap-2 pt-1">
+                            <button onclick="reportIssue('MacBook Air M2 13\\\"')" class="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-xl text-xs font-medium transition-all flex items-center gap-1.5">
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                                Reportar Avaria (RMA)
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-800 mt-12 py-6 bg-slate-900/50 text-center text-xs text-slate-500">
+        <p>Vanty Care Platform &copy; 2026 — Sistema Inteligente de Gestão Global de Garantias</p>
+    </footer>
+
+    <!-- Interactive Script -->
+    <script>
+        let totalCount = 2;
+        let totalSum = 1849.00;
+
+        document.getElementById('productForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const name = document.getElementById('prodName').value;
+            const brand = document.getElementById('prodBrand').value;
+            const store = document.getElementById('prodStore').value;
+            const dateStr = document.getElementById('prodDate').value;
+            const price = parseFloat(document.getElementById('prodPrice').value) || 0;
+            const serial = document.getElementById('prodSerial').value || 'N/A';
+
+            // Calculate 3 years warranty for EU jurisdiction
+            const purchaseDate = new Date(dateStr);
+            const expDate = new Date(purchaseDate);
+            expDate.setFullYear(expDate.getFullYear() + 3);
+
+            const formatDate = (d) => d.toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+            // Create new HTML card
+            const newCard = document.createElement('div');
+            newCard.className = 'bg-slate-900 border border-slate-800 rounded-2xl p-5 hover:border-slate-700 transition-all shadow-lg animate-fade-in';
+            newCard.innerHTML = `
+                <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 border-b border-slate-800/80 pb-4 mb-4">
+                    <div class="flex items-start gap-3.5">
+                        <div class="w-12 h-12 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-400 flex items-center justify-center text-xl shrink-0 mt-0.5">
+                            <i class="fa-solid fa-plug"></i>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2 flex-wrap">
+                                <h3 class="font-semibold text-white text-base">${name}</h3>
+                                <span class="text-[11px] font-medium bg-slate-800 text-slate-300 px-2 py-0.5 rounded-md border border-slate-700">${brand}</span>
+                            </div>
+                            <p class="text-xs text-slate-400 mt-0.5">Comprado na <span class="text-slate-300 font-medium">${store}</span> em ${formatDate(purchaseDate)}</p>
+                        </div>
+                    </div>
+                    <div class="sm:text-right">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                            <i class="fa-solid fa-circle-check text-[10px]"></i> Garantia Válida
+                        </span>
+                        <p class="text-xs text-slate-400 mt-1">Expira em: <span class="font-medium text-slate-200">${formatDate(expDate)}</span> (UE 3 Anos)</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs mb-4 bg-slate-950/60 p-3 rounded-xl border border-slate-800/50">
+                    <div>
+                        <p class="text-slate-500">Valor Pago:</p>
+                        <p class="font-semibold text-slate-200 mt-0.5">${price.toFixed(2)} €</p>
+                    </div>
+                    <div>
+                        <p class="text-slate-500">Nº de Série:</p>
+                        <p class="font-mono text-slate-300 mt-0.5">${serial}</p>
+                    </div>
+                    <div>
+                        <p class="text-slate-500">Comprovativo:</p>
+                        <p class="text-sky-400 font-medium cursor-pointer hover:underline mt-0.5">
+                            <i class="fa-solid fa-file-invoice mr-1"></i> Falao_Anexado.pdf
+                        </p>
+                    </div>
+                    <div>
+                        <p class="text-slate-500">CAT Associado:</p>
+                        <p class="text-slate-300 font-medium mt-0.5">CAT ${brand} Oficial</p>
+                    </div>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-1">
+                    <button onclick="reportIssue('${name}')" class="px-4 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 rounded-xl text-xs font-medium transition-all flex items-center gap-1.5">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        Reportar Avaria (RMA)
+                    </button>
+                </div>
+            `;
+
+            document.getElementById('productsFeed').prepend(newCard);
+
+            // Update stats
+            totalCount++;
+            totalSum += price;
+            document.getElementById('stat-active').innerText = totalCount;
+            document.getElementById('stat-value').innerText = totalSum.toLocaleString('pt-PT', { minimumFractionDigits: 2 }) + ' €';
+
+            // Reset form
+            this.reset();
+            alert('✅ Produto "' + name + '" registado com sucesso no Vanty Care!');
+        });
+
+        function reportIssue(prodName) {
+            alert('⚠️ Abertura de Pedido de RMA para: ' + prodName + '\\n\\nO sistema Vanty Care vai associar a sua morada ao Centro de Assistência Técnica (CAT) oficial mais próximo e gerar o email de suporte automaticamente!');
+        }
+    </script>
+</body>
+</html>
+"""
+
+with open("index.html", "w", encoding="utf-8") as f:
+    f.write(html_content)
+
+print("Ficheiro index.html criado com sucesso para o Vanty Care!")
