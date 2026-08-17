@@ -187,7 +187,7 @@
                     <div class="live-dot"></div>
                     <div>
                         <div class="text-[11px] font-semibold text-emerald-400">Supabase Live</div>
-                        <div class="text-[10px] text-slate-500">v2.0 · Auth + Storage</div>
+                        <div class="text-[10px] text-slate-500">v2.1.1 · Password recovery</div>
                     </div>
                 </div>
             </div>
@@ -777,7 +777,16 @@
                 <h3 class="text-base font-bold text-white" id="authModalTitle">Entrar no Vanty Care</h3>
                 <button type="button" onclick="closeAuthModal()" class="text-slate-500 hover:text-white p-1"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <p class="text-[11px] text-slate-500">Conta Supabase Auth — sincroniza garantias e faturas entre dispositivos.</p>
+            <p class="text-[11px] text-slate-500">Sincroniza garantias e faturas entre dispositivos.</p>
+            <button type="button" onclick="authSignInWithGoogle()" class="w-full flex items-center justify-center gap-2.5 py-2.5 rounded-xl bg-white hover:bg-slate-100 text-slate-900 text-sm font-bold transition-all border border-white/20">
+                <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+                Continuar com Google
+            </button>
+            <div class="flex items-center gap-3">
+                <div class="flex-1 h-px bg-white/[0.08]"></div>
+                <span class="text-[10px] text-slate-600 uppercase font-bold tracking-wider">ou email</span>
+                <div class="flex-1 h-px bg-white/[0.08]"></div>
+            </div>
             <div>
                 <label class="block text-[10px] text-slate-500 uppercase font-bold mb-1">Email</label>
                 <input type="email" id="authEmail" class="w-full input-field p-2.5 text-sm text-white" placeholder="o.teu@email.com" autocomplete="email">
@@ -786,10 +795,18 @@
                 <label class="block text-[10px] text-slate-500 uppercase font-bold mb-1">Password (mín. 6)</label>
                 <input type="password" id="authPassword" class="w-full input-field p-2.5 text-sm text-white" placeholder="••••••••" autocomplete="current-password">
             </div>
-            <p id="authError" class="hidden text-xs text-red-400"></p>
-            <div class="flex gap-2">
-                <button type="button" onclick="authSignIn()" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-sm font-bold">Entrar</button>
-                <button type="button" onclick="authSignUp()" class="flex-1 py-2.5 rounded-xl bg-surface-800 border border-white/[0.08] text-slate-200 text-sm font-semibold hover:bg-surface-700">Criar conta</button>
+            <p id="authError" class="hidden text-xs text-red-400 whitespace-pre-line"></p>
+            <div id="authLoginActions" class="space-y-2">
+                <div class="flex gap-2">
+                    <button type="button" onclick="authSignIn()" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-sm font-bold">Entrar</button>
+                    <button type="button" onclick="authSignUp()" class="flex-1 py-2.5 rounded-xl bg-surface-800 border border-white/[0.08] text-slate-200 text-sm font-semibold hover:bg-surface-700">Criar conta</button>
+                </div>
+                <button type="button" onclick="authForgotPassword()" class="w-full py-2 text-[11px] text-slate-500 hover:text-cyan-400 font-semibold">Esqueci a password</button>
+            </div>
+            <div id="authRecoveryActions" class="hidden space-y-2">
+                <p class="text-[11px] text-amber-300/90">Link de recuperação válido. Define a nova password:</p>
+                <input type="password" id="authNewPassword" class="w-full input-field p-2.5 text-sm text-white" placeholder="Nova password (mín. 6)" autocomplete="new-password">
+                <button type="button" onclick="authUpdatePassword()" class="w-full py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-sm font-bold">Guardar nova password</button>
             </div>
             <button type="button" id="authSignOutBtn" onclick="authSignOut()" class="hidden w-full py-2 rounded-xl text-xs text-red-400 font-semibold hover:bg-red-500/10">Terminar sessão</button>
         </div>
@@ -826,12 +843,43 @@
 
         // ---------- AUTH ----------
         async function initAuth() {
+            const recovery = isRecoveryRedirect();
             const { data: { session } } = await supabaseClient.auth.getSession();
             currentUser = session?.user || null;
+
+            // Limpar tokens da URL (OAuth / recovery)
+            if (window.location.hash.includes('access_token') || window.location.search.includes('code=') || recovery) {
+                const clean = appRedirectUrl();
+                window.history.replaceState({}, document.title, clean);
+            }
+
+            if (recovery && currentUser) {
+                showRecoveryUI();
+            }
+
+            if (currentUser) {
+                const meta = currentUser.user_metadata || {};
+                if (meta.full_name || meta.name || meta.email) {
+                    let changed = false;
+                    if ((!userProfile.name || userProfile.name === 'João Silva') && (meta.full_name || meta.name)) {
+                        userProfile.name = meta.full_name || meta.name;
+                        changed = true;
+                    }
+                    if (meta.email && (!userProfile.email || userProfile.email.includes('email.com'))) {
+                        userProfile.email = meta.email;
+                        changed = true;
+                    }
+                    if (changed) {
+                        localStorage.setItem('vanty_profile', JSON.stringify(userProfile));
+                        try { renderProfile(); } catch (_) {}
+                    }
+                }
+            }
             updateAuthUI();
-            supabaseClient.auth.onAuthStateChange((_event, session) => {
+            supabaseClient.auth.onAuthStateChange((event, session) => {
                 currentUser = session?.user || null;
                 updateAuthUI();
+                if (event === 'PASSWORD_RECOVERY') showRecoveryUI();
                 loadProducts();
             });
         }
@@ -859,6 +907,25 @@
         function closeAuthModal() {
             document.getElementById('authModal').classList.add('hidden');
         }
+        function mapAuthError(msg) {
+            const m = String(msg || '').toLowerCase();
+            if (m.includes('signups not allowed') || m.includes('signup is disabled') || m.includes('sign up is disabled')) {
+                return 'Registos bloqueados no Supabase.\n\nDashboard → Authentication → Providers → Email → ativa “Allow new users to sign up”.\nEm Authentication → Settings confirma a mesma opção.';
+            }
+            if (m.includes('email rate limit') || m.includes('over_email_send_rate_limit')) {
+                return 'Limite de emails (SMTP grátis ~2/hora).\nPara testes: Providers → Email → desliga “Confirm email”.';
+            }
+            if (m.includes('user already registered') || m.includes('already been registered')) {
+                return 'Este email já tem conta. Usa “Entrar”.';
+            }
+            if (m.includes('invalid login credentials') || m.includes('invalid_credentials')) {
+                return 'Email ou password incorretos (ou email ainda não confirmado).';
+            }
+            if (m.includes('email not confirmed')) {
+                return 'Email não confirmado. Confirma o link ou desativa “Confirm email” no Dashboard (testes).';
+            }
+            return msg || 'Erro de autenticação.';
+        }
         async function authSignUp() {
             const email = document.getElementById('authEmail').value.trim();
             const password = document.getElementById('authPassword').value;
@@ -871,12 +938,13 @@
             }
             const { data, error } = await supabaseClient.auth.signUp({ email, password });
             if (error) {
-                errEl.innerText = error.message;
+                console.warn('signUp error:', error);
+                errEl.innerText = mapAuthError(error.message);
                 errEl.classList.remove('hidden');
                 return;
             }
             if (data.user && !data.session) {
-                showToast('Conta criada. Confirma o email se o projeto exigir verificação, depois entra.', 'Quase lá', 'info');
+                showToast('Conta criada, mas falta confirmar o email.\n\nTestes: Dashboard → Auth → Providers → Email → desliga “Confirm email” e volta a registar.', 'Confirma o email', 'info');
             } else {
                 showToast('Conta criada e sessão iniciada.', 'Bem-vindo', 'success');
             }
@@ -889,7 +957,8 @@
             errEl.classList.add('hidden');
             const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
             if (error) {
-                errEl.innerText = error.message;
+                console.warn('signIn error:', error);
+                errEl.innerText = mapAuthError(error.message);
                 errEl.classList.remove('hidden');
                 return;
             }
@@ -900,6 +969,80 @@
             await supabaseClient.auth.signOut();
             showToast('Sessão terminada. Dados locais mantêm-se neste browser.', 'Logout', 'info');
             closeAuthModal();
+        }
+        function appRedirectUrl() {
+            return window.location.origin + window.location.pathname;
+        }
+        async function authSignInWithGoogle() {
+            const errEl = document.getElementById('authError');
+            errEl.classList.add('hidden');
+            const { error } = await supabaseClient.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: appRedirectUrl(),
+                    queryParams: { access_type: 'offline', prompt: 'consent' }
+                }
+            });
+            if (error) {
+                console.warn('Google OAuth:', error);
+                errEl.innerText = mapAuthError(error.message) +
+                    '\n\nAtiva Google em: Dashboard → Authentication → Providers → Google\n(Client ID + Secret da Google Cloud Console).';
+                errEl.classList.remove('hidden');
+            }
+        }
+        async function authForgotPassword() {
+            const email = document.getElementById('authEmail').value.trim();
+            const errEl = document.getElementById('authError');
+            errEl.classList.add('hidden');
+            if (!email) {
+                errEl.innerText = 'Escreve o teu email em cima e clica outra vez em “Esqueci a password”.';
+                errEl.classList.remove('hidden');
+                return;
+            }
+            const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+                redirectTo: appRedirectUrl()
+            });
+            if (error) {
+                errEl.innerText = mapAuthError(error.message);
+                errEl.classList.remove('hidden');
+                return;
+            }
+            showToast('Email de recuperação enviado.\n\nO link tem de abrir ESTE site (não supabase.com).\nConfirma Site URL + Redirect URLs no Dashboard.', 'Email enviado', 'info');
+            closeAuthModal();
+        }
+        async function authUpdatePassword() {
+            const pwd = document.getElementById('authNewPassword')?.value || '';
+            const errEl = document.getElementById('authError');
+            errEl.classList.add('hidden');
+            if (pwd.length < 6) {
+                errEl.innerText = 'Nova password: mínimo 6 caracteres.';
+                errEl.classList.remove('hidden');
+                return;
+            }
+            const { error } = await supabaseClient.auth.updateUser({ password: pwd });
+            if (error) {
+                errEl.innerText = mapAuthError(error.message);
+                errEl.classList.remove('hidden');
+                return;
+            }
+            document.getElementById('authRecoveryActions')?.classList.add('hidden');
+            document.getElementById('authLoginActions')?.classList.remove('hidden');
+            showToast('Password atualizada. Já podes usar a app.', 'OK', 'success');
+            closeAuthModal();
+            updateAuthUI();
+            loadProducts();
+        }
+        function showRecoveryUI() {
+            document.getElementById('authLoginActions')?.classList.add('hidden');
+            document.getElementById('authRecoveryActions')?.classList.remove('hidden');
+            document.getElementById('authModalTitle').innerText = 'Nova password';
+            openAuthModal();
+        }
+        function isRecoveryRedirect() {
+            const hash = window.location.hash || '';
+            const q = window.location.search || '';
+            return hash.includes('type=recovery') || q.includes('type=recovery') ||
+                (hash.includes('access_token') && hash.includes('type=recovery'));
         }
 
         async function uploadInvoiceToStorage(productId, receipt) {
