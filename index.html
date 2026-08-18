@@ -8,6 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <script>
         tailwind.config = {
@@ -173,6 +174,10 @@
                 <div class="nav-item" data-panel="stats" onclick="switchPanel('stats')">
                     <i class="fa-solid fa-star-half-stroke"></i><span>Estatísticas</span>
                 </div>
+                <div class="nav-item" data-panel="cartoes" onclick="switchPanel('cartoes')">
+                    <i class="fa-solid fa-wallet"></i><span>Cartões</span>
+                    <span id="navBadgeCards" class="ml-auto text-[10px] font-bold bg-violet-500/15 text-violet-300 px-1.5 py-0.5 rounded-md">0</span>
+                </div>
                 <div class="text-[10px] font-bold text-slate-600 uppercase tracking-widest px-3 mb-2 mt-5">Conta</div>
                 <div class="nav-item" data-panel="perfil" onclick="switchPanel('perfil')">
                     <i class="fa-solid fa-user"></i><span>Perfil / Casa</span>
@@ -187,7 +192,7 @@
                     <div class="live-dot"></div>
                     <div>
                         <div class="text-[11px] font-semibold text-emerald-400">Supabase Live</div>
-                        <div class="text-[10px] text-slate-500">v2.1.1 · Password recovery</div>
+                        <div class="text-[10px] text-slate-500">v2.2 · Cartões vault</div>
                     </div>
                 </div>
             </div>
@@ -604,8 +609,75 @@
                         <div class="card p-10 text-center text-slate-500 text-sm">A carregar estatísticas...</div>
                     </div>
                 </div>
+
+                <!-- CARTÕES DE FIDELIZAÇÃO (mini vault) -->
+                <div id="panel-cartoes" class="panel-hidden space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+                        <div>
+                            <h2 class="text-base font-bold text-white flex items-center gap-2">
+                                <i class="fa-solid fa-wallet text-violet-400"></i> Cartões de fidelização
+                            </h2>
+                            <p class="text-[11px] text-slate-500 mt-1">Mini vault — mostra o código de barras na caixa sem abrir a app da loja.</p>
+                        </div>
+                        <button type="button" onclick="openAddCardModal()" class="px-3.5 py-2 rounded-lg bg-violet-500 hover:bg-violet-400 text-white text-xs font-bold transition-all flex items-center gap-1.5">
+                            <i class="fa-solid fa-plus"></i> Adicionar cartão
+                        </button>
+                    </div>
+                    <div id="cardsFeed" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
+                        <div class="card p-10 text-center text-slate-500 text-sm sm:col-span-2 xl:col-span-3">Ainda sem cartões. Adiciona o primeiro.</div>
+                    </div>
+                </div>
             </main>
         </div>
+    </div>
+
+    <!-- Add Loyalty Card Modal -->
+    <div id="addCardModal" class="fixed inset-0 modal-backdrop z-[55] hidden flex items-center justify-center p-4">
+        <div class="card modal-panel w-full max-w-md p-6 space-y-4 relative border border-white/[0.08]">
+            <button type="button" onclick="closeAddCardModal()" class="absolute top-4 right-4 text-slate-500 hover:text-white p-2"><i class="fa-solid fa-xmark"></i></button>
+            <h3 class="text-lg font-bold text-white flex items-center gap-2"><i class="fa-solid fa-credit-card text-violet-400"></i> Novo cartão</h3>
+            <div>
+                <label class="block text-[10px] text-slate-500 uppercase font-bold mb-1">Loja</label>
+                <select id="cardStoreSelect" class="w-full input-field p-2.5 text-sm text-white" onchange="onCardStoreChange()">
+                    <option value="Continente">Continente / Continente Bom Dia</option>
+                    <option value="Pingo Doce">Pingo Doce</option>
+                    <option value="Auchan">Auchan</option>
+                    <option value="E.Leclerc">E.Leclerc</option>
+                    <option value="Lidl">Lidl</option>
+                    <option value="Worten">Worten</option>
+                    <option value="Fnac">Fnac</option>
+                    <option value="Radio Popular">Radio Popular</option>
+                    <option value="IKEA">IKEA Family</option>
+                    <option value="Outra">Outra (escrever nome)</option>
+                </select>
+            </div>
+            <div id="cardCustomStoreWrap" class="hidden">
+                <label class="block text-[10px] text-slate-500 uppercase font-bold mb-1">Nome da loja</label>
+                <input type="text" id="cardCustomStore" class="w-full input-field p-2.5 text-sm text-white" placeholder="Ex.: Decathlon">
+            </div>
+            <div>
+                <label class="block text-[10px] text-slate-500 uppercase font-bold mb-1">Nº do cartão / código de barras</label>
+                <input type="text" id="cardNumberInput" class="w-full input-field p-2.5 text-sm text-white font-mono" placeholder="Só números (ou código completo)" inputmode="numeric" autocomplete="off">
+                <p class="text-[10px] text-slate-600 mt-1">É o número que aparece debaixo do código de barras no cartão físico ou na app da loja.</p>
+            </div>
+            <div>
+                <label class="block text-[10px] text-slate-500 uppercase font-bold mb-1">Nome no cartão (opcional)</label>
+                <input type="text" id="cardHolderInput" class="w-full input-field p-2.5 text-sm text-white" placeholder="Ex.: Cartão família">
+            </div>
+            <button type="button" onclick="saveLoyaltyCard()" class="w-full py-2.5 rounded-xl bg-violet-500 hover:bg-violet-400 text-white text-sm font-bold">Guardar cartão</button>
+        </div>
+    </div>
+
+    <!-- Fullscreen card for checkout scanner -->
+    <div id="cardPresentModal" class="fixed inset-0 z-[80] hidden bg-white flex flex-col items-center justify-center p-6">
+        <button type="button" onclick="closePresentCard()" class="absolute top-4 right-4 w-10 h-10 rounded-full bg-slate-100 text-slate-700 text-lg"><i class="fa-solid fa-xmark"></i></button>
+        <p id="presentCardStore" class="text-slate-800 text-lg font-bold mb-1">Loja</p>
+        <p id="presentCardHolder" class="text-slate-500 text-xs mb-6"></p>
+        <div class="w-full max-w-md bg-white p-4 rounded-xl">
+            <svg id="presentBarcode" class="w-full"></svg>
+        </div>
+        <p id="presentCardNumber" class="mt-4 font-mono text-slate-800 text-base tracking-widest"></p>
+        <p class="mt-6 text-[11px] text-slate-400 text-center max-w-xs">Aproxima o ecrã do leitor da caixa. Brilho no máximo ajuda.</p>
     </div>
 
     <!-- RMA Modal -->
@@ -1404,7 +1476,7 @@
         }
 
         function switchPanel(id) {
-            ['dashboard', 'garantias', 'registar', 'rma', 'perfil', 'stats'].forEach(p => {
+            ['dashboard', 'garantias', 'registar', 'rma', 'perfil', 'stats', 'cartoes'].forEach(p => {
                 const el = document.getElementById('panel-' + p);
                 if (el) el.classList.toggle('panel-hidden', p !== id);
             });
@@ -1415,6 +1487,145 @@
             document.getElementById('sidebarOverlay').classList.remove('show');
             if (id === 'stats') refreshStatsPanel();
             if (id === 'rma') renderRmaFeed();
+            if (id === 'cartoes') renderLoyaltyCards();
+        }
+
+        // ---------- CARTÕES DE FIDELIZAÇÃO ----------
+        const CARD_COLORS = {
+            'Continente': { bg: 'from-red-600 to-red-800', accent: 'red' },
+            'Pingo Doce': { bg: 'from-yellow-500 to-amber-700', accent: 'amber' },
+            'Auchan': { bg: 'from-red-500 to-rose-700', accent: 'rose' },
+            'E.Leclerc': { bg: 'from-blue-600 to-blue-900', accent: 'blue' },
+            'Lidl': { bg: 'from-blue-500 to-yellow-500', accent: 'blue' },
+            'Worten': { bg: 'from-red-500 to-slate-900', accent: 'red' },
+            'Fnac': { bg: 'from-yellow-400 to-yellow-600', accent: 'yellow' },
+            'Radio Popular': { bg: 'from-orange-500 to-red-700', accent: 'orange' },
+            'IKEA': { bg: 'from-blue-600 to-yellow-400', accent: 'blue' }
+        };
+        function getLoyaltyCards() {
+            try { return JSON.parse(localStorage.getItem('vanty_loyalty_cards') || '[]'); } catch { return []; }
+        }
+        function setLoyaltyCards(list) {
+            localStorage.setItem('vanty_loyalty_cards', JSON.stringify(list));
+            const badge = document.getElementById('navBadgeCards');
+            if (badge) badge.innerText = String(list.length);
+        }
+        function openAddCardModal() {
+            document.getElementById('cardNumberInput').value = '';
+            document.getElementById('cardHolderInput').value = '';
+            document.getElementById('cardCustomStore').value = '';
+            document.getElementById('cardStoreSelect').value = 'Continente';
+            onCardStoreChange();
+            document.getElementById('addCardModal').classList.remove('hidden');
+        }
+        function closeAddCardModal() {
+            document.getElementById('addCardModal').classList.add('hidden');
+        }
+        function onCardStoreChange() {
+            const v = document.getElementById('cardStoreSelect').value;
+            document.getElementById('cardCustomStoreWrap').classList.toggle('hidden', v !== 'Outra');
+        }
+        function saveLoyaltyCard() {
+            let store = document.getElementById('cardStoreSelect').value;
+            if (store === 'Outra') {
+                store = document.getElementById('cardCustomStore').value.trim();
+                if (!store) { showToast('Indica o nome da loja.', 'Cartão', 'warn'); return; }
+            }
+            const number = document.getElementById('cardNumberInput').value.replace(/\s+/g, '').trim();
+            if (!number || number.length < 4) {
+                showToast('Número do cartão inválido (mín. 4 caracteres).', 'Cartão', 'warn');
+                return;
+            }
+            const holder = document.getElementById('cardHolderInput').value.trim();
+            const list = getLoyaltyCards();
+            list.unshift({
+                id: 'card_' + Date.now(),
+                store,
+                number,
+                holder,
+                created_at: new Date().toISOString()
+            });
+            setLoyaltyCards(list);
+            closeAddCardModal();
+            showToast(store + ' adicionado ao vault.', 'Cartão', 'success');
+            renderLoyaltyCards();
+        }
+        function deleteLoyaltyCard(id) {
+            if (!confirm('Remover este cartão do vault?')) return;
+            setLoyaltyCards(getLoyaltyCards().filter(c => c.id !== id));
+            renderLoyaltyCards();
+            showToast('Cartão removido.', 'OK', 'info');
+        }
+        function renderLoyaltyCards() {
+            const feed = document.getElementById('cardsFeed');
+            if (!feed) return;
+            const list = getLoyaltyCards();
+            const badge = document.getElementById('navBadgeCards');
+            if (badge) badge.innerText = String(list.length);
+            if (!list.length) {
+                feed.innerHTML = `<div class="card p-10 text-center text-slate-500 text-sm sm:col-span-2 xl:col-span-3">
+                    <div class="w-12 h-12 mx-auto rounded-xl bg-violet-500/10 text-violet-400 flex items-center justify-center text-xl mb-3"><i class="fa-solid fa-wallet"></i></div>
+                    <p class="font-semibold text-slate-300">Vault vazio</p>
+                    <p class="text-xs mt-1">Adiciona cartões Continente, Pingo Doce, Worten…</p>
+                </div>`;
+                return;
+            }
+            feed.innerHTML = list.map(c => {
+                const theme = CARD_COLORS[c.store] || { bg: 'from-violet-600 to-indigo-900' };
+                const masked = c.number.length > 8 ? c.number.slice(0, 4) + ' ··· ' + c.number.slice(-4) : c.number;
+                return `
+                <div class="card overflow-hidden border border-white/[0.06] flex flex-col">
+                    <div class="bg-gradient-to-br ${theme.bg} p-4 relative min-h-[88px]">
+                        <p class="text-white font-bold text-sm drop-shadow">${escapeHtml(c.store)}</p>
+                        <p class="text-white/80 text-[10px] mt-0.5">${escapeHtml(c.holder || 'Cartão de fidelização')}</p>
+                        <i class="fa-solid fa-barcode absolute right-3 bottom-3 text-white/30 text-2xl"></i>
+                    </div>
+                    <div class="p-3 space-y-2 flex-1 flex flex-col">
+                        <p class="font-mono text-xs text-slate-300 tracking-wide">${escapeHtml(masked)}</p>
+                        <div class="mt-auto flex gap-2">
+                            <button type="button" onclick="presentLoyaltyCard('${c.id}')" class="flex-1 py-2 rounded-lg bg-violet-500/15 border border-violet-500/25 text-violet-300 text-[11px] font-bold hover:bg-violet-500/25">
+                                <i class="fa-solid fa-expand mr-1"></i> Usar na caixa
+                            </button>
+                            <button type="button" onclick="deleteLoyaltyCard('${c.id}')" class="px-2.5 py-2 rounded-lg bg-surface-800 text-slate-500 hover:text-red-400 text-xs">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+        function presentLoyaltyCard(id) {
+            const card = getLoyaltyCards().find(c => c.id === id);
+            if (!card) return;
+            document.getElementById('presentCardStore').innerText = card.store;
+            document.getElementById('presentCardHolder').innerText = card.holder || '';
+            document.getElementById('presentCardNumber').innerText = card.number;
+            const svg = document.getElementById('presentBarcode');
+            svg.innerHTML = '';
+            try {
+                if (typeof JsBarcode === 'undefined') throw new Error('JsBarcode não carregou');
+                JsBarcode(svg, card.number, {
+                    format: 'CODE128',
+                    width: 2,
+                    height: 80,
+                    displayValue: false,
+                    margin: 8,
+                    background: '#ffffff',
+                    lineColor: '#000000'
+                });
+            } catch (err) {
+                console.warn(err);
+                showToast('Não foi possível gerar o código de barras.\nVerifica o número do cartão.', 'Erro', 'error');
+                return;
+            }
+            document.getElementById('cardPresentModal').classList.remove('hidden');
+            // Tenta manter ecrã acordado (quando suportado)
+            if (navigator.wakeLock) {
+                navigator.wakeLock.request('screen').catch(() => {});
+            }
+        }
+        function closePresentCard() {
+            document.getElementById('cardPresentModal').classList.add('hidden');
         }
 
         /** Agrega reviews por product_key → ranking comunitário (com filtros geo) */
@@ -2616,6 +2827,11 @@
 
         renderProfile();
         initAuth().then(() => loadProducts());
+        (function initCardsBadge() {
+            const n = getLoyaltyCards().length;
+            const b = document.getElementById('navBadgeCards');
+            if (b) b.innerText = String(n);
+        })();
         switchPanel('dashboard');
         document.getElementById('authModal')?.addEventListener('click', e => { if (e.target === e.currentTarget) closeAuthModal(); });
     </script>
