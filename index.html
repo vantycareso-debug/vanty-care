@@ -9,6 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <script>
         tailwind.config = {
@@ -192,7 +193,7 @@
                     <div class="live-dot"></div>
                     <div>
                         <div class="text-[11px] font-semibold text-emerald-400">Supabase Live</div>
-                        <div class="text-[10px] text-slate-500">v2.2 · Cartões vault</div>
+                        <div class="text-[10px] text-slate-500">v2.3 · Scan cartões</div>
                     </div>
                 </div>
             </div>
@@ -658,13 +659,35 @@
             <div>
                 <label class="block text-[10px] text-slate-500 uppercase font-bold mb-1">Nº do cartão / código de barras</label>
                 <input type="text" id="cardNumberInput" class="w-full input-field p-2.5 text-sm text-white font-mono" placeholder="Só números (ou código completo)" inputmode="numeric" autocomplete="off">
-                <p class="text-[10px] text-slate-600 mt-1">É o número que aparece debaixo do código de barras no cartão físico ou na app da loja.</p>
+                <div class="grid grid-cols-2 gap-2 mt-2">
+                    <button type="button" onclick="startCardCameraScan()" class="py-2 rounded-lg bg-cyan-500/10 border border-cyan-500/25 text-cyan-300 text-[11px] font-bold hover:bg-cyan-500/20">
+                        <i class="fa-solid fa-camera mr-1"></i> Câmara
+                    </button>
+                    <label class="py-2 rounded-lg bg-surface-800 border border-white/[0.08] text-slate-300 text-[11px] font-bold text-center cursor-pointer hover:border-violet-500/40">
+                        <i class="fa-solid fa-image mr-1"></i> Foto
+                        <input type="file" accept="image/*" capture="environment" class="hidden" onchange="scanCardFromFile(event)">
+                    </label>
+                </div>
+                <p class="text-[10px] text-slate-600 mt-1.5">Lê o código de barras do cartão físico ou screenshot da app da loja.</p>
             </div>
             <div>
                 <label class="block text-[10px] text-slate-500 uppercase font-bold mb-1">Nome no cartão (opcional)</label>
                 <input type="text" id="cardHolderInput" class="w-full input-field p-2.5 text-sm text-white" placeholder="Ex.: Cartão família">
             </div>
             <button type="button" onclick="saveLoyaltyCard()" class="w-full py-2.5 rounded-xl bg-violet-500 hover:bg-violet-400 text-white text-sm font-bold">Guardar cartão</button>
+        </div>
+    </div>
+
+    <!-- Camera barcode scanner -->
+    <div id="cardScanModal" class="fixed inset-0 z-[85] hidden bg-surface-950 flex flex-col">
+        <div class="flex items-center justify-between p-4 border-b border-white/[0.06]">
+            <h3 class="text-sm font-bold text-white"><i class="fa-solid fa-barcode text-cyan-400 mr-2"></i>Ler código de barras</h3>
+            <button type="button" onclick="stopCardCameraScan()" class="w-9 h-9 rounded-lg bg-surface-800 text-slate-300"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="flex-1 flex flex-col items-center justify-center p-4 gap-3">
+            <div id="cardScanReader" class="w-full max-w-md overflow-hidden rounded-xl border border-cyan-500/30 bg-black"></div>
+            <p class="text-xs text-slate-500 text-center">Aproxima o código de barras do cartão. Mantém o ecrã estável.</p>
+            <p id="cardScanStatus" class="text-[11px] text-cyan-400 font-semibold"></p>
         </div>
     </div>
 
@@ -1626,6 +1649,131 @@
         }
         function closePresentCard() {
             document.getElementById('cardPresentModal').classList.add('hidden');
+        }
+
+        // ---------- SCAN CÓDIGO DE BARRAS (câmara / foto) ----------
+        let cardHtml5Qr = null;
+
+        function onCardBarcodeDecoded(raw) {
+            const code = String(raw || '').replace(/\s+/g, '').trim();
+            if (!code || code.length < 4) return false;
+            document.getElementById('cardNumberInput').value = code;
+            // Heurística leve de loja por prefixo/comprimento comum em PT
+            const sel = document.getElementById('cardStoreSelect');
+            if (sel && (!sel.value || sel.value === 'Continente')) {
+                if (/^2\d{12,}$/.test(code)) { /* genérico EAN */ }
+            }
+            showToast('Código lido:\n' + code + '\n\nConfirma a loja e guarda.', 'Scan OK', 'success');
+            return true;
+        }
+
+        async function startCardCameraScan() {
+            if (typeof Html5Qrcode === 'undefined') {
+                showToast('Scanner não carregou. Usa Foto ou escreve o número.', 'Scan', 'warn');
+                return;
+            }
+            const modal = document.getElementById('cardScanModal');
+            const status = document.getElementById('cardScanStatus');
+            modal.classList.remove('hidden');
+            status.innerText = 'A iniciar câmara…';
+            try {
+                if (cardHtml5Qr) {
+                    try { await cardHtml5Qr.stop(); } catch (_) {}
+                    try { await cardHtml5Qr.clear(); } catch (_) {}
+                }
+                cardHtml5Qr = new Html5Qrcode('cardScanReader');
+                const cameras = await Html5Qrcode.getCameras();
+                const camId = (cameras && cameras.length)
+                    ? (cameras.find(c => /back|rear|environment/i.test(c.label)) || cameras[cameras.length - 1]).id
+                    : { facingMode: 'environment' };
+                const config = { fps: 10, qrbox: { width: 280, height: 120 }, aspectRatio: 1.777 };
+                if (typeof Html5QrcodeSupportedFormats !== 'undefined') {
+                    config.formatsToSupport = [
+                        Html5QrcodeSupportedFormats.CODE_128,
+                        Html5QrcodeSupportedFormats.EAN_13,
+                        Html5QrcodeSupportedFormats.EAN_8,
+                        Html5QrcodeSupportedFormats.UPC_A,
+                        Html5QrcodeSupportedFormats.CODE_39,
+                        Html5QrcodeSupportedFormats.ITF,
+                        Html5QrcodeSupportedFormats.QR_CODE
+                    ];
+                }
+                await cardHtml5Qr.start(
+                    typeof camId === 'string' ? camId : camId,
+                    config,
+                    (decoded) => {
+                        if (onCardBarcodeDecoded(decoded)) stopCardCameraScan();
+                    },
+                    () => { /* ignore frame errors */ }
+                );
+                status.innerText = 'Aponte para o código de barras…';
+            } catch (err) {
+                console.warn(err);
+                status.innerText = '';
+                modal.classList.add('hidden');
+                showToast('Câmara indisponível: ' + (err.message || err) + '\n\nUsa “Foto” ou HTTPS no telemóvel.', 'Câmara', 'error');
+            }
+        }
+
+        async function stopCardCameraScan() {
+            const modal = document.getElementById('cardScanModal');
+            try {
+                if (cardHtml5Qr) {
+                    const st = cardHtml5Qr.getState && cardHtml5Qr.getState();
+                    // 2 = SCANNING in html5-qrcode
+                    if (st === 2 || st === undefined) {
+                        try { await cardHtml5Qr.stop(); } catch (_) {}
+                    }
+                    try { await cardHtml5Qr.clear(); } catch (_) {}
+                }
+            } catch (_) {}
+            cardHtml5Qr = null;
+            if (modal) modal.classList.add('hidden');
+        }
+
+        async function scanCardFromFile(event) {
+            const file = event.target.files && event.target.files[0];
+            event.target.value = '';
+            if (!file) return;
+            showToast('A ler código de barras / OCR…', 'Scan', 'info');
+
+            // 1) Tenta decoder de barras na imagem
+            if (typeof Html5Qrcode !== 'undefined') {
+                try {
+                    const reader = new Html5Qrcode('cardScanReader');
+                    // elemento off-screen já existe no modal
+                    const result = await reader.scanFile(file, true);
+                    try { await reader.clear(); } catch (_) {}
+                    if (result && onCardBarcodeDecoded(result)) return;
+                } catch (err) {
+                    console.warn('scanFile falhou, a tentar OCR:', err.message || err);
+                }
+            }
+
+            // 2) Fallback OCR (Tesseract) — lê número debaixo do código
+            try {
+                const dataUrl = await new Promise((resolve, reject) => {
+                    const fr = new FileReader();
+                    fr.onload = () => resolve(fr.result);
+                    fr.onerror = reject;
+                    fr.readAsDataURL(file);
+                });
+                const { data: { text } } = await Tesseract.recognize(dataUrl, 'eng', {
+                    tessedit_char_whitelist: '0123456789'
+                });
+                const digits = String(text || '').replace(/\D+/g, ' ').trim().split(/\s+/).filter(s => s.length >= 8);
+                // pega a sequência mais longa de dígitos
+                let best = '';
+                const all = String(text || '').match(/\d{8,20}/g) || digits;
+                if (all && all.length) {
+                    best = all.sort((a, b) => b.length - a.length)[0];
+                }
+                if (best && onCardBarcodeDecoded(best)) return;
+                showToast('Não li o código.\nTira foto mais nítida ou escreve o número.', 'Scan', 'warn');
+            } catch (err) {
+                console.warn(err);
+                showToast('Falha ao ler a imagem: ' + (err.message || err), 'Erro', 'error');
+            }
         }
 
         /** Agrega reviews por product_key → ranking comunitário (com filtros geo) */
