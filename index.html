@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Vanty Care — Gestão Global de Garantias</title>
+    <link rel="icon" type="image/png" href="vanty-logo-icon.png">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
@@ -139,6 +140,27 @@
             .sidebar-overlay.show { display: block; }
         }
         .panel-hidden { display: none !important; }
+        .brand-logo-wrap {
+            width: 42px; height: 42px;
+            perspective: 600px;
+            flex-shrink: 0;
+        }
+        .brand-logo-spin {
+            width: 100%; height: 100%;
+            object-fit: contain;
+            animation: globeSpin 14s linear infinite;
+            filter: drop-shadow(0 0 10px rgba(255, 107, 0, 0.35));
+        }
+        @keyframes globeSpin {
+            from { transform: rotateY(0deg); }
+            to { transform: rotateY(360deg); }
+        }
+        .nav-item.active {
+            background: rgba(249, 115, 22, 0.12) !important;
+            color: #fb923c !important;
+            border-color: rgba(249, 115, 22, 0.25) !important;
+        }
+        .nav-item.active i { color: #fb923c !important; }
         .loyalty-card-3d {
             perspective: 1000px;
         }
@@ -174,9 +196,11 @@
         <!-- SIDEBAR (TerraFlux structure) -->
         <aside id="sidebar" class="sidebar flex flex-col shrink-0 h-full">
             <div class="px-5 py-5 flex items-center gap-3 border-b border-white/[0.04]">
-                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center text-white font-extrabold text-lg shadow-lg shadow-cyan-500/20">V</div>
+                <div class="brand-logo-wrap" title="Vanty Care">
+                    <img src="vanty-logo-icon.png" alt="Vanty Care" class="brand-logo-spin" width="42" height="42">
+                </div>
                 <div>
-                    <div class="text-sm font-bold text-white tracking-tight">Vanty Care</div>
+                    <div class="text-sm font-bold text-white tracking-tight">Vanty <span class="text-orange-400">Care</span></div>
                     <div class="text-[10px] text-slate-500 font-medium tracking-wider uppercase">Warranty OS</div>
                 </div>
             </div>
@@ -188,7 +212,7 @@
                 </div>
                 <div class="nav-item" data-panel="garantias" onclick="switchPanel('garantias')">
                     <i class="fa-solid fa-shield-halved"></i><span>Garantias</span>
-                    <span id="navBadgeCount" class="ml-auto text-[10px] font-bold bg-cyan-500/15 text-cyan-400 px-1.5 py-0.5 rounded-md">0</span>
+                    <span id="navBadgeCount" class="ml-auto text-[10px] font-bold bg-orange-500/15 text-orange-400 px-1.5 py-0.5 rounded-md">0</span>
                 </div>
                 <div class="nav-item" data-panel="registar" onclick="switchPanel('registar')">
                     <i class="fa-solid fa-plus-circle"></i><span>Registar Nova</span>
@@ -217,7 +241,7 @@
                     <div class="live-dot"></div>
                     <div>
                         <div class="text-[11px] font-semibold text-emerald-400">Supabase Live</div>
-                        <div class="text-[10px] text-slate-500">v2.4 · Cards 3D + PIN</div>
+                        <div class="text-[10px] text-slate-500">v2.5 · Brand orange</div>
                     </div>
                 </div>
             </div>
@@ -236,14 +260,14 @@
                     </div>
                 </div>
                 <div class="flex items-center gap-2.5">
-                    <button onclick="loadProducts()" class="w-9 h-9 rounded-lg bg-surface-800 border border-white/[0.05] flex items-center justify-center text-slate-400 hover:text-cyan-400 hover:border-cyan-500/30 transition-all" title="Atualizar">
+                    <button onclick="loadProducts()" class="w-9 h-9 rounded-lg bg-surface-800 border border-white/[0.05] flex items-center justify-center text-slate-400 hover:text-orange-400 hover:border-orange-500/30 transition-all" title="Atualizar">
                         <i class="fa-solid fa-rotate-right text-xs"></i>
                     </button>
-                    <button id="authHeaderBtn" onclick="openAuthModal()" class="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-surface-800 border border-white/[0.06] text-[11px] font-semibold text-slate-300 hover:text-cyan-300 hover:border-cyan-500/30 transition-all">
+                    <button id="authHeaderBtn" onclick="openAuthModal()" class="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-surface-800 border border-white/[0.06] text-[11px] font-semibold text-slate-300 hover:text-orange-300 hover:border-orange-500/30 transition-all">
                         <i class="fa-solid fa-right-to-bracket"></i> <span id="authHeaderLabel">Entrar</span>
                     </button>
                     <div class="flex items-center gap-2 pl-2 border-l border-white/[0.06] cursor-pointer" onclick="switchPanel('perfil')">
-                        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500/20 to-blue-600/20 border border-cyan-500/20 flex items-center justify-center text-cyan-400 text-xs font-bold" id="avatarInitials">JS</div>
+                        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500/20 to-orange-700/20 border border-orange-500/20 flex items-center justify-center text-orange-400 text-xs font-bold" id="avatarInitials">JS</div>
                         <div class="hidden sm:block">
                             <div class="text-xs font-semibold text-slate-200 leading-tight" id="topUserName">João Silva</div>
                             <div class="text-[10px] text-slate-500" id="topUserCountry">🇵🇹 Portugal</div>
@@ -266,7 +290,7 @@
                     </div>
                     <div class="grid grid-cols-2 xl:grid-cols-4 gap-3">
                         <div class="kpi p-4 flex items-center gap-3.5">
-                            <div class="w-11 h-11 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center text-lg border border-cyan-500/15"><i class="fa-solid fa-shield-halved"></i></div>
+                            <div class="w-11 h-11 rounded-xl bg-orange-500/10 text-orange-400 flex items-center justify-center text-lg border border-orange-500/15"><i class="fa-solid fa-shield-halved"></i></div>
                             <div>
                                 <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Garantias Ativas</p>
                                 <p class="text-2xl font-bold text-white tabular-nums leading-tight" id="stat-active">0</p>
@@ -299,19 +323,19 @@
                         <div class="xl:col-span-2 card p-5">
                             <div class="flex items-center justify-between mb-4">
                                 <h2 class="text-sm font-bold text-white flex items-center gap-2">
-                                    <i class="fa-solid fa-clock-rotate-left text-cyan-400 text-xs"></i> Garantias Recentes
+                                    <i class="fa-solid fa-clock-rotate-left text-orange-400 text-xs"></i> Garantias Recentes
                                 </h2>
-                                <button onclick="switchPanel('garantias')" class="text-[11px] text-cyan-400 hover:text-cyan-300 font-semibold">Ver todas →</button>
+                                <button onclick="switchPanel('garantias')" class="text-[11px] text-orange-400 hover:text-orange-300 font-semibold">Ver todas →</button>
                             </div>
                             <div id="recentFeed" class="space-y-3">
-                                <div class="text-center py-10 text-slate-600 text-sm"><i class="fa-solid fa-spinner animate-spin text-cyan-400 mb-2"></i><p>A carregar...</p></div>
+                                <div class="text-center py-10 text-slate-600 text-sm"><i class="fa-solid fa-spinner animate-spin text-orange-400 mb-2"></i><p>A carregar...</p></div>
                             </div>
                         </div>
                         <div class="space-y-4">
                             <div class="card p-5">
                                 <h2 class="text-sm font-bold text-white mb-3 flex items-center gap-2"><i class="fa-solid fa-bolt text-amber-400 text-xs"></i> Ações Rápidas</h2>
                                 <div class="space-y-2">
-                                    <button onclick="switchPanel('registar')" class="w-full flex items-center gap-3 px-3.5 py-3 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/15 border border-cyan-500/20 text-cyan-300 text-sm font-semibold transition-all">
+                                    <button onclick="switchPanel('registar')" class="w-full flex items-center gap-3 px-3.5 py-3 rounded-xl bg-orange-500/10 hover:bg-orange-500/15 border border-orange-500/20 text-orange-300 text-sm font-semibold transition-all">
                                         <i class="fa-solid fa-plus"></i> Registar Nova Garantia
                                     </button>
                                     <button onclick="switchPanel('perfil')" class="w-full flex items-center gap-3 px-3.5 py-3 rounded-xl bg-surface-800 hover:bg-surface-700 border border-white/[0.05] text-slate-300 text-sm font-medium transition-all">
@@ -320,12 +344,12 @@
                                 </div>
                             </div>
                             <div class="card p-5">
-                                <h2 class="text-sm font-bold text-white mb-3 flex items-center gap-2"><i class="fa-solid fa-house-user text-cyan-400 text-xs"></i> Titular</h2>
+                                <h2 class="text-sm font-bold text-white mb-3 flex items-center gap-2"><i class="fa-solid fa-house-user text-orange-400 text-xs"></i> Titular</h2>
                                 <div class="space-y-2.5 text-sm">
                                     <div class="flex justify-between"><span class="text-slate-500 text-xs">Nome</span><span class="font-semibold text-slate-200" id="dashName">—</span></div>
                                     <div class="flex justify-between"><span class="text-slate-500 text-xs">NIF</span><span class="font-mono text-slate-300" id="dashNif">—</span></div>
                                     <div class="flex justify-between gap-2"><span class="text-slate-500 text-xs shrink-0">Morada</span><span class="font-medium text-slate-300 text-right text-[11px] leading-snug" id="dashAddress">—</span></div>
-                                    <div class="flex justify-between"><span class="text-slate-500 text-xs">País</span><span class="text-cyan-400 font-medium" id="dashCountry">—</span></div>
+                                    <div class="flex justify-between"><span class="text-slate-500 text-xs">País</span><span class="text-orange-400 font-medium" id="dashCountry">—</span></div>
                                 </div>
                             </div>
                         </div>
@@ -335,8 +359,8 @@
                 <!-- GARANTIAS -->
                 <div id="panel-garantias" class="panel-hidden space-y-4">
                     <div class="flex items-center justify-between">
-                        <h2 class="text-base font-bold text-white flex items-center gap-2"><i class="fa-solid fa-box-archive text-cyan-400"></i> Todas as Garantias</h2>
-                        <button onclick="switchPanel('registar')" class="px-3.5 py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5">
+                        <h2 class="text-base font-bold text-white flex items-center gap-2"><i class="fa-solid fa-box-archive text-orange-400"></i> Todas as Garantias</h2>
+                        <button onclick="switchPanel('registar')" class="px-3.5 py-2 bg-orange-500 hover:bg-orange-400 text-slate-950 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5">
                             <i class="fa-solid fa-plus"></i> Nova
                         </button>
                     </div>
@@ -348,26 +372,26 @@
                     <div class="max-w-xl mx-auto">
                         <div class="card p-6">
                             <h2 class="text-base font-bold text-white mb-5 flex items-center gap-2.5">
-                                <span class="w-8 h-8 rounded-lg bg-cyan-500/10 text-cyan-400 flex items-center justify-center text-sm"><i class="fa-solid fa-plus"></i></span>
+                                <span class="w-8 h-8 rounded-lg bg-orange-500/10 text-orange-400 flex items-center justify-center text-sm"><i class="fa-solid fa-plus"></i></span>
                                 Registar Nova Garantia
                             </h2>
                             <form id="productForm" class="space-y-4">
                                 <div>
                                     <label class="block text-xs font-semibold text-slate-400 mb-1.5 flex items-center gap-1.5">
-                                        <i class="fa-solid fa-wand-magic-sparkles text-cyan-400"></i> Anexar Fatura / Talão
-                                        <span class="text-[10px] text-cyan-400/70 font-normal">· IA extrai dados</span>
+                                        <i class="fa-solid fa-wand-magic-sparkles text-orange-400"></i> Anexar Fatura / Talão
+                                        <span class="text-[10px] text-orange-400/70 font-normal">· IA extrai dados</span>
                                     </label>
                                     <div id="uploadZone" class="upload-zone relative p-5 text-center cursor-pointer group">
                                         <input type="file" id="prodReceipt" accept="image/*,.pdf" onchange="handleFileSelect(event)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
                                         <div id="uploadPlaceholder" class="space-y-2">
-                                            <div class="w-12 h-12 mx-auto rounded-xl bg-surface-800 text-slate-500 group-hover:text-cyan-400 group-hover:bg-cyan-500/10 flex items-center justify-center text-xl transition-all"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+                                            <div class="w-12 h-12 mx-auto rounded-xl bg-surface-800 text-slate-500 group-hover:text-orange-400 group-hover:bg-orange-500/10 flex items-center justify-center text-xl transition-all"><i class="fa-solid fa-cloud-arrow-up"></i></div>
                                             <p class="text-sm text-slate-300 font-medium">Arraste ou clique para anexar</p>
-                                            <p class="text-[11px] text-slate-500">IA lê: <span class="text-cyan-400 font-semibold">JPG, PNG, WEBP</span> e <span class="text-cyan-400 font-semibold">PDF</span></p>
+                                            <p class="text-[11px] text-slate-500">IA lê: <span class="text-orange-400 font-semibold">JPG, PNG, WEBP</span> e <span class="text-orange-400 font-semibold">PDF</span></p>
                                             <p class="text-[10px] text-slate-600 mt-0.5">PDF → 1.ª página convertida e analisada automaticamente</p>
                                         </div>
                                         <div id="uploadProcessing" class="hidden space-y-3">
-                                            <div class="w-12 h-12 mx-auto rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center text-xl"><i class="fa-solid fa-brain animate-pulse"></i></div>
-                                            <p class="text-sm text-cyan-300 font-medium" id="ocrStatusText">A analisar fatura...</p>
+                                            <div class="w-12 h-12 mx-auto rounded-xl bg-orange-500/10 text-orange-400 flex items-center justify-center text-xl"><i class="fa-solid fa-brain animate-pulse"></i></div>
+                                            <p class="text-sm text-orange-300 font-medium" id="ocrStatusText">A analisar fatura...</p>
                                             <div class="w-full max-w-[160px] mx-auto h-1 bg-surface-800 rounded-full overflow-hidden"><div class="ocr-bar h-full rounded-full" id="ocrBar" style="width: 25%"></div></div>
                                             <p class="text-[10px] text-slate-500" id="ocrProgressText">OCR em progresso...</p>
                                         </div>
@@ -378,8 +402,8 @@
                                             <button type="button" onclick="clearReceipt(event)" class="text-[11px] text-red-400 hover:text-red-300 font-medium"><i class="fa-solid fa-trash-can mr-1"></i> Remover</button>
                                         </div>
                                     </div>
-                                    <div id="extractedPreview" class="hidden mt-3 p-3 rounded-xl bg-cyan-500/5 border border-cyan-500/15">
-                                        <p class="text-[10px] font-bold text-cyan-400 uppercase tracking-wider mb-2 flex items-center gap-1.5"><i class="fa-solid fa-sparkles"></i> Dados detetados pela IA</p>
+                                    <div id="extractedPreview" class="hidden mt-3 p-3 rounded-xl bg-orange-500/5 border border-orange-500/15">
+                                        <p class="text-[10px] font-bold text-orange-400 uppercase tracking-wider mb-2 flex items-center gap-1.5"><i class="fa-solid fa-sparkles"></i> Dados detetados pela IA</p>
                                         <div id="extractedFields" class="space-y-1 text-xs text-slate-300"></div>
                                     </div>
                                     <!-- Multi-produto: selecionar artigos do talão -->
@@ -419,14 +443,14 @@
                                     <label class="block text-xs font-semibold text-slate-400 mb-1.5">Nº de Série <span class="text-slate-600 font-normal">(manual ou foto)</span></label>
                                     <div class="flex gap-2">
                                         <input type="text" id="prodSerial" placeholder="Deixe em branco se não tiver" class="flex-1 input-field p-3 text-sm text-white">
-                                        <label class="shrink-0 px-3 py-2 rounded-xl bg-surface-800 border border-white/[0.08] text-cyan-400 text-xs font-semibold cursor-pointer hover:bg-surface-700 hover:border-cyan-500/30 transition-all flex items-center gap-1.5" title="Fotografar ou anexar etiqueta com o nº de série">
+                                        <label class="shrink-0 px-3 py-2 rounded-xl bg-surface-800 border border-white/[0.08] text-orange-400 text-xs font-semibold cursor-pointer hover:bg-surface-700 hover:border-orange-500/30 transition-all flex items-center gap-1.5" title="Fotografar ou anexar etiqueta com o nº de série">
                                             <i class="fa-solid fa-camera"></i> Ler SN
                                             <input type="file" id="serialPhotoInput" accept="image/*" class="hidden" onchange="extractSerialFromPhoto(event)">
                                         </label>
                                     </div>
                                     <p class="text-[10px] text-slate-600 mt-1">O SN não é extraído da fatura — use a foto da etiqueta do equipamento.</p>
                                 </div>
-                                <button type="submit" id="submitBtn" class="w-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold p-3.5 rounded-xl transition-all shadow-lg shadow-cyan-500/20 active:scale-[0.98] flex items-center justify-center gap-2">
+                                <button type="submit" id="submitBtn" class="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-bold p-3.5 rounded-xl transition-all shadow-lg shadow-orange-500/20 active:scale-[0.98] flex items-center justify-center gap-2">
                                     <i class="fa-solid fa-floppy-disk"></i> Guardar Garantia & Fatura
                                 </button>
                             </form>
@@ -438,7 +462,7 @@
                 <div id="panel-rma" class="panel-hidden space-y-4">
                     <div class="flex items-center justify-between gap-2">
                         <h2 class="text-base font-bold text-white flex items-center gap-2"><i class="fa-solid fa-wrench text-red-400"></i> Pedidos de Reparação (RMA)</h2>
-                        <button onclick="switchPanel('garantias')" class="text-[11px] text-cyan-400 font-semibold">Abrir a partir de Garantias →</button>
+                        <button onclick="switchPanel('garantias')" class="text-[11px] text-orange-400 font-semibold">Abrir a partir de Garantias →</button>
                     </div>
                     <div id="rmaFeed" class="space-y-3">
                         <div class="card p-8 text-center text-slate-500 text-sm">Sem pedidos RMA ainda.</div>
@@ -451,7 +475,7 @@
                         <div class="card p-6">
                             <div class="flex items-center justify-between mb-5">
                                 <h2 class="text-base font-bold text-white flex items-center gap-2.5">
-                                    <span class="w-8 h-8 rounded-lg bg-cyan-500/10 text-cyan-400 flex items-center justify-center text-sm"><i class="fa-solid fa-house-user"></i></span>
+                                    <span class="w-8 h-8 rounded-lg bg-orange-500/10 text-orange-400 flex items-center justify-center text-sm"><i class="fa-solid fa-house-user"></i></span>
                                     A Casa do Cliente
                                 </h2>
                                 <button onclick="toggleProfileEdit()" class="text-[11px] bg-surface-800 hover:bg-surface-700 text-slate-300 px-2.5 py-1.5 rounded-lg font-semibold border border-white/[0.06] transition-all flex items-center gap-1.5">
@@ -464,7 +488,7 @@
                                 <div class="flex justify-between items-center py-2.5 border-b border-white/[0.04]"><span class="text-slate-500 text-xs">Email</span><span class="font-medium text-slate-200 truncate max-w-[180px]" id="viewEmail">joao.silva@email.com</span></div>
                                 <div class="flex justify-between items-start py-2.5 border-b border-white/[0.04] gap-3"><span class="text-slate-500 text-xs shrink-0">Morada</span><span class="font-medium text-slate-200 text-right text-xs leading-snug" id="viewAddress">—</span></div>
                                 <div class="flex justify-between items-center py-2.5 border-b border-white/[0.04]"><span class="text-slate-500 text-xs">Zona / Região</span><span class="font-medium text-slate-200" id="viewZone">—</span></div>
-                                <div class="flex justify-between items-center pt-2"><span class="text-slate-500 text-xs">País / Regras</span><span class="font-semibold text-cyan-400" id="viewCountry">🇵🇹 Portugal · 3 Anos</span></div>
+                                <div class="flex justify-between items-center pt-2"><span class="text-slate-500 text-xs">País / Regras</span><span class="font-semibold text-orange-400" id="viewCountry">🇵🇹 Portugal · 3 Anos</span></div>
                             </div>
                             <form id="profileEditForm" onsubmit="saveProfile(event)" class="space-y-3 hidden pt-1">
                                 <div>
@@ -501,7 +525,7 @@
                                     <textarea id="inputAddress" rows="2" placeholder="Rua, nº, código postal, localidade" class="w-full input-field p-2.5 text-sm text-white resize-none"></textarea>
                                     <p class="text-[10px] text-slate-600 mt-1">Necessária para assistência ao domicílio (grandes volumes).</p>
                                 </div>
-                                <button type="submit" class="w-full bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold p-2.5 rounded-xl text-sm transition-all mt-1">Guardar Perfil</button>
+                                <button type="submit" class="w-full bg-orange-500 hover:bg-orange-400 text-slate-950 font-bold p-2.5 rounded-xl text-sm transition-all mt-1">Guardar Perfil</button>
                             </form>
                         </div>
                     </div>
@@ -516,7 +540,7 @@
                             </h2>
                             <p class="text-[11px] text-slate-500 mt-1">Reviews e estrelas agregadas por produto — ajuda a decidir o que comprar (ou evitar).</p>
                         </div>
-                        <button type="button" onclick="refreshStatsPanel()" class="px-3 py-2 rounded-lg bg-surface-800 border border-white/[0.06] text-slate-300 text-xs font-semibold hover:border-cyan-500/30 hover:text-cyan-300 transition-all flex items-center gap-1.5">
+                        <button type="button" onclick="refreshStatsPanel()" class="px-3 py-2 rounded-lg bg-surface-800 border border-white/[0.06] text-slate-300 text-xs font-semibold hover:border-orange-500/30 hover:text-orange-300 transition-all flex items-center gap-1.5">
                             <i class="fa-solid fa-rotate"></i> Atualizar
                         </button>
                     </div>
@@ -684,7 +708,7 @@
                 <label class="block text-[10px] text-slate-500 uppercase font-bold mb-1">Nº do cartão / código de barras</label>
                 <input type="text" id="cardNumberInput" class="w-full input-field p-2.5 text-sm text-white font-mono" placeholder="Só números (ou código completo)" inputmode="numeric" autocomplete="off">
                 <div class="grid grid-cols-2 gap-2 mt-2">
-                    <button type="button" onclick="startCardCameraScan()" class="py-2 rounded-lg bg-cyan-500/10 border border-cyan-500/25 text-cyan-300 text-[11px] font-bold hover:bg-cyan-500/20">
+                    <button type="button" onclick="startCardCameraScan()" class="py-2 rounded-lg bg-orange-500/10 border border-orange-500/25 text-orange-300 text-[11px] font-bold hover:bg-orange-500/20">
                         <i class="fa-solid fa-camera mr-1"></i> Câmara
                     </button>
                     <label class="py-2 rounded-lg bg-surface-800 border border-white/[0.08] text-slate-300 text-[11px] font-bold text-center cursor-pointer hover:border-violet-500/40">
@@ -713,13 +737,13 @@
     <!-- Camera barcode scanner -->
     <div id="cardScanModal" class="fixed inset-0 z-[85] hidden bg-surface-950 flex flex-col">
         <div class="flex items-center justify-between p-4 border-b border-white/[0.06]">
-            <h3 class="text-sm font-bold text-white"><i class="fa-solid fa-barcode text-cyan-400 mr-2"></i>Ler código de barras</h3>
+            <h3 class="text-sm font-bold text-white"><i class="fa-solid fa-barcode text-orange-400 mr-2"></i>Ler código de barras</h3>
             <button type="button" onclick="stopCardCameraScan()" class="w-9 h-9 rounded-lg bg-surface-800 text-slate-300"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div class="flex-1 flex flex-col items-center justify-center p-4 gap-3">
-            <div id="cardScanReader" class="w-full max-w-md overflow-hidden rounded-xl border border-cyan-500/30 bg-black"></div>
+            <div id="cardScanReader" class="w-full max-w-md overflow-hidden rounded-xl border border-orange-500/30 bg-black"></div>
             <p class="text-xs text-slate-500 text-center">Aproxima o código de barras do cartão. Mantém o ecrã estável.</p>
-            <p id="cardScanStatus" class="text-[11px] text-cyan-400 font-semibold"></p>
+            <p id="cardScanStatus" class="text-[11px] text-orange-400 font-semibold"></p>
         </div>
     </div>
 
@@ -735,7 +759,7 @@
         <div id="presentPinWrap" class="hidden mt-4 flex items-center gap-2">
             <span class="text-xs text-slate-500 font-semibold uppercase">PIN</span>
             <span id="presentPinValue" class="font-mono text-slate-800 text-base tracking-widest">••••</span>
-            <button type="button" id="presentPinToggle" onclick="togglePresentPin()" class="text-[11px] font-bold text-cyan-600 hover:text-cyan-500 px-2 py-1 rounded-lg bg-slate-100">Mostrar</button>
+            <button type="button" id="presentPinToggle" onclick="togglePresentPin()" class="text-[11px] font-bold text-orange-600 hover:text-orange-500 px-2 py-1 rounded-lg bg-slate-100">Mostrar</button>
         </div>
         <p class="mt-6 text-[11px] text-slate-400 text-center max-w-sm leading-relaxed">Brilho no máximo · ecrã limpo · aproxima do leitor.<br>CODE128 — legível na maioria das caixas PT.</p>
     </div>
@@ -753,7 +777,7 @@
             </div>
             <div class="bg-surface-950/70 p-4 rounded-xl border border-white/[0.05] text-xs space-y-2.5">
                 <div class="flex justify-between border-b border-white/[0.04] pb-2"><span class="text-slate-500">Titular</span><span class="font-semibold text-slate-200" id="rmaModalUser">—</span></div>
-                <div class="flex justify-between border-b border-white/[0.04] pb-2"><span class="text-slate-500">Equipamento</span><span class="font-bold text-cyan-400" id="rmaModalProduct">—</span></div>
+                <div class="flex justify-between border-b border-white/[0.04] pb-2"><span class="text-slate-500">Equipamento</span><span class="font-bold text-orange-400" id="rmaModalProduct">—</span></div>
                 <div class="flex justify-between border-b border-white/[0.04] pb-2"><span class="text-slate-500">Loja</span><span class="font-medium text-slate-200" id="rmaModalStore">—</span></div>
                 <div class="flex justify-between border-b border-white/[0.04] pb-2"><span class="text-slate-500">Nº de Série</span><span class="font-mono text-slate-300" id="rmaModalSerial">—</span></div>
                 <div class="flex justify-between items-center pt-1"><span class="text-slate-500">Prova de Compra</span>
@@ -777,12 +801,12 @@
     <div id="invoiceModal" class="fixed inset-0 modal-backdrop z-50 hidden flex items-center justify-center p-4">
         <div class="card modal-panel w-full max-w-2xl p-5 relative border border-white/[0.08] max-h-[90vh] flex flex-col">
             <div class="flex items-center justify-between mb-4 shrink-0">
-                <h3 class="text-base font-bold text-white flex items-center gap-2"><i class="fa-solid fa-file-invoice text-cyan-400"></i><span id="invoiceModalTitle">Prova de Compra</span></h3>
+                <h3 class="text-base font-bold text-white flex items-center gap-2"><i class="fa-solid fa-file-invoice text-orange-400"></i><span id="invoiceModalTitle">Prova de Compra</span></h3>
                 <button onclick="closeInvoiceModal()" class="text-slate-500 hover:text-white p-2 text-lg"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <div id="invoiceModalContent" class="flex-1 overflow-auto rounded-xl bg-surface-950/50 border border-white/[0.05] flex items-center justify-center min-h-[280px]"></div>
             <div class="flex gap-2 mt-4 shrink-0">
-                <a id="invoiceDownloadBtn" href="#" download class="flex-1 bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-sm font-bold py-2.5 rounded-xl text-center transition-all"><i class="fa-solid fa-download mr-1.5"></i> Descarregar</a>
+                <a id="invoiceDownloadBtn" href="#" download class="flex-1 bg-orange-500 hover:bg-orange-400 text-slate-950 text-sm font-bold py-2.5 rounded-xl text-center transition-all"><i class="fa-solid fa-download mr-1.5"></i> Descarregar</a>
                 <button onclick="closeInvoiceModal()" class="px-5 bg-surface-800 hover:bg-surface-700 text-slate-300 text-sm font-semibold py-2.5 rounded-xl transition-all">Fechar</button>
             </div>
         </div>
@@ -793,7 +817,7 @@
         <div class="card modal-panel w-full max-w-lg p-6 relative border border-white/[0.08] space-y-4 max-h-[92vh] overflow-y-auto">
             <button onclick="closeProductDetail()" class="absolute top-4 right-4 text-slate-500 hover:text-white p-2 text-lg"><i class="fa-solid fa-xmark"></i></button>
             <div class="flex items-center gap-3 border-b border-white/[0.06] pb-4 pr-8">
-                <div class="w-11 h-11 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 flex items-center justify-center text-lg"><i class="fa-solid fa-shield-halved"></i></div>
+                <div class="w-11 h-11 rounded-xl bg-orange-500/10 text-orange-400 border border-orange-500/20 flex items-center justify-center text-lg"><i class="fa-solid fa-shield-halved"></i></div>
                 <div class="min-w-0">
                     <h3 class="text-base font-bold text-white truncate" id="detailName">—</h3>
                     <p class="text-xs text-slate-500" id="detailStore">—</p>
@@ -820,11 +844,11 @@
                     <p class="text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1.5">Nº de série</p>
                     <div class="flex gap-2">
                         <input type="text" id="detailSerialInput" placeholder="Introduzir manualmente" class="flex-1 input-field p-2 text-sm text-white font-mono">
-                        <label class="shrink-0 px-2.5 py-2 rounded-lg bg-surface-800 border border-white/[0.08] text-cyan-400 text-[11px] font-semibold cursor-pointer hover:bg-surface-700 hover:border-cyan-500/30 transition-all flex items-center gap-1" title="Foto da etiqueta SN">
+                        <label class="shrink-0 px-2.5 py-2 rounded-lg bg-surface-800 border border-white/[0.08] text-orange-400 text-[11px] font-semibold cursor-pointer hover:bg-surface-700 hover:border-orange-500/30 transition-all flex items-center gap-1" title="Foto da etiqueta SN">
                             <i class="fa-solid fa-camera"></i>
                             <input type="file" id="detailSerialPhoto" accept="image/*" class="hidden" onchange="extractSerialFromDetailPhoto(event)">
                         </label>
-                        <button type="button" onclick="saveDetailSerial()" class="shrink-0 px-3 py-2 rounded-lg bg-cyan-500/15 border border-cyan-500/25 text-cyan-300 text-[11px] font-bold hover:bg-cyan-500/25 transition-all">
+                        <button type="button" onclick="saveDetailSerial()" class="shrink-0 px-3 py-2 rounded-lg bg-orange-500/15 border border-orange-500/25 text-orange-300 text-[11px] font-bold hover:bg-orange-500/25 transition-all">
                             <i class="fa-solid fa-check"></i>
                         </button>
                     </div>
@@ -845,7 +869,7 @@
                             <option value="redes">Redes / Câmaras</option>
                             <option value="outros">Outros</option>
                         </select>
-                        <button type="button" onclick="saveDetailCategory()" class="px-3 py-2 rounded-lg bg-cyan-500/15 border border-cyan-500/25 text-cyan-300 text-[11px] font-bold">✓</button>
+                        <button type="button" onclick="saveDetailCategory()" class="px-3 py-2 rounded-lg bg-orange-500/15 border border-orange-500/25 text-orange-300 text-[11px] font-bold">✓</button>
                     </div>
                 </div>
                 <div class="p-3 rounded-xl bg-surface-950/60 border border-white/[0.05] col-span-2">
@@ -930,10 +954,10 @@
             <p id="authError" class="hidden text-xs text-red-400 whitespace-pre-line"></p>
             <div id="authLoginActions" class="space-y-2">
                 <div class="flex gap-2">
-                    <button type="button" onclick="authSignIn()" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-white text-sm font-bold">Entrar</button>
+                    <button type="button" onclick="authSignIn()" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 text-white text-sm font-bold">Entrar</button>
                     <button type="button" onclick="authSignUp()" class="flex-1 py-2.5 rounded-xl bg-surface-800 border border-white/[0.08] text-slate-200 text-sm font-semibold hover:bg-surface-700">Criar conta</button>
                 </div>
-                <button type="button" onclick="authForgotPassword()" class="w-full py-2 text-[11px] text-slate-500 hover:text-cyan-400 font-semibold">Esqueci a password</button>
+                <button type="button" onclick="authForgotPassword()" class="w-full py-2 text-[11px] text-slate-500 hover:text-orange-400 font-semibold">Esqueci a password</button>
             </div>
             <div id="authRecoveryActions" class="hidden space-y-2">
                 <p class="text-[11px] text-amber-300/90">Link de recuperação válido. Define a nova password:</p>
@@ -948,7 +972,7 @@
     <div id="toastModal" class="fixed inset-0 modal-backdrop z-[60] hidden flex items-center justify-center p-4">
         <div class="card w-full max-w-sm p-5 border border-white/[0.1] shadow-2xl shadow-black/50 space-y-4 animate-[fadeIn_0.15s_ease]">
             <div class="flex items-start gap-3">
-                <div id="toastIcon" class="w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0 bg-cyan-500/15 text-cyan-400 border border-cyan-500/20">
+                <div id="toastIcon" class="w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0 bg-orange-500/15 text-orange-400 border border-orange-500/20">
                     <i class="fa-solid fa-circle-info"></i>
                 </div>
                 <div class="min-w-0 pt-0.5">
@@ -956,7 +980,7 @@
                     <p id="toastMessage" class="text-xs text-slate-400 mt-1 leading-relaxed whitespace-pre-line"></p>
                 </div>
             </div>
-            <button onclick="closeToast()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white text-sm font-bold transition-all">
+            <button onclick="closeToast()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white text-sm font-bold transition-all">
                 OK
             </button>
         </div>
@@ -1240,7 +1264,7 @@
                 success: ['bg-emerald-500/15 text-emerald-400 border-emerald-500/20', 'fa-circle-check'],
                 error: ['bg-red-500/15 text-red-400 border-red-500/20', 'fa-circle-xmark'],
                 warn: ['bg-amber-500/15 text-amber-400 border-amber-500/20', 'fa-triangle-exclamation'],
-                info: ['bg-cyan-500/15 text-cyan-400 border-cyan-500/20', 'fa-circle-info']
+                info: ['bg-orange-500/15 text-orange-400 border-orange-500/20', 'fa-circle-info']
             };
             const s = styles[type] || styles.info;
             icon.className = `w-10 h-10 rounded-xl flex items-center justify-center text-lg shrink-0 border ${s[0]}`;
@@ -2031,7 +2055,7 @@
                                 <span class="text-slate-500 text-xs tracking-normal">· ${s.count} review${s.count === 1 ? '' : 's'}</span>
                             </p>
                         </div>
-                        <button type="button" onclick="document.getElementById('${expandId}').classList.toggle('hidden')" class="text-[11px] text-cyan-400 hover:text-cyan-300 font-semibold shrink-0">
+                        <button type="button" onclick="document.getElementById('${expandId}').classList.toggle('hidden')" class="text-[11px] text-orange-400 hover:text-orange-300 font-semibold shrink-0">
                             Ver reviews <i class="fa-solid fa-chevron-down text-[9px]"></i>
                         </button>
                     </div>
@@ -2339,7 +2363,7 @@
 
             if (extracted.store) {
                 document.getElementById('prodStore').value = extracted.store;
-                fields.push(`<div class="flex justify-between"><span class="text-slate-500">Loja</span><span class="font-medium text-cyan-300">${escapeHtml(extracted.store)}</span></div>`);
+                fields.push(`<div class="flex justify-between"><span class="text-slate-500">Loja</span><span class="font-medium text-orange-300">${escapeHtml(extracted.store)}</span></div>`);
             }
             if (extracted.date) {
                 document.getElementById('prodDate').value = extracted.date;
@@ -2355,8 +2379,8 @@
             const multiList = document.getElementById('multiItemsList');
             if (lastExtractedItems.length >= 1) {
                 multiList.innerHTML = lastExtractedItems.map((it, i) => `
-                    <label class="flex items-start gap-2.5 p-2.5 rounded-lg bg-surface-950/60 border border-white/[0.06] cursor-pointer hover:border-cyan-500/30 transition-all">
-                        <input type="checkbox" class="multi-item-cb mt-0.5 accent-cyan-500" data-idx="${i}" checked onchange="syncSelectedItemToForm()">
+                    <label class="flex items-start gap-2.5 p-2.5 rounded-lg bg-surface-950/60 border border-white/[0.06] cursor-pointer hover:border-orange-500/30 transition-all">
+                        <input type="checkbox" class="multi-item-cb mt-0.5 accent-orange-500" data-idx="${i}" checked onchange="syncSelectedItemToForm()">
                         <span class="flex-1 min-w-0">
                             <span class="block text-xs font-semibold text-slate-100 leading-snug">${escapeHtml(it.name)}</span>
                             <span class="text-[11px] text-emerald-400 font-bold tabular-nums">${it.price.toFixed(2)} €</span>
@@ -2812,7 +2836,7 @@
                 <div class="card card-hover p-4 space-y-3 cursor-pointer" onclick="openProductDetail(${globalIndex})">
                     <div class="flex flex-col sm:flex-row justify-between sm:items-start gap-3">
                         <div class="flex items-start gap-3 min-w-0">
-                            <div class="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/15 text-cyan-400 flex items-center justify-center text-sm shrink-0"><i class="fa-solid fa-shield-halved"></i></div>
+                            <div class="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/15 text-orange-400 flex items-center justify-center text-sm shrink-0"><i class="fa-solid fa-shield-halved"></i></div>
                             <div class="min-w-0">
                                 <h3 class="font-bold text-white text-sm truncate">${escapeHtml(prod.nome_produto || 'Produto sem nome')}</h3>
                                 <p class="text-[11px] text-slate-500 mt-0.5"><span class="text-slate-400 font-medium">${escapeHtml(prod.loja || 'Loja')}</span> · ${formatDate(purchaseDate)}</p>
@@ -2855,7 +2879,7 @@
         }
 
         async function loadProducts() {
-            const loading = `<div class="text-center py-12 text-slate-600 text-sm"><i class="fa-solid fa-spinner animate-spin text-cyan-400 mb-2"></i><p>A carregar...</p></div>`;
+            const loading = `<div class="text-center py-12 text-slate-600 text-sm"><i class="fa-solid fa-spinner animate-spin text-orange-400 mb-2"></i><p>A carregar...</p></div>`;
             document.getElementById('productsFeed').innerHTML = loading;
             document.getElementById('recentFeed').innerHTML = loading;
 
