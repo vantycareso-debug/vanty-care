@@ -139,6 +139,30 @@
             .sidebar-overlay.show { display: block; }
         }
         .panel-hidden { display: none !important; }
+        .loyalty-card-3d {
+            perspective: 1000px;
+        }
+        .loyalty-card-face {
+            transform-style: preserve-3d;
+            transition: transform 0.35s ease, box-shadow 0.35s ease;
+            box-shadow: 0 10px 30px -8px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.06);
+        }
+        .loyalty-card-3d:hover .loyalty-card-face {
+            transform: rotateY(-6deg) rotateX(4deg) translateY(-4px);
+            box-shadow: 0 20px 40px -12px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.1);
+        }
+        .loyalty-chip {
+            background: linear-gradient(135deg, #f5e6a8 0%, #c9a227 40%, #f0d56e 60%, #a67c00 100%);
+            border-radius: 6px;
+            width: 36px; height: 28px;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.4);
+        }
+        .barcode-present-wrap {
+            background: #fff;
+            padding: 24px 16px;
+            border-radius: 12px;
+            box-shadow: 0 0 0 1px #e5e7eb;
+        }
     </style>
 </head>
 <body class="min-h-screen antialiased overflow-hidden">
@@ -193,7 +217,7 @@
                     <div class="live-dot"></div>
                     <div>
                         <div class="text-[11px] font-semibold text-emerald-400">Supabase Live</div>
-                        <div class="text-[10px] text-slate-500">v2.3 · Scan cartões</div>
+                        <div class="text-[10px] text-slate-500">v2.4 · Cards 3D + PIN</div>
                     </div>
                 </div>
             </div>
@@ -674,6 +698,14 @@
                 <label class="block text-[10px] text-slate-500 uppercase font-bold mb-1">Nome no cartão (opcional)</label>
                 <input type="text" id="cardHolderInput" class="w-full input-field p-2.5 text-sm text-white" placeholder="Ex.: Cartão família">
             </div>
+            <div>
+                <label class="block text-[10px] text-slate-500 uppercase font-bold mb-1">PIN (opcional · saldo / caixa)</label>
+                <div class="relative">
+                    <input type="password" id="cardPinInput" maxlength="12" class="w-full input-field p-2.5 text-sm text-white font-mono tracking-widest" placeholder="••••" inputmode="numeric" autocomplete="off">
+                    <button type="button" onclick="togglePinInputVis()" class="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 text-xs px-2" title="Mostrar/ocultar"><i class="fa-solid fa-eye" id="cardPinEyeIcon"></i></button>
+                </div>
+                <p class="text-[10px] text-slate-600 mt-1">Ex.: PIN E.Leclerc para gastar saldo. Fica só neste dispositivo, oculto por defeito.</p>
+            </div>
             <button type="button" onclick="saveLoyaltyCard()" class="w-full py-2.5 rounded-xl bg-violet-500 hover:bg-violet-400 text-white text-sm font-bold">Guardar cartão</button>
         </div>
     </div>
@@ -692,15 +724,20 @@
     </div>
 
     <!-- Fullscreen card for checkout scanner -->
-    <div id="cardPresentModal" class="fixed inset-0 z-[80] hidden bg-white flex flex-col items-center justify-center p-6">
-        <button type="button" onclick="closePresentCard()" class="absolute top-4 right-4 w-10 h-10 rounded-full bg-slate-100 text-slate-700 text-lg"><i class="fa-solid fa-xmark"></i></button>
-        <p id="presentCardStore" class="text-slate-800 text-lg font-bold mb-1">Loja</p>
-        <p id="presentCardHolder" class="text-slate-500 text-xs mb-6"></p>
-        <div class="w-full max-w-md bg-white p-4 rounded-xl">
+    <div id="cardPresentModal" class="fixed inset-0 z-[80] hidden bg-white flex flex-col items-center justify-center p-4 sm:p-8">
+        <button type="button" onclick="closePresentCard()" class="absolute top-4 right-4 w-10 h-10 rounded-full bg-slate-100 text-slate-700 text-lg z-10"><i class="fa-solid fa-xmark"></i></button>
+        <p id="presentCardStore" class="text-slate-900 text-xl font-bold mb-0.5">Loja</p>
+        <p id="presentCardHolder" class="text-slate-500 text-xs mb-4"></p>
+        <div class="barcode-present-wrap w-full max-w-lg">
             <svg id="presentBarcode" class="w-full"></svg>
         </div>
-        <p id="presentCardNumber" class="mt-4 font-mono text-slate-800 text-base tracking-widest"></p>
-        <p class="mt-6 text-[11px] text-slate-400 text-center max-w-xs">Aproxima o ecrã do leitor da caixa. Brilho no máximo ajuda.</p>
+        <p id="presentCardNumber" class="mt-5 font-mono text-slate-900 text-lg sm:text-xl tracking-[0.2em] font-semibold"></p>
+        <div id="presentPinWrap" class="hidden mt-4 flex items-center gap-2">
+            <span class="text-xs text-slate-500 font-semibold uppercase">PIN</span>
+            <span id="presentPinValue" class="font-mono text-slate-800 text-base tracking-widest">••••</span>
+            <button type="button" id="presentPinToggle" onclick="togglePresentPin()" class="text-[11px] font-bold text-cyan-600 hover:text-cyan-500 px-2 py-1 rounded-lg bg-slate-100">Mostrar</button>
+        </div>
+        <p class="mt-6 text-[11px] text-slate-400 text-center max-w-sm leading-relaxed">Brilho no máximo · ecrã limpo · aproxima do leitor.<br>CODE128 — legível na maioria das caixas PT.</p>
     </div>
 
     <!-- RMA Modal -->
@@ -1514,17 +1551,23 @@
         }
 
         // ---------- CARTÕES DE FIDELIZAÇÃO ----------
-        const CARD_COLORS = {
-            'Continente': { bg: 'from-red-600 to-red-800', accent: 'red' },
-            'Pingo Doce': { bg: 'from-yellow-500 to-amber-700', accent: 'amber' },
-            'Auchan': { bg: 'from-red-500 to-rose-700', accent: 'rose' },
-            'E.Leclerc': { bg: 'from-blue-600 to-blue-900', accent: 'blue' },
-            'Lidl': { bg: 'from-blue-500 to-yellow-500', accent: 'blue' },
-            'Worten': { bg: 'from-red-500 to-slate-900', accent: 'red' },
-            'Fnac': { bg: 'from-yellow-400 to-yellow-600', accent: 'yellow' },
-            'Radio Popular': { bg: 'from-orange-500 to-red-700', accent: 'orange' },
-            'IKEA': { bg: 'from-blue-600 to-yellow-400', accent: 'blue' }
+        const CARD_BRANDS = {
+            'Continente': { bg: 'linear-gradient(135deg,#c8102e 0%,#8b0000 55%,#5c0000 100%)', mark: 'C', sub: 'Cartão Continente' },
+            'Pingo Doce': { bg: 'linear-gradient(135deg,#f5c518 0%,#d4a017 50%,#8B6914 100%)', mark: 'PD', sub: 'Poupa Mais' },
+            'Auchan': { bg: 'linear-gradient(135deg,#e30613 0%,#b71c1c 100%)', mark: 'A', sub: 'MyAuchan' },
+            'E.Leclerc': { bg: 'linear-gradient(135deg,#0055a4 0%,#003366 100%)', mark: 'L', sub: 'Carte E.Leclerc' },
+            'Lidl': { bg: 'linear-gradient(135deg,#0050aa 0%,#fff200 48%,#e30613 100%)', mark: 'L', sub: 'Lidl Plus' },
+            'Worten': { bg: 'linear-gradient(135deg,#e30613 0%,#1a1a1a 100%)', mark: 'W', sub: 'Worten Club' },
+            'Fnac': { bg: 'linear-gradient(135deg,#e5c100 0%,#b8960f 100%)', mark: 'F', sub: 'Fnac+' },
+            'Radio Popular': { bg: 'linear-gradient(135deg,#ff6600 0%,#cc0000 100%)', mark: 'RP', sub: 'Clube RP' },
+            'IKEA': { bg: 'linear-gradient(135deg,#0051ba 0%,#ffda1a 100%)', mark: 'I', sub: 'IKEA Family' }
         };
+        function brandFor(store) {
+            return CARD_BRANDS[store] || { bg: 'linear-gradient(135deg,#7c3aed 0%,#312e81 100%)', mark: (store || '?').slice(0, 2).toUpperCase(), sub: 'Fidelização' };
+        }
+        let _presentPinPlain = '';
+        let _presentPinVisible = false;
+
         function getLoyaltyCards() {
             try { return JSON.parse(localStorage.getItem('vanty_loyalty_cards') || '[]'); } catch { return []; }
         }
@@ -1533,9 +1576,19 @@
             const badge = document.getElementById('navBadgeCards');
             if (badge) badge.innerText = String(list.length);
         }
+        function togglePinInputVis() {
+            const inp = document.getElementById('cardPinInput');
+            const icon = document.getElementById('cardPinEyeIcon');
+            if (!inp) return;
+            const show = inp.type === 'password';
+            inp.type = show ? 'text' : 'password';
+            if (icon) icon.className = show ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye';
+        }
         function openAddCardModal() {
             document.getElementById('cardNumberInput').value = '';
             document.getElementById('cardHolderInput').value = '';
+            const pin = document.getElementById('cardPinInput');
+            if (pin) { pin.value = ''; pin.type = 'password'; }
             document.getElementById('cardCustomStore').value = '';
             document.getElementById('cardStoreSelect').value = 'Continente';
             onCardStoreChange();
@@ -1560,12 +1613,14 @@
                 return;
             }
             const holder = document.getElementById('cardHolderInput').value.trim();
+            const pin = (document.getElementById('cardPinInput')?.value || '').replace(/\s+/g, '').trim();
             const list = getLoyaltyCards();
             list.unshift({
                 id: 'card_' + Date.now(),
                 store,
                 number,
                 holder,
+                pin: pin || null,
                 created_at: new Date().toISOString()
             });
             setLoyaltyCards(list);
@@ -1578,6 +1633,22 @@
             setLoyaltyCards(getLoyaltyCards().filter(c => c.id !== id));
             renderLoyaltyCards();
             showToast('Cartão removido.', 'OK', 'info');
+        }
+        function revealCardPin(id) {
+            const card = getLoyaltyCards().find(c => c.id === id);
+            if (!card || !card.pin) { showToast('Sem PIN neste cartão.', 'PIN', 'info'); return; }
+            const el = document.getElementById('pin-reveal-' + id);
+            if (!el) return;
+            if (el.dataset.open === '1') {
+                el.innerText = 'PIN ····';
+                el.dataset.open = '0';
+            } else {
+                el.innerText = 'PIN ' + card.pin;
+                el.dataset.open = '1';
+                setTimeout(() => {
+                    if (el.dataset.open === '1') { el.innerText = 'PIN ····'; el.dataset.open = '0'; }
+                }, 8000);
+            }
         }
         function renderLoyaltyCards() {
             const feed = document.getElementById('cardsFeed');
@@ -1594,24 +1665,38 @@
                 return;
             }
             feed.innerHTML = list.map(c => {
-                const theme = CARD_COLORS[c.store] || { bg: 'from-violet-600 to-indigo-900' };
+                const brand = brandFor(c.store);
                 const masked = c.number.length > 8 ? c.number.slice(0, 4) + ' ··· ' + c.number.slice(-4) : c.number;
+                const hasPin = !!(c.pin && String(c.pin).length);
                 return `
-                <div class="card overflow-hidden border border-white/[0.06] flex flex-col">
-                    <div class="bg-gradient-to-br ${theme.bg} p-4 relative min-h-[88px]">
-                        <p class="text-white font-bold text-sm drop-shadow">${escapeHtml(c.store)}</p>
-                        <p class="text-white/80 text-[10px] mt-0.5">${escapeHtml(c.holder || 'Cartão de fidelização')}</p>
-                        <i class="fa-solid fa-barcode absolute right-3 bottom-3 text-white/30 text-2xl"></i>
-                    </div>
-                    <div class="p-3 space-y-2 flex-1 flex flex-col">
-                        <p class="font-mono text-xs text-slate-300 tracking-wide">${escapeHtml(masked)}</p>
-                        <div class="mt-auto flex gap-2">
-                            <button type="button" onclick="presentLoyaltyCard('${c.id}')" class="flex-1 py-2 rounded-lg bg-violet-500/15 border border-violet-500/25 text-violet-300 text-[11px] font-bold hover:bg-violet-500/25">
-                                <i class="fa-solid fa-expand mr-1"></i> Usar na caixa
-                            </button>
-                            <button type="button" onclick="deleteLoyaltyCard('${c.id}')" class="px-2.5 py-2 rounded-lg bg-surface-800 text-slate-500 hover:text-red-400 text-xs">
-                                <i class="fa-solid fa-trash-can"></i>
-                            </button>
+                <div class="loyalty-card-3d">
+                    <div class="loyalty-card-face rounded-2xl overflow-hidden flex flex-col bg-surface-900">
+                        <div class="relative p-4 min-h-[120px] text-white" style="background:${brand.bg}">
+                            <div class="absolute inset-0 opacity-20" style="background:radial-gradient(circle at 80% 20%,#fff 0%,transparent 45%)"></div>
+                            <div class="relative flex justify-between items-start">
+                                <div>
+                                    <p class="text-[10px] font-bold uppercase tracking-widest text-white/70">${escapeHtml(brand.sub)}</p>
+                                    <p class="text-lg font-black drop-shadow mt-0.5">${escapeHtml(c.store)}</p>
+                                    <p class="text-[11px] text-white/85 mt-1">${escapeHtml(c.holder || 'Titular')}</p>
+                                </div>
+                                <div class="w-11 h-11 rounded-xl bg-white/15 backdrop-blur border border-white/25 flex items-center justify-center text-sm font-black shadow-lg">${escapeHtml(brand.mark)}</div>
+                            </div>
+                            <div class="relative mt-4 flex items-center justify-between">
+                                <div class="loyalty-chip"></div>
+                                <i class="fa-solid fa-wifi text-white/40 text-sm rotate-90"></i>
+                            </div>
+                        </div>
+                        <div class="p-3 space-y-2 flex-1 flex flex-col border-t border-white/[0.04]">
+                            <p class="font-mono text-xs text-slate-300 tracking-wide">${escapeHtml(masked)}</p>
+                            ${hasPin ? `<button type="button" id="pin-reveal-${c.id}" data-open="0" onclick="revealCardPin('${c.id}')" class="text-left text-[10px] font-semibold text-slate-500 hover:text-amber-400 transition-colors">PIN ···· <span class="text-slate-600 font-normal">(tocar para ver · 8s)</span></button>` : ''}
+                            <div class="mt-auto flex gap-2 pt-1">
+                                <button type="button" onclick="presentLoyaltyCard('${c.id}')" class="flex-1 py-2.5 rounded-xl bg-violet-500/15 border border-violet-500/25 text-violet-300 text-[11px] font-bold hover:bg-violet-500/25">
+                                    <i class="fa-solid fa-expand mr-1"></i> Usar na caixa
+                                </button>
+                                <button type="button" onclick="deleteLoyaltyCard('${c.id}')" class="px-2.5 py-2 rounded-xl bg-surface-800 text-slate-500 hover:text-red-400 text-xs">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>`;
@@ -1623,16 +1708,29 @@
             document.getElementById('presentCardStore').innerText = card.store;
             document.getElementById('presentCardHolder').innerText = card.holder || '';
             document.getElementById('presentCardNumber').innerText = card.number;
+            _presentPinPlain = card.pin || '';
+            _presentPinVisible = false;
+            const pinWrap = document.getElementById('presentPinWrap');
+            const pinVal = document.getElementById('presentPinValue');
+            const pinBtn = document.getElementById('presentPinToggle');
+            if (_presentPinPlain) {
+                pinWrap.classList.remove('hidden');
+                pinVal.innerText = '••••';
+                pinBtn.innerText = 'Mostrar';
+            } else {
+                pinWrap.classList.add('hidden');
+            }
             const svg = document.getElementById('presentBarcode');
             svg.innerHTML = '';
             try {
                 if (typeof JsBarcode === 'undefined') throw new Error('JsBarcode não carregou');
+                // Barras largas e altas = melhor leitura na caixa
                 JsBarcode(svg, card.number, {
                     format: 'CODE128',
-                    width: 2,
-                    height: 80,
+                    width: 3,
+                    height: 120,
                     displayValue: false,
-                    margin: 8,
+                    margin: 12,
                     background: '#ffffff',
                     lineColor: '#000000'
                 });
@@ -1642,13 +1740,17 @@
                 return;
             }
             document.getElementById('cardPresentModal').classList.remove('hidden');
-            // Tenta manter ecrã acordado (quando suportado)
-            if (navigator.wakeLock) {
-                navigator.wakeLock.request('screen').catch(() => {});
-            }
+            if (navigator.wakeLock) navigator.wakeLock.request('screen').catch(() => {});
+        }
+        function togglePresentPin() {
+            _presentPinVisible = !_presentPinVisible;
+            document.getElementById('presentPinValue').innerText = _presentPinVisible ? _presentPinPlain : '••••';
+            document.getElementById('presentPinToggle').innerText = _presentPinVisible ? 'Ocultar' : 'Mostrar';
         }
         function closePresentCard() {
             document.getElementById('cardPresentModal').classList.add('hidden');
+            _presentPinVisible = false;
+            _presentPinPlain = '';
         }
 
         // ---------- SCAN CÓDIGO DE BARRAS (câmara / foto) ----------
