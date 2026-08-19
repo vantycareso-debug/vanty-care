@@ -770,7 +770,12 @@
                     <span class="nav-icon-chip"><i class="fa-solid fa-plus-circle"></i></span><span>Registar Nova</span>
                 </div>
                 <div class="nav-item" data-panel="rma" onclick="switchPanel('rma')">
-                    <span class="nav-icon-chip"><i class="fa-solid fa-wrench"></i></span><span>Pedidos RMA</span>
+                    <span class="nav-icon-chip"><i class="fa-solid fa-screwdriver-wrench"></i></span><span>Assistência</span>
+                    <span id="navBadgeAssist" class="ml-auto text-[10px] font-bold bg-red-500/15 text-red-300 px-1.5 py-0.5 rounded-md border border-red-500/10">0</span>
+                </div>
+                <div class="nav-item" data-panel="arquivo" onclick="switchPanel('arquivo')">
+                    <span class="nav-icon-chip"><i class="fa-solid fa-box-archive"></i></span><span>Arquivo</span>
+                    <span id="navBadgeArchive" class="ml-auto text-[10px] font-bold bg-slate-500/15 text-slate-400 px-1.5 py-0.5 rounded-md">0</span>
                 </div>
                 <div class="nav-item" data-panel="stats" onclick="switchPanel('stats')">
                     <span class="nav-icon-chip"><i class="fa-solid fa-star-half-stroke"></i></span><span>Estatísticas</span>
@@ -793,7 +798,7 @@
                     <div class="live-dot"></div>
                     <div>
                         <div class="text-[11px] font-semibold text-emerald-400">Supabase Live</div>
-                        <div class="text-[10px] text-slate-500">v2.9.3 · Stats pro</div>
+                        <div class="text-[10px] text-slate-500">v3.0 · Assistência + Arquivo</div>
                     </div>
                 </div>
             </div>
@@ -840,6 +845,10 @@
                     <div id="expiryAlert" class="hidden card p-3.5 border border-red-500/20 bg-red-500/5">
                         <p class="text-xs font-bold text-red-300 mb-1.5"><i class="fa-solid fa-clock mr-1"></i> Garantias a expirar (≤90 dias)</p>
                         <div id="expiryAlertList" class="space-y-1 text-xs text-slate-400"></div>
+                    </div>
+                    <div id="anniversaryAlert" class="hidden card p-3.5 border border-orange-500/25 bg-orange-500/5">
+                        <p class="text-xs font-bold text-orange-300 mb-1.5"><i class="fa-solid fa-cake-candles mr-1"></i> Aniversário de produto</p>
+                        <div id="anniversaryAlertList" class="space-y-2 text-xs text-slate-400"></div>
                     </div>
                     <div class="grid grid-cols-2 xl:grid-cols-4 gap-3">
                         <div class="kpi p-4 flex items-center gap-3.5">
@@ -1011,14 +1020,38 @@
                     </div>
                 </div>
 
-                <!-- RMA -->
+                <!-- ASSISTÊNCIA -->
                 <div id="panel-rma" class="panel-hidden space-y-4">
-                    <div class="flex items-center justify-between gap-2">
-                        <h2 class="text-base font-bold text-white flex items-center gap-2"><i class="fa-solid fa-wrench text-red-400"></i> Pedidos de Reparação (RMA)</h2>
-                        <button onclick="switchPanel('garantias')" class="text-[11px] text-orange-400 font-semibold">Abrir a partir de Garantias →</button>
+                    <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-2">
+                        <div>
+                            <h2 class="text-base font-bold text-white flex items-center gap-2"><i class="fa-solid fa-screwdriver-wrench text-orange-400"></i> Assistência</h2>
+                            <p class="text-[11px] text-slate-500 mt-1">Pedidos de reparação · em garantia ou fora · parceiros</p>
+                        </div>
+                        <button onclick="switchPanel('garantias')" class="text-[11px] text-orange-400 font-semibold">Escolher produto →</button>
                     </div>
-                    <div id="rmaFeed" class="space-y-3">
-                        <div class="card p-8 text-center text-slate-500 text-sm">Sem pedidos RMA ainda.</div>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                        <div class="card p-4 space-y-3">
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Os teus pedidos</p>
+                            <div id="rmaFeed" class="space-y-3">
+                                <div class="text-center text-slate-500 text-sm py-6">Sem pedidos ainda.</div>
+                            </div>
+                        </div>
+                        <div class="card p-4 space-y-3">
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Parceiros de assistência</p>
+                            <p class="text-[11px] text-slate-500">Rede validada por marca e zona. Em breve com avaliações da comunidade.</p>
+                            <div id="partnersFeed" class="space-y-2"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ARQUIVO / BAIXAS -->
+                <div id="panel-arquivo" class="panel-hidden space-y-4">
+                    <div>
+                        <h2 class="text-base font-bold text-white flex items-center gap-2"><i class="fa-solid fa-box-archive text-slate-400"></i> Arquivo de vida</h2>
+                        <p class="text-[11px] text-slate-500 mt-1">Produtos que já não usas — anos de vida e histórico para fiabilidade de marca.</p>
+                    </div>
+                    <div id="archiveFeed" class="space-y-3">
+                        <div class="card p-8 text-center text-slate-500 text-sm">Arquivo vazio. Dá baixa a partir do detalhe do produto.</div>
                     </div>
                 </div>
 
@@ -1350,17 +1383,18 @@
         <p class="mt-6 text-[11px] text-slate-400 text-center max-w-sm leading-relaxed">Brilho no máximo · ecrã limpo · aproxima do leitor.<br>CODE128 — legível na maioria das caixas PT.</p>
     </div>
 
-    <!-- RMA Modal -->
+    <!-- Assistência Modal -->
     <div id="rmaModal" class="fixed inset-0 modal-backdrop z-50 hidden flex items-center justify-center p-4">
-        <div class="card modal-panel w-full max-w-lg p-6 space-y-5 relative border border-white/[0.08]">
+        <div class="card modal-panel w-full max-w-lg p-6 space-y-4 relative border border-white/[0.08]">
             <button onclick="closeRmaModal()" class="absolute top-4 right-4 text-slate-500 hover:text-white p-2 text-lg transition-colors"><i class="fa-solid fa-xmark"></i></button>
-            <div class="flex items-center gap-3.5 border-b border-white/[0.06] pb-4">
-                <div class="w-11 h-11 rounded-xl bg-red-500/10 text-red-400 border border-red-500/20 flex items-center justify-center text-lg"><i class="fa-solid fa-wrench"></i></div>
+            <div class="flex items-center gap-3.5 border-b border-white/[0.06] pb-4 pr-8">
+                <div class="w-11 h-11 rounded-xl bg-orange-500/10 text-orange-400 border border-orange-500/20 flex items-center justify-center text-lg"><i class="fa-solid fa-screwdriver-wrench"></i></div>
                 <div>
-                    <h3 class="text-lg font-bold text-white">Pedido de Reparação (RMA)</h3>
-                    <p class="text-xs text-slate-500">Acionamento formal com prova de compra</p>
+                    <h3 class="text-lg font-bold text-white">Pedido de assistência</h3>
+                    <p class="text-xs text-slate-500">O sistema deteta se está em garantia</p>
                 </div>
             </div>
+            <div id="rmaWarrantyBanner" class="p-3 rounded-xl text-xs font-semibold border"></div>
             <div class="bg-[#0a0a0b]/70 p-4 rounded-xl border border-white/[0.05] text-xs space-y-2.5">
                 <div class="flex justify-between border-b border-white/[0.04] pb-2"><span class="text-slate-500">Titular</span><span class="font-semibold text-slate-200" id="rmaModalUser">—</span></div>
                 <div class="flex justify-between border-b border-white/[0.04] pb-2"><span class="text-slate-500">Equipamento</span><span class="font-bold text-orange-400" id="rmaModalProduct">—</span></div>
@@ -1370,14 +1404,15 @@
                     <span id="rmaModalReceiptStatus" class="inline-flex items-center gap-1.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2.5 py-1 rounded-lg font-semibold"><i class="fa-solid fa-paperclip"></i> Anexada</span>
                 </div>
             </div>
+            <div id="rmaPartnersHint" class="hidden p-3 rounded-xl bg-surface-800/80 border border-white/[0.06] text-[11px] text-slate-400"></div>
             <div>
-                <label class="block text-xs font-semibold text-slate-400 mb-1.5">Descrição da Avaria *</label>
-                <textarea id="rmaDescription" rows="3" placeholder="Descreva o problema com detalhe..." class="w-full input-field p-3 text-sm text-white resize-none"></textarea>
+                <label class="block text-xs font-semibold text-slate-400 mb-1.5">Descrição do problema *</label>
+                <textarea id="rmaDescription" rows="3" placeholder="O que falhou? Quando começou? Já tentaste reiniciar / outra tomada?" class="w-full input-field p-3 text-sm text-white resize-none"></textarea>
             </div>
             <div class="flex gap-3">
                 <button onclick="closeRmaModal()" class="w-1/3 bg-surface-800 hover:bg-surface-700 text-slate-300 text-sm font-semibold py-3 rounded-xl transition-all">Cancelar</button>
-                <button onclick="sendRmaEmail()" class="w-2/3 bg-gradient-to-r from-red-500 to-amber-600 hover:from-red-400 hover:to-amber-500 text-white text-sm font-bold py-3 rounded-xl transition-all shadow-lg shadow-red-500/15 flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-paper-plane"></i> Enviar Pedido + Fatura
+                <button id="rmaSubmitBtn" onclick="sendRmaEmail()" class="w-2/3 btn-vanty py-3 rounded-xl flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-paper-plane"></i> <span id="rmaSubmitLabel">Enviar pedido</span>
                 </button>
             </div>
         </div>
@@ -1506,8 +1541,9 @@
 
             <div class="flex flex-wrap gap-2 pt-1">
                 <button id="detailInvoiceBtn" class="flex-1 px-3 py-2.5 bg-surface-800 hover:bg-surface-700 border border-white/[0.06] text-slate-300 rounded-xl text-xs font-semibold transition-all"><i class="fa-solid fa-file-invoice mr-1"></i> Ver Fatura</button>
-                <button id="detailRmaBtn" class="flex-1 px-3 py-2.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 rounded-xl text-xs font-bold transition-all"><i class="fa-solid fa-wrench mr-1"></i> RMA</button>
-                <button type="button" onclick="deleteCurrentProduct()" class="w-full px-3 py-2 rounded-xl bg-surface-900 border border-red-500/20 text-red-400 text-xs font-semibold hover:bg-red-500/10"><i class="fa-solid fa-trash-can mr-1"></i> Apagar garantia</button>
+                <button id="detailRmaBtn" class="flex-1 px-3 py-2.5 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/25 text-orange-300 rounded-xl text-xs font-bold transition-all"><i class="fa-solid fa-screwdriver-wrench mr-1"></i> Assistência</button>
+                <button type="button" onclick="retireCurrentProduct()" class="flex-1 px-3 py-2.5 bg-surface-800 hover:bg-surface-700 border border-white/[0.08] text-slate-300 rounded-xl text-xs font-semibold transition-all"><i class="fa-solid fa-box-archive mr-1"></i> Dar baixa</button>
+                <button type="button" onclick="deleteCurrentProduct()" class="w-full px-3 py-2 rounded-xl bg-surface-900 border border-red-500/20 text-red-400 text-xs font-semibold hover:bg-red-500/10"><i class="fa-solid fa-trash-can mr-1"></i> Apagar registo</button>
             </div>
         </div>
     </div>
@@ -1821,24 +1857,103 @@
             list.unshift(entry);
             localStorage.setItem('vanty_rma_local', JSON.stringify(list.slice(0, 100)));
         }
+        function isProductInWarranty(prod) {
+            if (!prod) return false;
+            const years = warrantyYears[userProfile.country] || 3;
+            let exp = prod.fim_garantia ? new Date(prod.fim_garantia) : null;
+            if (!exp && prod.data_compra) {
+                exp = new Date(prod.data_compra);
+                exp.setFullYear(exp.getFullYear() + years);
+            }
+            if (!exp) return false;
+            return exp >= new Date();
+        }
+        function yearsOwned(prod) {
+            if (!prod || !prod.data_compra) return null;
+            const start = new Date(prod.data_compra);
+            const end = new Date();
+            return Math.max(0, (end - start) / (365.25 * 86400000));
+        }
+
+        function getRetiredStore() {
+            try { return JSON.parse(localStorage.getItem('vanty_retired_v1') || '[]'); } catch { return []; }
+        }
+        function setRetiredStore(list) {
+            localStorage.setItem('vanty_retired_v1', JSON.stringify(list.slice(0, 200)));
+            const b = document.getElementById('navBadgeArchive');
+            if (b) b.innerText = String(list.length);
+        }
+        function renderArchiveFeed() {
+            const feed = document.getElementById('archiveFeed');
+            if (!feed) return;
+            const list = getRetiredStore();
+            const b = document.getElementById('navBadgeArchive');
+            if (b) b.innerText = String(list.length);
+            if (!list.length) {
+                feed.innerHTML = `<div class="card p-8 text-center text-slate-500 text-sm">Arquivo vazio.<p class="mt-2 text-xs">No detalhe do produto → <strong>Dar baixa</strong> quando deixar de o usar.</p></div>`;
+                return;
+            }
+            feed.innerHTML = list.map(r => {
+                const yrs = r.years_used != null ? Number(r.years_used).toFixed(1) : '—';
+                return `<div class="card p-4 space-y-2">
+                    <div class="flex justify-between gap-2">
+                        <h3 class="font-bold text-white text-sm">${escapeHtml(r.nome_produto || 'Produto')}</h3>
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-500/15 text-slate-400 border border-white/[0.06]">${yrs} anos</span>
+                    </div>
+                    <p class="text-[11px] text-slate-500">${escapeHtml(r.loja || '—')} · baixa ${r.retired_at ? new Date(r.retired_at).toLocaleDateString('pt-PT') : '—'}</p>
+                    <p class="text-[10px] text-slate-600">${escapeHtml(r.reason || 'Já não em uso')} · ${escapeHtml(categoryLabel(r.categoria || detectCategory(r.nome_produto)))}</p>
+                </div>`;
+            }).join('');
+        }
+
+        const VANTY_PARTNERS = [
+            { name: 'TechFix Norte', brands: ['LG', 'Samsung', 'Bosch'], zones: ['Norte'], rating: 4.6, note: 'Reparação eletrodomésticos' },
+            { name: 'ClimaPro Aveiro', brands: ['Daikin', 'Mitsubishi', 'Delba'], zones: ['Norte', 'Centro'], rating: 4.4, note: 'Climatização e AVAC' },
+            { name: 'MobileCare PT', brands: ['Apple', 'Samsung', 'Xiaomi'], zones: ['Norte', 'Lisboa e Vale do Tejo'], rating: 4.2, note: 'Smartphones e tablets' }
+        ];
+        function renderPartnersFeed() {
+            const feed = document.getElementById('partnersFeed');
+            if (!feed) return;
+            const zone = userProfile.zone || '';
+            const list = zone ? VANTY_PARTNERS.filter(p => p.zones.includes(zone) || !zone) : VANTY_PARTNERS;
+            feed.innerHTML = list.map(p => `
+                <div class="p-3 rounded-xl bg-[#0a0a0b]/50 border border-white/[0.05]">
+                    <div class="flex justify-between gap-2">
+                        <p class="text-sm font-bold text-white">${escapeHtml(p.name)}</p>
+                        <span class="text-amber-400 text-[11px] font-bold">${p.rating} ★</span>
+                    </div>
+                    <p class="text-[10px] text-slate-500 mt-0.5">${escapeHtml(p.note)}</p>
+                    <p class="text-[10px] text-slate-600 mt-1">Marcas: ${escapeHtml(p.brands.join(', '))} · ${escapeHtml(p.zones.join(', '))}</p>
+                </div>
+            `).join('') + `<p class="text-[10px] text-slate-600 pt-1">Parceiros demo — em produção serão validados e avaliados pela comunidade.</p>`;
+        }
+
         function renderRmaFeed() {
             const feed = document.getElementById('rmaFeed');
             if (!feed) return;
             const list = getRmaStore();
+            const badge = document.getElementById('navBadgeAssist');
+            if (badge) badge.innerText = String(list.length);
             if (!list.length) {
-                feed.innerHTML = `<div class="card p-8 text-center text-slate-500 text-sm">Sem pedidos RMA ainda.<p class="mt-2 text-xs">Abre em Garantias → Reportar Avaria.</p></div>`;
+                feed.innerHTML = `<div class="text-center text-slate-500 text-sm py-6">Sem pedidos ainda.<p class="mt-2 text-xs">Garantias → produto → <strong>Assistência</strong>.</p></div>`;
                 return;
             }
-            feed.innerHTML = list.map(r => `
-                <div class="card p-4 space-y-2">
+            feed.innerHTML = list.map(r => {
+                const inW = r.in_warranty;
+                const badgeCls = inW
+                    ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                    : 'bg-amber-500/10 text-amber-400 border-amber-500/20';
+                const badgeTxt = inW ? 'Em garantia' : 'Fora de garantia';
+                return `
+                <div class="p-3 rounded-xl bg-[#0a0a0b]/50 border border-white/[0.05] space-y-1.5">
                     <div class="flex justify-between gap-2">
                         <h3 class="font-bold text-white text-sm">${escapeHtml(r.produto_nome || 'Produto')}</h3>
-                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">${escapeHtml(r.estado || 'aberto')}</span>
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border ${badgeCls}">${badgeTxt}</span>
                     </div>
                     <p class="text-[11px] text-slate-500">${escapeHtml(r.loja || '')} · ${new Date(r.created_at).toLocaleDateString('pt-PT')}</p>
                     <p class="text-xs text-slate-400 leading-relaxed">${escapeHtml(r.descricao || '')}</p>
-                </div>
-            `).join('');
+                </div>`;
+            }).join('');
         }
 
         function showToast(message, title = 'Aviso', type = 'info') {
@@ -2294,7 +2409,7 @@
         }
 
         function switchPanel(id) {
-            ['dashboard', 'garantias', 'registar', 'rma', 'perfil', 'stats', 'cartoes'].forEach(p => {
+            ['dashboard', 'garantias', 'registar', 'rma', 'arquivo', 'perfil', 'stats', 'cartoes'].forEach(p => {
                 const el = document.getElementById('panel-' + p);
                 if (el) el.classList.toggle('panel-hidden', p !== id);
             });
@@ -2304,7 +2419,8 @@
             document.getElementById('sidebar').classList.remove('open');
             document.getElementById('sidebarOverlay').classList.remove('show');
             if (id === 'stats') refreshStatsPanel();
-            if (id === 'rma') renderRmaFeed();
+            if (id === 'rma') { renderRmaFeed(); renderPartnersFeed(); }
+            if (id === 'arquivo') renderArchiveFeed();
             if (id === 'cartoes') renderLoyaltyCards();
         }
 
@@ -3546,6 +3662,85 @@
             renderProductLists();
         }
 
+        
+        async function retireCurrentProduct() {
+            if (detailProductIndex == null) return;
+            const prod = currentProducts[detailProductIndex];
+            if (!prod) return;
+            const yrs = yearsOwned(prod);
+            const yrsLabel = yrs != null ? yrs.toFixed(1) + ' anos' : 'tempo desconhecido';
+            if (!confirm('Dar baixa a este produto?\n\n' + (prod.nome_produto || '') + '\nTempo de uso ≈ ' + yrsLabel + '\n\nSai das garantias ativas e entra no Arquivo de vida.')) return;
+            const entry = {
+                id: prod.id,
+                nome_produto: prod.nome_produto,
+                loja: prod.loja,
+                data_compra: prod.data_compra,
+                preco_com_iva: prod.preco_com_iva || prod.preco,
+                categoria: prod.categoria || detectCategory(prod.nome_produto),
+                years_used: yrs,
+                reason: 'Já não em uso',
+                retired_at: new Date().toISOString(),
+                assist_count: getRmaStore().filter(r => String(r.produto_id) === String(prod.id)).length
+            };
+            const arch = getRetiredStore();
+            arch.unshift(entry);
+            setRetiredStore(arch);
+            if (prod._local || String(prod.id).startsWith('local_')) {
+                localStorage.setItem('vanty_products_local', JSON.stringify(getLocalProducts().filter(p => String(p.id) !== String(prod.id))));
+            } else {
+                try {
+                    await supabaseClient.from('produtos_garantias').delete().eq('id', prod.id);
+                } catch (err) {
+                    console.warn(err);
+                    localStorage.setItem('vanty_products_local', JSON.stringify(getLocalProducts().filter(p => String(p.id) !== String(prod.id))));
+                }
+            }
+            closeProductDetail();
+            showToast((prod.nome_produto || 'Produto') + ' arquivado.\nVida útil registada: ' + yrsLabel, 'Baixa concluída', 'success');
+            await loadProducts();
+            renderArchiveFeed();
+        }
+
+        function updateAnniversaryAlerts() {
+            const box = document.getElementById('anniversaryAlert');
+            const list = document.getElementById('anniversaryAlertList');
+            if (!box || !list) return;
+            const now = new Date();
+            const md = (d) => (d.getMonth() + 1) + '-' + d.getDate();
+            const todayKey = md(now);
+            const hits = [];
+            currentProducts.forEach((prod, idx) => {
+                if (!prod.data_compra) return;
+                const buy = new Date(prod.data_compra);
+                if (md(buy) !== todayKey) return;
+                const years = now.getFullYear() - buy.getFullYear();
+                if (years < 1) return;
+                const dismissKey = 'vanty_anniv_ok_' + prod.id + '_' + now.toISOString().slice(0, 10);
+                if (localStorage.getItem(dismissKey)) return;
+                hits.push({ prod, years, idx });
+            });
+            if (!hits.length) { box.classList.add('hidden'); list.innerHTML = ''; return; }
+            box.classList.remove('hidden');
+            list.innerHTML = hits.map(h => `
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2 rounded-lg bg-[#0a0a0b]/40 border border-white/[0.04]">
+                    <div class="min-w-0">
+                        <p class="text-slate-200 font-semibold truncate">${escapeHtml(h.prod.nome_produto || 'Produto')}</p>
+                        <p class="text-[10px] text-orange-300/90">Faz hoje ${h.years} ano${h.years > 1 ? 's' : ''} · ainda faz parte da tua vida?</p>
+                    </div>
+                    <div class="flex gap-1.5 shrink-0">
+                        <button type="button" onclick="confirmProductStillUsed('${String(h.prod.id).replace(/'/g, "\\'")}')" class="px-2.5 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/25 text-emerald-400 text-[10px] font-bold">Sim, uso</button>
+                        <button type="button" onclick="(function(){ const i=${h.idx}; openProductDetail(i); setTimeout(function(){ retireCurrentProduct(); }, 400); })()" class="px-2.5 py-1 rounded-lg bg-surface-800 border border-white/[0.08] text-slate-300 text-[10px] font-bold">Dar baixa</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        function confirmProductStillUsed(id) {
+            const key = 'vanty_anniv_ok_' + id + '_' + new Date().toISOString().slice(0, 10);
+            localStorage.setItem(key, '1');
+            showToast('Ótimo — mantemos o produto ativo.\nNo próximo aniversário voltamos a perguntar.', 'Ainda em uso', 'success');
+            updateAnniversaryAlerts();
+        }
+
         async function deleteCurrentProduct() {
             if (detailProductIndex == null) return;
             const prod = currentProducts[detailProductIndex];
@@ -3690,8 +3885,8 @@
                     <div class="flex flex-wrap gap-2" onclick="event.stopPropagation()">
                         <button onclick="openProductDetail(${globalIndex})" class="px-3 py-1.5 bg-surface-800 hover:bg-surface-700 border border-white/[0.06] text-slate-300 rounded-lg text-[11px] font-semibold transition-all flex items-center gap-1.5"><i class="fa-solid fa-up-right-from-square"></i> Abrir</button>
                         ${receipt ? `<button onclick="viewInvoice('${prod.id}')" class="px-3 py-1.5 bg-surface-800 hover:bg-surface-700 border border-white/[0.06] text-slate-300 rounded-lg text-[11px] font-semibold transition-all flex items-center gap-1.5"><i class="fa-solid fa-eye"></i> Fatura</button>` : ''}
-                        <button onclick="openRmaModal(${globalIndex})" class="flex-1 sm:flex-none px-3.5 py-1.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 rounded-lg text-[11px] font-bold transition-all flex items-center justify-center gap-1.5">
-                            <i class="fa-solid fa-triangle-exclamation"></i> RMA
+                        <button onclick="openRmaModal(${globalIndex})" class="flex-1 sm:flex-none px-3.5 py-1.5 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/25 text-orange-300 rounded-lg text-[11px] font-bold transition-all flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-screwdriver-wrench"></i> Assistência
                         </button>
                     </div>
                 </div>`;
@@ -3723,10 +3918,11 @@
             }
 
             const local = getLocalProducts();
-            // Merge: local first (most recent), then remote — avoid duplicate ids
+            const retiredIds = new Set(getRetiredStore().map(r => String(r.id)));
+            // Merge: local first (most recent), then remote — avoid duplicate ids + retired
             const remoteIds = new Set(remote.map(p => String(p.id)));
-            const localOnly = local.filter(p => !remoteIds.has(String(p.id)));
-            currentProducts = [...localOnly, ...remote];
+            const localOnly = local.filter(p => !remoteIds.has(String(p.id)) && !retiredIds.has(String(p.id)));
+            currentProducts = [...localOnly, ...remote].filter(p => !retiredIds.has(String(p.id)) && !(p.notas || '').startsWith('RETIRED:'));
             await loadAllProductReviews();
 
             const invoiceStore = getInvoicesStore();
@@ -3741,7 +3937,9 @@
             document.getElementById('navBadgeCount').innerText = currentProducts.length;
             renderProductLists();
             updateExpiryAlerts();
+            updateAnniversaryAlerts();
             renderRmaFeed();
+            renderArchiveFeed();
         }
 
         function updateExpiryAlerts() {
@@ -3855,10 +4053,30 @@
         function openRmaModal(index) {
             activeRmaProduct = currentProducts[index];
             if (!activeRmaProduct) return;
+            const inW = isProductInWarranty(activeRmaProduct);
+            activeRmaProduct._in_warranty = inW;
             document.getElementById('rmaModalUser').innerText = `${userProfile.name} (NIF: ${userProfile.nif})`;
             document.getElementById('rmaModalProduct').innerText = activeRmaProduct.nome_produto || 'Produto';
             document.getElementById('rmaModalStore').innerText = activeRmaProduct.loja || 'Loja';
             document.getElementById('rmaModalSerial').innerText = activeRmaProduct.numero_serie || 'N/A';
+            const banner = document.getElementById('rmaWarrantyBanner');
+            const partnersHint = document.getElementById('rmaPartnersHint');
+            const submitLabel = document.getElementById('rmaSubmitLabel');
+            if (inW) {
+                banner.className = 'p-3 rounded-xl text-xs font-semibold border bg-emerald-500/10 border-emerald-500/25 text-emerald-300';
+                banner.innerHTML = '<i class="fa-solid fa-shield-halved mr-1.5"></i> <strong>Em garantia</strong> — pedido formal à marca/loja com prova de compra.';
+                if (partnersHint) partnersHint.classList.add('hidden');
+                if (submitLabel) submitLabel.innerText = 'Enviar à marca / loja';
+            } else {
+                banner.className = 'p-3 rounded-xl text-xs font-semibold border bg-amber-500/10 border-amber-500/25 text-amber-200';
+                banner.innerHTML = '<i class="fa-solid fa-clock mr-1.5"></i> <strong>Fora de garantia</strong> — encaminhamos para parceiros na tua zona (quando disponíveis).';
+                if (partnersHint) {
+                    partnersHint.classList.remove('hidden');
+                    const zone = userProfile.zone || 'a tua zona';
+                    partnersHint.innerHTML = 'Parceiros sugeridos para <strong class="text-slate-300">' + escapeHtml(zone) + '</strong> aparecem em Assistência. O pedido fica registado no sistema.';
+                }
+                if (submitLabel) submitLabel.innerText = 'Registar + contactar assistência';
+            }
             const receipt = getInvoice(activeRmaProduct.id);
             const statusEl = document.getElementById('rmaModalReceiptStatus');
             if (receipt) {
@@ -3877,8 +4095,9 @@
             if (!desc) { showToast('Descreva o problema do equipamento.', 'RMA', 'warn'); return; }
             const receipt = getInvoice(activeRmaProduct.id);
             const storeSlug = (activeRmaProduct.loja || 'loja').toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '');
-            const subject = encodeURIComponent(`[RMA] ${activeRmaProduct.nome_produto} — SN: ${activeRmaProduct.numero_serie || 'N/A'}`);
+            const subject = encodeURIComponent(`[Assistência Vanty Care] ${activeRmaProduct.nome_produto} — SN: ${activeRmaProduct.numero_serie || 'N/A'}${inW ? ' · EM GARANTIA' : ' · FORA DE GARANTIA'}`);
             const body = encodeURIComponent(`Exmos. Senhores do Apoio ao Cliente (${activeRmaProduct.loja}),\n\nVenho solicitar a reparação / acionamento de garantia:\n\n• Produto: ${activeRmaProduct.nome_produto}\n• Loja: ${activeRmaProduct.loja}\n• Data de Compra: ${activeRmaProduct.data_compra}\n• Nº de Série: ${activeRmaProduct.numero_serie || 'N/A'}\n• Titular / NIF: ${userProfile.name} (NIF: ${userProfile.nif})\n• Morada (para assistência ao domicílio): ${userProfile.address || 'A indicar'}\n• Email: ${userProfile.email}\n\nDescrição do Defeito:\n${desc}\n\n[PROVA DE COMPRA]: ${receipt ? receipt.name + ' — guardada no Vanty Care' : 'A enviar'}\n\nCom os melhores cumprimentos,\n${userProfile.name}\n${userProfile.email}\n${userProfile.address || ''}`);
+            const inW = activeRmaProduct._in_warranty !== false && isProductInWarranty(activeRmaProduct);
             saveRmaLocal({
                 id: 'rma_' + Date.now(),
                 produto_id: activeRmaProduct.id,
@@ -3886,6 +4105,7 @@
                 loja: activeRmaProduct.loja,
                 descricao: desc,
                 estado: 'aberto',
+                in_warranty: inW,
                 created_at: new Date().toISOString()
             });
             if (currentUser) {
@@ -3899,7 +4119,7 @@
                 }]).then(({ error }) => { if (error) console.warn('RMA cloud:', error.message); });
             }
             window.location.href = `mailto:suporte@${storeSlug}.pt?subject=${subject}&body=${body}`;
-            showToast('RMA registado no sistema.\nA abrir o email…', 'RMA', 'success');
+            showToast((inW ? 'Pedido em garantia registado.' : 'Pedido fora de garantia registado.') + '\nA abrir o email…', 'Assistência', 'success');
             closeRmaModal();
             renderRmaFeed();
         }
@@ -4019,7 +4239,8 @@
                 { id: 'dashboard', label: 'Overview', icon: 'fa-chart-pie' },
                 { id: 'garantias', label: 'Garantias', icon: 'fa-shield-halved' },
                 { id: 'registar', label: 'Registar nova garantia', icon: 'fa-plus' },
-                { id: 'rma', label: 'Pedidos RMA', icon: 'fa-wrench' },
+                { id: 'rma', label: 'Assistência', icon: 'fa-screwdriver-wrench' },
+                { id: 'arquivo', label: 'Arquivo de vida', icon: 'fa-box-archive' },
                 { id: 'stats', label: 'Estatísticas / Reviews', icon: 'fa-star-half-stroke' },
                 { id: 'cartoes', label: 'Cartões de fidelização', icon: 'fa-wallet' },
                 { id: 'perfil', label: 'Perfil / Casa', icon: 'fa-user' },
