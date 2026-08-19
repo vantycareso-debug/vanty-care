@@ -793,7 +793,7 @@
                     <div class="live-dot"></div>
                     <div>
                         <div class="text-[11px] font-semibold text-emerald-400">Supabase Live</div>
-                        <div class="text-[10px] text-slate-500">v2.9.1 · Concept panels</div>
+                        <div class="text-[10px] text-slate-500">v2.9.2 · CP + Localidade</div>
                     </div>
                 </div>
             </div>
@@ -1040,6 +1040,8 @@
                                 <div class="flex justify-between items-center py-2.5 border-b border-white/[0.04]"><span class="text-slate-500 text-xs">NIF</span><span class="font-mono font-medium text-slate-200" id="viewNif">245 890 123</span></div>
                                 <div class="flex justify-between items-center py-2.5 border-b border-white/[0.04]"><span class="text-slate-500 text-xs">Email</span><span class="font-medium text-slate-200 truncate max-w-[180px]" id="viewEmail">joao.silva@email.com</span></div>
                                 <div class="flex justify-between items-start py-2.5 border-b border-white/[0.04] gap-3"><span class="text-slate-500 text-xs shrink-0">Morada</span><span class="font-medium text-slate-200 text-right text-xs leading-snug" id="viewAddress">—</span></div>
+                                <div class="flex justify-between items-center py-2.5 border-b border-white/[0.04]"><span class="text-slate-500 text-xs">Cód. postal</span><span class="font-mono font-medium text-slate-200" id="viewPostal">—</span></div>
+                                <div class="flex justify-between items-center py-2.5 border-b border-white/[0.04]"><span class="text-slate-500 text-xs">Localidade</span><span class="font-medium text-slate-200" id="viewLocality">—</span></div>
                                 <div class="flex justify-between items-center py-2.5 border-b border-white/[0.04]"><span class="text-slate-500 text-xs">Zona / Região</span><span class="font-medium text-slate-200" id="viewZone">—</span></div>
                                 <div class="flex justify-between items-center pt-2"><span class="text-slate-500 text-xs">País / Regras</span><span class="font-semibold text-orange-400" id="viewCountry">🇵🇹 Portugal · 3 Anos</span></div>
                             </div>
@@ -1074,9 +1076,20 @@
                                     <input type="email" id="inputEmail" class="w-full input-field p-2.5 text-sm text-white" required>
                                 </div>
                                 <div>
-                                    <label class="block text-[10px] text-slate-500 mb-1 font-semibold uppercase tracking-wider">Morada completa</label>
-                                    <textarea id="inputAddress" rows="2" placeholder="Rua, nº, código postal, localidade" class="w-full input-field p-2.5 text-sm text-white resize-none"></textarea>
-                                    <p class="text-[10px] text-slate-600 mt-1">Necessária para assistência ao domicílio (grandes volumes).</p>
+                                    <label class="block text-[10px] text-slate-500 mb-1 font-semibold uppercase tracking-wider">Morada (rua / nº)</label>
+                                    <input type="text" id="inputAddress" class="w-full input-field p-2.5 text-sm text-white" placeholder="Rua, número, andar">
+                                    <p class="text-[10px] text-slate-600 mt-1">Para assistência ao domicílio (grandes volumes / RMA).</p>
+                                </div>
+                                <div class="grid grid-cols-2 gap-2.5">
+                                    <div>
+                                        <label class="block text-[10px] text-slate-500 mb-1 font-semibold uppercase tracking-wider">Código postal</label>
+                                        <input type="text" id="inputPostal" class="w-full input-field p-2.5 text-sm text-white font-mono" placeholder="0000-000" maxlength="8" inputmode="numeric" onblur="lookupPostalCode()" oninput="formatPostalInput(this)">
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] text-slate-500 mb-1 font-semibold uppercase tracking-wider">Localidade</label>
+                                        <input type="text" id="inputLocality" class="w-full input-field p-2.5 text-sm text-white" placeholder="Preenchida pelo CP">
+                                        <p id="postalLookupStatus" class="text-[10px] text-slate-600 mt-1"></p>
+                                    </div>
                                 </div>
                                 <button type="submit" class="btn-vanty w-full p-2.5 rounded-xl text-sm mt-1">Guardar Perfil</button>
                             </form>
@@ -1204,7 +1217,7 @@
                             <button type="button" onclick="setStatsPreset('popular')" class="px-2.5 py-1.5 rounded-lg text-[11px] font-semibold bg-indigo-500/10 text-indigo-300 border border-indigo-500/20 hover:bg-indigo-500/15">Mais votados</button>
                             <button type="button" onclick="setStatsPreset('all')" class="px-2.5 py-1.5 rounded-lg text-[11px] font-semibold bg-surface-800 text-slate-300 border border-white/[0.06] hover:bg-surface-700">Limpar</button>
                         </div>
-                        <p class="text-[10px] text-slate-600">Categoria é detetada automaticamente pelo nome do produto. País/zona vêm do perfil de quem publicou a review.</p>
+                        <p class="text-[10px] text-slate-600">Categoria pelo nome do produto. País, zona e localidade vêm do perfil (CP) de quem publicou a review — base para médias por zona.</p>
                     </div>
 
                     <div id="statsFeed" class="space-y-3">
@@ -1955,6 +1968,8 @@
                 reviewer_id: reviewAuthorId,
                 country: userProfile.country || null,
                 zone: userProfile.zone || null,
+                locality: userProfile.locality || null,
+                postal_code: userProfile.postal_code || null,
                 category: detectCategory(prod.nome_produto),
                 updated_at: new Date().toISOString()
             };
@@ -1995,9 +2010,12 @@
         }
 
         let userProfile = JSON.parse(localStorage.getItem('vanty_profile')) || {
-            name: "João Silva", nif: "245 890 123", email: "joao.silva@email.com", country: "PT", address: "", zone: ""
+            name: "João Silva", nif: "245 890 123", email: "joao.silva@email.com", country: "PT",
+            address: "", postal_code: "", locality: "", zone: ""
         };
         if (userProfile.address === undefined) userProfile.address = "";
+        if (userProfile.postal_code === undefined) userProfile.postal_code = "";
+        if (userProfile.locality === undefined) userProfile.locality = "";
         if (userProfile.zone === undefined) userProfile.zone = "";
         const countryLabels = { "PT": "🇵🇹 Portugal · 3 Anos", "ES": "🇪🇸 Espanha · 3 Anos", "FR": "🇫🇷 França · 2 Anos", "DE": "🇩🇪 Alemanha · 2 Anos", "US": "🇺🇸 EUA · 1 Ano" };
         const countryShort = { "PT": "🇵🇹 Portugal", "ES": "🇪🇸 Espanha", "FR": "🇫🇷 França", "DE": "🇩🇪 Alemanha", "US": "🇺🇸 EUA" };
@@ -2065,13 +2083,20 @@
             document.getElementById('viewNif').innerText = userProfile.nif;
             document.getElementById('viewEmail').innerText = userProfile.email;
             document.getElementById('viewAddress').innerText = userProfile.address || '—';
+            const vp = document.getElementById('viewPostal');
+            if (vp) vp.innerText = userProfile.postal_code || '—';
+            const vl = document.getElementById('viewLocality');
+            if (vl) vl.innerText = userProfile.locality || '—';
             const vz = document.getElementById('viewZone');
             if (vz) vz.innerText = userProfile.zone || '—';
             document.getElementById('viewCountry').innerText = countryLabels[userProfile.country] || userProfile.country;
             document.getElementById('dashName').innerText = userProfile.name;
             document.getElementById('dashNif').innerText = userProfile.nif;
             const dashAddr = document.getElementById('dashAddress');
-            if (dashAddr) dashAddr.innerText = userProfile.address || '— (editar no Perfil)';
+            if (dashAddr) {
+                const bits = [userProfile.address, userProfile.postal_code, userProfile.locality].filter(Boolean);
+                dashAddr.innerText = bits.length ? bits.join(' · ') : '— (editar no Perfil)';
+            }
             document.getElementById('dashCountry').innerText = countryLabels[userProfile.country] || userProfile.country;
             document.getElementById('topUserName').innerText = userProfile.name;
             document.getElementById('topUserCountry').innerText = countryShort[userProfile.country] || userProfile.country;
@@ -2092,6 +2117,10 @@
                 document.getElementById('inputCountry').value = userProfile.country;
                 populateZoneSelect('inputZone', userProfile.country, userProfile.zone || '');
                 document.getElementById('inputAddress').value = userProfile.address || '';
+                const ip = document.getElementById('inputPostal');
+                if (ip) ip.value = userProfile.postal_code || '';
+                const il = document.getElementById('inputLocality');
+                if (il) il.value = userProfile.locality || '';
                 view.classList.add('hidden'); edit.classList.remove('hidden'); btnText.innerText = 'Cancelar';
             } else {
                 view.classList.remove('hidden'); edit.classList.add('hidden'); btnText.innerText = 'Editar';
@@ -2106,10 +2135,108 @@
                 email: document.getElementById('inputEmail').value.trim(),
                 country: document.getElementById('inputCountry').value,
                 zone: document.getElementById('inputZone').value || '',
-                address: document.getElementById('inputAddress').value.trim()
+                address: document.getElementById('inputAddress').value.trim(),
+                postal_code: (document.getElementById('inputPostal')?.value || '').trim(),
+                locality: (document.getElementById('inputLocality')?.value || '').trim()
             };
             localStorage.setItem('vanty_profile', JSON.stringify(userProfile));
             renderProfile(); toggleProfileEdit();
+            showToast('Perfil atualizado.\nLocalidade e zona entram nas estatísticas da comunidade.', 'Guardado', 'success');
+        }
+
+        function formatPostalInput(el) {
+            if (!el || userProfile.country !== 'PT' && document.getElementById('inputCountry')?.value !== 'PT') return;
+            let v = el.value.replace(/[^\d]/g, '').slice(0, 7);
+            if (v.length > 4) v = v.slice(0, 4) + '-' + v.slice(4);
+            el.value = v;
+        }
+
+        /** Lookup CP Portugal → localidade (geoapi.pt / fallbacks) */
+        async function lookupPostalCode() {
+            const country = document.getElementById('inputCountry')?.value || userProfile.country || 'PT';
+            const status = document.getElementById('postalLookupStatus');
+            const locEl = document.getElementById('inputLocality');
+            const raw = (document.getElementById('inputPostal')?.value || '').trim();
+            if (!raw) return;
+            if (country !== 'PT') {
+                if (status) status.innerText = 'Lookup automático disponível para Portugal. Preenche a localidade manualmente.';
+                return;
+            }
+            const digits = raw.replace(/\D/g, '');
+            if (digits.length < 4) {
+                if (status) status.innerText = 'CP incompleto (ex.: 4520-123).';
+                return;
+            }
+            const cp4 = digits.slice(0, 4);
+            const cp7 = digits.length >= 7 ? (digits.slice(0, 4) + '-' + digits.slice(4, 7)) : null;
+            if (status) status.innerText = 'A localizar…';
+            const urls = [];
+            if (cp7) {
+                urls.push('https://json.geoapi.pt/codigo_postal/' + encodeURIComponent(cp7));
+                urls.push('https://geoapi.pt/cp/' + encodeURIComponent(cp7));
+            }
+            urls.push('https://json.geoapi.pt/codigo_postal/' + cp4);
+            urls.push('https://geoapi.pt/cp4/' + cp4);
+
+            let locality = null, district = null, concelho = null;
+            for (const url of urls) {
+                try {
+                    const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+                    if (!res.ok) continue;
+                    const data = await res.json();
+                    // Normalizar formatos possíveis da API
+                    locality = data.Localidade || data.localidade || data.nome || data.Localidades?.[0] || data.partes?.[0]?.Localidade || null;
+                    if (Array.isArray(data) && data[0]) {
+                        locality = data[0].Localidade || data[0].localidade || locality;
+                        district = data[0].Distrito || data[0].distrito || district;
+                        concelho = data[0].Concelho || data[0].concelho || concelho;
+                    }
+                    district = data.Distrito || data.distrito || district;
+                    concelho = data.Concelho || data.concelho || concelho;
+                    if (typeof data === 'object' && data.CodigoPostal) {
+                        locality = locality || data.Localidade;
+                    }
+                    // object map by street keys
+                    if (!locality && typeof data === 'object') {
+                        const first = Object.values(data).find(v => v && (v.Localidade || v.localidade));
+                        if (first) locality = first.Localidade || first.localidade;
+                    }
+                    if (locality) break;
+                } catch (err) {
+                    console.warn('CP lookup', url, err.message);
+                }
+            }
+            if (locality && locEl) {
+                locEl.value = String(locality);
+                if (status) status.innerHTML = '<span class="text-emerald-400">✓ ' + String(locality) + (concelho ? ' · ' + concelho : '') + '</span>';
+                // Sugere zona NUTS a partir do distrito/concelho
+                suggestZoneFromGeo(district || concelho || locality);
+            } else {
+                if (status) status.innerText = 'Não encontrado — escreve a localidade à mão.';
+            }
+        }
+
+        function suggestZoneFromGeo(text) {
+            const zoneEl = document.getElementById('inputZone');
+            if (!zoneEl || !text) return;
+            const t = String(text).toLowerCase();
+            const map = [
+                { zone: 'Norte', keys: ['porto', 'braga', 'viana', 'vila real', 'bragança', 'aveiro', 'santa maria da feira', 'feira', 'gondomar', 'matosinhos', 'gaia', 'guimarães'] },
+                { zone: 'Centro', keys: ['coimbra', 'leiria', 'viseu', 'guarda', 'castelo branco', 'figueira'] },
+                { zone: 'Lisboa e Vale do Tejo', keys: ['lisboa', 'setúbal', 'setubal', 'santarem', 'santarém', 'cascais', 'sintra', 'loures', 'almada'] },
+                { zone: 'Alentejo', keys: ['évora', 'evora', 'beja', 'portalegre'] },
+                { zone: 'Algarve', keys: ['faro', 'loulé', 'loule', 'portimão', 'portimao', 'albufeira', 'lagos'] },
+                { zone: 'Açores', keys: ['açores', 'acores', 'ponta delgada', 'angra'] },
+                { zone: 'Madeira', keys: ['madeira', 'funchal'] }
+            ];
+            for (const m of map) {
+                if (m.keys.some(k => t.includes(k))) {
+                    if ([...zoneEl.options].some(o => o.value === m.zone)) {
+                        zoneEl.value = m.zone;
+                    }
+                    break;
+                }
+            }
         }
 
         function switchPanel(id) {
