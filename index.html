@@ -793,7 +793,7 @@
                     <div class="live-dot"></div>
                     <div>
                         <div class="text-[11px] font-semibold text-emerald-400">Supabase Live</div>
-                        <div class="text-[10px] text-slate-500">v2.9.2 · CP + Localidade</div>
+                        <div class="text-[10px] text-slate-500">v2.9.3 · Stats pro</div>
                     </div>
                 </div>
             </div>
@@ -1171,6 +1171,24 @@
                                 </select>
                             </div>
                             <div>
+                                <label class="block text-[9px] text-slate-600 uppercase font-bold mb-1">Localidade</label>
+                                <input type="search" id="statsLocality" list="statsLocalityList" placeholder="Ex.: Santa Maria da Feira" class="w-full input-field p-2.5 text-sm text-white" oninput="renderStatsPanel()">
+                                <datalist id="statsLocalityList"></datalist>
+                            </div>
+                            <div>
+                                <label class="block text-[9px] text-slate-600 uppercase font-bold mb-1">Loja</label>
+                                <input type="search" id="statsStore" list="statsStoreList" placeholder="Ex.: E.Leclerc, Worten…" class="w-full input-field p-2.5 text-sm text-white" oninput="renderStatsPanel()">
+                                <datalist id="statsStoreList"></datalist>
+                            </div>
+                            <div>
+                                <label class="block text-[9px] text-slate-600 uppercase font-bold mb-1">Preço mín. €</label>
+                                <input type="number" id="statsPriceMin" step="0.01" min="0" placeholder="0" class="w-full input-field p-2.5 text-sm text-white" oninput="renderStatsPanel()">
+                            </div>
+                            <div>
+                                <label class="block text-[9px] text-slate-600 uppercase font-bold mb-1">Preço máx. €</label>
+                                <input type="number" id="statsPriceMax" step="0.01" min="0" placeholder="Sem limite" class="w-full input-field p-2.5 text-sm text-white" oninput="renderStatsPanel()">
+                            </div>
+                            <div>
                                 <label class="block text-[9px] text-slate-600 uppercase font-bold mb-1">Min. estrelas</label>
                                 <select id="statsMinRating" class="w-full input-field p-2.5 text-sm text-white" onchange="renderStatsPanel()">
                                     <option value="0">Qualquer</option>
@@ -1207,6 +1225,8 @@
                                     <option value="worst">Piores avaliações</option>
                                     <option value="most">Mais votados (nº reviews)</option>
                                     <option value="controversial">Mais controversos</option>
+                                    <option value="price_asc">Preço médio ↑</option>
+                                    <option value="price_desc">Preço médio ↓</option>
                                     <option value="name">Nome A–Z</option>
                                 </select>
                             </div>
@@ -2210,31 +2230,65 @@
                 locEl.value = String(locality);
                 if (status) status.innerHTML = '<span class="text-emerald-400">✓ ' + String(locality) + (concelho ? ' · ' + concelho : '') + '</span>';
                 // Sugere zona NUTS a partir do distrito/concelho
-                suggestZoneFromGeo(district || concelho || locality);
+                suggestZoneFromGeo([district, concelho, locality].filter(Boolean).join(" "), cp7 || cp4);
             } else {
                 if (status) status.innerText = 'Não encontrado — escreve a localidade à mão.';
             }
         }
 
-        function suggestZoneFromGeo(text) {
+        /** CP4 → região NUTS PT (evita aldrabice manual) */
+        function zoneFromPostalPT(cp) {
+            const d = String(cp || '').replace(/\D/g, '');
+            if (d.length < 4) return null;
+            const n = parseInt(d.slice(0, 4), 10);
+            if (n >= 9000 && n <= 9999) return 'Madeira';
+            if (n >= 9500 && n <= 9999) return 'Açores'; // overlap handled: 9xxx Madeira/Açores — refine
+            if (n >= 9000 && n < 9500) return 'Madeira';
+            if (n >= 9500) return 'Açores';
+            if (n >= 8000 && n < 9000) return 'Algarve';
+            if (n >= 7000 && n < 8000) return 'Alentejo';
+            if (n >= 1000 && n < 3000) return 'Lisboa e Vale do Tejo';
+            if (n >= 3000 && n < 4000) return 'Centro';
+            if (n >= 6000 && n < 7000) return 'Centro';
+            // 4000–5999 Norte (Porto, Aveiro, Braga, Viana, VR, Bragança…)
+            if (n >= 4000 && n < 6000) return 'Norte';
+            return null;
+        }
+
+        function suggestZoneFromGeo(text, postalCode) {
             const zoneEl = document.getElementById('inputZone');
-            if (!zoneEl || !text) return;
-            const t = String(text).toLowerCase();
-            const map = [
-                { zone: 'Norte', keys: ['porto', 'braga', 'viana', 'vila real', 'bragança', 'aveiro', 'santa maria da feira', 'feira', 'gondomar', 'matosinhos', 'gaia', 'guimarães'] },
-                { zone: 'Centro', keys: ['coimbra', 'leiria', 'viseu', 'guarda', 'castelo branco', 'figueira'] },
-                { zone: 'Lisboa e Vale do Tejo', keys: ['lisboa', 'setúbal', 'setubal', 'santarem', 'santarém', 'cascais', 'sintra', 'loures', 'almada'] },
-                { zone: 'Alentejo', keys: ['évora', 'evora', 'beja', 'portalegre'] },
-                { zone: 'Algarve', keys: ['faro', 'loulé', 'loule', 'portimão', 'portimao', 'albufeira', 'lagos'] },
-                { zone: 'Açores', keys: ['açores', 'acores', 'ponta delgada', 'angra'] },
-                { zone: 'Madeira', keys: ['madeira', 'funchal'] }
-            ];
-            for (const m of map) {
-                if (m.keys.some(k => t.includes(k))) {
-                    if ([...zoneEl.options].some(o => o.value === m.zone)) {
-                        zoneEl.value = m.zone;
+            if (!zoneEl) return;
+            // 1) Prioridade: código postal (fonte de verdade)
+            let zone = zoneFromPostalPT(postalCode || document.getElementById('inputPostal')?.value);
+            // 2) Texto distrito/concelho/localidade
+            if (!zone && text) {
+                const t = String(text).toLowerCase()
+                    .normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                const map = [
+                    { zone: 'Norte', keys: ['porto', 'braga', 'viana', 'vila real', 'braganca', 'aveiro', 'santa maria da feira', 'feira', 'espinho', 'ovar', 'ilhavo', 'estarreja', 'gondomar', 'matosinhos', 'gaia', 'guimaraes', 'famalicao', 'barcelos', 'penafiel', 'felgueiras', 'amarante', 'valongo', 'maia', 'povoa', 'santo tirso'] },
+                    { zone: 'Centro', keys: ['coimbra', 'leiria', 'viseu', 'guarda', 'castelo branco', 'figueira', 'aveiro'] }, // aveiro distrito is Norte - removed from centro in keys if conflict
+                    { zone: 'Lisboa e Vale do Tejo', keys: ['lisboa', 'setubal', 'santarem', 'cascais', 'sintra', 'loures', 'almada', 'oeiras', 'amadora'] },
+                    { zone: 'Alentejo', keys: ['evora', 'beja', 'portalegre', 'sines'] },
+                    { zone: 'Algarve', keys: ['faro', 'loule', 'portimao', 'albufeira', 'lagos', 'olhao', 'tavira'] },
+                    { zone: 'Acores', keys: ['acores', 'ponta delgada', 'angra', 'horta'] },
+                    { zone: 'Madeira', keys: ['madeira', 'funchal', 'porto santo'] }
+                ];
+                // Fix Açores label
+                for (const m of map) {
+                    if (m.keys.some(k => t.includes(k))) {
+                        zone = m.zone === 'Acores' ? 'Açores' : m.zone;
+                        break;
                     }
-                    break;
+                }
+            }
+            // Aveiro distrito é Norte (não Centro)
+            if (text && /aveiro|feira|espinho|ovar|ilhavo/i.test(text)) zone = 'Norte';
+
+            if (zone && [...zoneEl.options].some(o => o.value === zone)) {
+                zoneEl.value = zone;
+                const status = document.getElementById('postalLookupStatus');
+                if (status && status.innerHTML.includes('✓')) {
+                    status.innerHTML += ' <span class="text-orange-400">· zona ' + zone + '</span>';
                 }
             }
         }
@@ -2582,27 +2636,62 @@
             }
         }
 
-        /** Agrega reviews por product_key → ranking comunitário (com filtros geo) */
+        /** Agrega reviews + preços/lojas das garantias → ranking comunitário */
         function buildProductStats(geoFilter) {
             const countryF = geoFilter && geoFilter.country;
             const zoneF = geoFilter && geoFilter.zone;
+            const localityF = geoFilter && geoFilter.locality
+                ? String(geoFilter.locality).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                : '';
+            const storeF = geoFilter && geoFilter.store
+                ? String(geoFilter.store).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                : '';
+            const priceMin = geoFilter && geoFilter.priceMin != null ? Number(geoFilter.priceMin) : null;
+            const priceMax = geoFilter && geoFilter.priceMax != null ? Number(geoFilter.priceMax) : null;
+
+            // Preços e lojas a partir das garantias registadas
+            const priceByKey = new Map(); // key -> { prices: [], stores: Set }
+            (typeof currentProducts !== 'undefined' ? currentProducts : []).forEach(p => {
+                const key = normalizeProductKey(p.nome_produto || '');
+                if (!key) return;
+                if (!priceByKey.has(key)) priceByKey.set(key, { prices: [], stores: new Set() });
+                const ent = priceByKey.get(key);
+                const price = parseFloat(p.preco_com_iva || p.preco || 0);
+                if (price > 0) ent.prices.push(price);
+                if (p.loja) ent.stores.add(String(p.loja).trim());
+            });
+
             const map = new Map();
             allProductReviews.forEach(r => {
                 if (countryF && r.country && r.country !== countryF) return;
-                if (countryF && !r.country) return; // só reviews com país quando filtramos país
+                if (countryF && !r.country) return;
                 if (zoneF && r.zone && r.zone !== zoneF) return;
                 if (zoneF && !r.zone) return;
+                if (localityF) {
+                    const loc = String(r.locality || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                    if (!loc || !loc.includes(localityF)) return;
+                }
                 const key = r.product_key || normalizeProductKey(r.product_name);
                 if (!key) return;
                 if (!map.has(key)) {
-                    map.set(key, { key, name: r.product_name || key, ratings: [], reviews: [] });
+                    map.set(key, { key, name: r.product_name || key, ratings: [], reviews: [], localities: new Set(), zones: new Set() });
                 }
                 const entry = map.get(key);
                 const rating = Number(r.rating) || 0;
                 if (rating >= 1 && rating <= 5) entry.ratings.push(rating);
                 entry.reviews.push(r);
+                if (r.locality) entry.localities.add(r.locality);
+                if (r.zone) entry.zones.add(r.zone);
                 if (r.product_name && entry.name.length < String(r.product_name).length) entry.name = r.product_name;
             });
+
+            // Produtos só com garantia (ainda sem review) — opcional incluir para preço
+            priceByKey.forEach((info, key) => {
+                if (!map.has(key) && info.prices.length) {
+                    // não entra no ranking de estrelas sem reviews
+                }
+            });
+
             return [...map.values()].map(e => {
                 const count = e.ratings.length;
                 const average = count ? e.ratings.reduce((a, b) => a + b, 0) / count : 0;
@@ -2610,14 +2699,34 @@
                     ? e.ratings.reduce((s, x) => s + Math.pow(x - average, 2), 0) / count
                     : 0;
                 e.reviews.sort((a, b) => new Date(b.updated_at || b.created_at || 0) - new Date(a.updated_at || a.created_at || 0));
-                // Sempre re-detetar pelo nome (mais fiável que category antiga guardada)
                 const cat = detectCategory(e.name);
+                const priceInfo = priceByKey.get(e.key) || { prices: [], stores: new Set() };
+                const prices = priceInfo.prices;
+                const avgPrice = prices.length ? prices.reduce((a, b) => a + b, 0) / prices.length : null;
+                const minPrice = prices.length ? Math.min(...prices) : null;
+                const maxPrice = prices.length ? Math.max(...prices) : null;
+                const stores = [...priceInfo.stores];
                 return {
                     key: e.key, name: e.name, count, average, variance, category: cat,
                     reviews: e.reviews,
+                    avgPrice, minPrice, maxPrice, stores,
+                    localities: [...e.localities],
+                    zones: [...e.zones],
                     avoid: count >= 2 && average <= 2.5,
                     recommended: count >= 2 && average >= 4
                 };
+            }).filter(s => {
+                if (storeF) {
+                    const hit = (s.stores || []).some(st =>
+                        String(st).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').includes(storeF)
+                    );
+                    if (!hit) return false;
+                }
+                if (priceMin != null && !isNaN(priceMin) && s.avgPrice != null && s.avgPrice < priceMin) return false;
+                if (priceMax != null && !isNaN(priceMax) && s.avgPrice != null && s.avgPrice > priceMax) return false;
+                // se filtro de preço ativo e produto sem preço conhecido, exclui
+                if ((priceMin != null && !isNaN(priceMin) || priceMax != null && !isNaN(priceMax)) && s.avgPrice == null) return false;
+                return true;
             });
         }
 
@@ -2651,6 +2760,14 @@
                 const sz = document.getElementById('statsZone');
                 if (sc) sc.value = '';
                 if (sz) sz.innerHTML = '<option value="">Todas as zonas</option>';
+                const sl = document.getElementById('statsLocality');
+                const ss = document.getElementById('statsStore');
+                const pmi = document.getElementById('statsPriceMin');
+                const pma = document.getElementById('statsPriceMax');
+                if (sl) sl.value = '';
+                if (ss) ss.value = '';
+                if (pmi) pmi.value = '';
+                if (pma) pma.value = '';
             }
             renderStatsPanel();
         }
@@ -2658,7 +2775,33 @@
         function renderStatsPanel() {
             const countryF = document.getElementById('statsCountry')?.value || '';
             const zoneF = document.getElementById('statsZone')?.value || '';
-            const stats = buildProductStats({ country: countryF || null, zone: zoneF || null });
+            const localityF = document.getElementById('statsLocality')?.value || '';
+            const storeF = document.getElementById('statsStore')?.value || '';
+            const pMinRaw = document.getElementById('statsPriceMin')?.value;
+            const pMaxRaw = document.getElementById('statsPriceMax')?.value;
+            const priceMin = pMinRaw !== '' && pMinRaw != null ? parseFloat(pMinRaw) : null;
+            const priceMax = pMaxRaw !== '' && pMaxRaw != null ? parseFloat(pMaxRaw) : null;
+            const stats = buildProductStats({
+                country: countryF || null,
+                zone: zoneF || null,
+                locality: localityF || null,
+                store: storeF || null,
+                priceMin: priceMin,
+                priceMax: priceMax
+            });
+            // datalist de localidades / lojas
+            const dlLoc = document.getElementById('statsLocalityList');
+            const dlStore = document.getElementById('statsStoreList');
+            if (dlLoc) {
+                const locs = new Set();
+                allProductReviews.forEach(r => { if (r.locality) locs.add(r.locality); });
+                dlLoc.innerHTML = [...locs].sort().map(x => `<option value="${escapeHtml(x)}">`).join('');
+            }
+            if (dlStore) {
+                const stores = new Set();
+                (currentProducts || []).forEach(p => { if (p.loja) stores.add(p.loja); });
+                dlStore.innerHTML = [...stores].sort().map(x => `<option value="${escapeHtml(x)}">`).join('');
+            }
             const search = (document.getElementById('statsSearch')?.value || '').toLowerCase().trim();
             const minR = parseFloat(document.getElementById('statsMinRating')?.value || '0');
             const maxR = parseFloat(document.getElementById('statsMaxRating')?.value || '5');
@@ -2679,6 +2822,8 @@
             else if (sort === 'worst') filtered.sort((a, b) => a.average - b.average || b.count - a.count);
             else if (sort === 'most') filtered.sort((a, b) => b.count - a.count || b.average - a.average);
             else if (sort === 'controversial') filtered.sort((a, b) => b.variance - a.variance || b.count - a.count);
+            else if (sort === 'price_asc') filtered.sort((a, b) => (a.avgPrice ?? 1e12) - (b.avgPrice ?? 1e12));
+            else if (sort === 'price_desc') filtered.sort((a, b) => (b.avgPrice ?? -1) - (a.avgPrice ?? -1));
             else filtered.sort((a, b) => a.name.localeCompare(b.name, 'pt'));
 
             const totalReviews = stats.reduce((n, s) => n + s.count, 0);
@@ -2709,6 +2854,10 @@
                         ? '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"><i class="fa-solid fa-thumbs-up text-[8px]"></i> Recomendado</span>'
                         : '';
                 const catBadge = `<span class="inline-flex px-2 py-0.5 rounded-full text-[9px] font-semibold bg-surface-800 text-slate-400 border border-white/[0.06]">${escapeHtml(categoryLabel(s.category))}</span>`;
+                const priceBadge = s.avgPrice != null
+                    ? `<span class="inline-flex px-2 py-0.5 rounded-full text-[9px] font-bold bg-orange-500/10 text-orange-300 border border-orange-500/20">média ${s.avgPrice.toLocaleString('pt-PT', { minimumFractionDigits: 2 })} €${s.minPrice != null && s.maxPrice != null && s.minPrice !== s.maxPrice ? ` · ${s.minPrice.toLocaleString('pt-PT', { minimumFractionDigits: 0 })}–${s.maxPrice.toLocaleString('pt-PT', { minimumFractionDigits: 0 })} €` : ''}</span>`
+                    : '';
+                const storeBadge = (s.stores || []).slice(0, 3).map(st => `<span class="inline-flex px-2 py-0.5 rounded-full text-[9px] font-semibold bg-surface-800 text-slate-400 border border-white/[0.06]">${escapeHtml(st)}</span>`).join('');
                 const preview = s.reviews.slice(0, 2).map(r => {
                     const geo = [r.country ? (countryShort[r.country] || r.country) : null, r.zone].filter(Boolean).join(' · ');
                     return `
@@ -2728,6 +2877,8 @@
                             <div class="flex flex-wrap items-center gap-2">
                                 <h3 class="font-bold text-white text-sm">${escapeHtml(s.name)}</h3>
                                 ${catBadge}
+                                ${priceBadge}
+                                ${storeBadge}
                                 ${badge}
                             </div>
                             <p class="text-amber-400 text-sm mt-1 tracking-wide">${visualStars(s.average)}
