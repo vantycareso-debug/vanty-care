@@ -57,48 +57,102 @@
         .flex.h-screen { position: relative; z-index: 1; }
         
         .sidebar {
-            width: 248px;
+            width: 260px;
             background: linear-gradient(180deg, #0D1116 0%, #080A0D 100%);
             border-right: 1px solid #1A2026;
+            position: relative;
+        }
+        .sidebar::after {
+            content: '';
+            position: absolute; top: 0; right: -1px; bottom: 0; width: 1px;
+            background: linear-gradient(180deg, transparent, rgba(255,90,0,0.35) 18%, rgba(255,90,0,0.12) 55%, transparent 90%);
+            pointer-events: none;
         }
         .nav-item {
-            display: flex; align-items: center; gap: 12px;
-            padding: 10px 14px; border-radius: 10px;
-            font-size: 13px; font-weight: 500; color: #8B949D;
-            transition: all 0.15s ease; cursor: pointer;
+            display: flex; align-items: center; gap: 11px;
+            padding: 9px 12px; border-radius: 11px;
+            font-size: 13px; font-weight: 600; color: #8B949D;
+            letter-spacing: 0.01em;
+            transition: all 0.2s cubic-bezier(.2,.8,.2,1); cursor: pointer;
             position: relative;
             border: 1px solid transparent;
         }
-        .nav-item:hover { background: rgba(255,255,255,0.03); color: #F2F4F5; }
+        .nav-item:hover {
+            background: linear-gradient(90deg, rgba(255,90,0,0.08), rgba(255,90,0,0.02));
+            color: #F2F4F5;
+            border-color: rgba(255,90,0,0.12);
+            transform: translateX(2px);
+        }
+        .nav-item:hover .nav-icon-chip {
+            border-color: rgba(255,122,0,0.4);
+            color: #FF9A3D;
+            transform: scale(1.06);
+        }
         .nav-item.active {
-            background: #17110D !important;
-            color: #FF7A00 !important;
-            border-color: rgba(255, 90, 0, 0.25) !important;
-            box-shadow: none !important;
+            background: linear-gradient(90deg, #1c130b 0%, #17110D 60%, #0D1116 100%) !important;
+            color: #FFD8AD !important;
+            border-color: rgba(255, 90, 0, 0.3) !important;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.03), 0 4px 16px rgba(255,90,0,0.08) !important;
         }
         .nav-item.active::before {
             content: '';
-            position: absolute; left: 0; top: 8px; bottom: 8px; width: 3px;
+            position: absolute; left: -1px; top: 6px; bottom: 6px; width: 3px;
             border-radius: 0 3px 3px 0;
-            background: linear-gradient(180deg, #FF7A00, #C93400);
+            background: linear-gradient(180deg, #FFB347, #FF5A00 55%, #C93400);
+            box-shadow: 0 0 10px rgba(255,122,0,0.6);
         }
-        .nav-item.active i { color: #FF5A00 !important; }
-        .nav-item i { width: 18px; text-align: center; font-size: 14px; }
+        .nav-item.active .nav-icon-chip {
+            background: linear-gradient(150deg, #FF8A1E 0%, #FF5A00 45%, #B32E00 100%);
+            border-color: rgba(255,180,90,0.55);
+            box-shadow: 0 2px 10px rgba(255,90,0,0.4), inset 0 1px 0 rgba(255,255,255,0.35);
+            color: #1a0900 !important;
+        }
+        .nav-item.active i { color: inherit !important; }
+        .nav-item i { text-align: center; font-size: 12.5px; }
+        .nav-icon-chip {
+            width: 26px; height: 26px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 8px;
+            background: linear-gradient(155deg, #171d24, #0e1216);
+            border: 1px solid #232a31;
+            color: #6b7683;
+            transition: all 0.2s ease;
+        }
+        .nav-section-label {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 9.5px; font-weight: 800; color: #4B5560;
+            text-transform: uppercase; letter-spacing: 0.24em;
+            padding: 0 12px; margin-bottom: 8px;
+        }
+        .nav-section-label::after {
+            content: ''; flex: 1; height: 1px;
+            background: linear-gradient(90deg, rgba(255,90,0,0.18), transparent);
+        }
         
         .card {
             background: linear-gradient(145deg, #151a1f, #0b0e12);
             border: 1px solid #252c33;
-            border-radius: 12px;
+            border-radius: 14px;
             box-shadow: inset 0 1px 0 rgba(255,255,255,.035), 0 12px 35px rgba(0,0,0,.35);
+            transition: border-color 0.25s ease, box-shadow 0.25s ease;
+        }
+        .card::after {
+            content: '';
+            position: absolute; top: -1px; right: -1px; width: 22px; height: 22px;
+            border-top: 2px solid rgba(255,122,0,.4);
+            border-right: 2px solid rgba(255,122,0,.4);
+            border-radius: 0 14px 0 0;
+            pointer-events: none; opacity: 0.55;
         }
         .card-hover:hover {
             border-color: rgba(255, 90, 0, 0.28);
             box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 12px 40px rgba(0,0,0,.4);
         }
+        .card-hover:hover::after { opacity: 1; }
         .kpi {
             background: linear-gradient(160deg, #12171D, #0D1116);
             border: 1px solid #1A2026;
-            border-radius: 12px;
+            border-radius: 14px;
             transition: all 0.2s ease;
             position: relative;
             overflow: hidden;
@@ -109,7 +163,34 @@
             background: linear-gradient(90deg, transparent, rgba(255,90,0,.35), transparent);
             opacity: 0.5;
         }
-        .kpi:hover { border-color: #2A3138; transform: translateY(-1px); }
+        .kpi::before {
+            content: '';
+            position: absolute; top: 0; right: 0; width: 34px; height: 34px;
+            background: linear-gradient(225deg, rgba(255,122,0,.16), transparent 70%);
+            clip-path: polygon(100% 0, 0 0, 100% 100%);
+            pointer-events: none;
+        }
+        .kpi:hover { border-color: rgba(255,122,0,0.3); transform: translateY(-2px); box-shadow: 0 10px 26px rgba(0,0,0,.4); }
+        .kpi-icon-hex {
+            width: 46px; height: 46px; flex-shrink: 0;
+            clip-path: polygon(25% 3%, 75% 3%, 100% 50%, 75% 97%, 25% 97%, 0% 50%);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 16px;
+            position: relative;
+        }
+        .kpi-icon-hex::before {
+            content: '';
+            position: absolute; inset: 0;
+            clip-path: polygon(25% 3%, 75% 3%, 100% 50%, 75% 97%, 25% 97%, 0% 50%);
+            padding: 1.5px;
+            background: linear-gradient(160deg, currentColor, transparent 65%);
+            opacity: 0.5;
+            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+        }
+        .kpi:hover .kpi-icon-hex { filter: drop-shadow(0 0 10px currentColor); transform: scale(1.06) rotate(6deg); transition: transform 0.3s ease; }
+        .kpi-icon-hex i { position: relative; z-index: 1; }
         
         .input-field {
             background: rgba(5, 6, 8, 0.75);
@@ -180,8 +261,18 @@
             .sidebar-overlay.show { display: block; }
         }
         .panel-hidden { display: none !important; }
+        .brand-header-row {
+            position: relative;
+            background:
+                radial-gradient(ellipse 120% 100% at 0% 0%, rgba(255,90,0,0.10), transparent 65%);
+        }
+        .brand-header-row::after {
+            content: '';
+            position: absolute; left: 16px; right: 16px; bottom: 0; height: 1px;
+            background: linear-gradient(90deg, rgba(255,122,0,0.5), rgba(255,122,0,0.05) 70%, transparent);
+        }
         .brand-logo-wrap {
-            width: 48px; height: 48px;
+            width: 52px; height: 52px;
             flex-shrink: 0;
             position: relative;
             overflow: visible;
@@ -189,12 +280,28 @@
             align-items: center;
             justify-content: center;
         }
+        .brand-logo-hex-ring {
+            position: absolute; inset: -6px;
+            clip-path: polygon(25% 3%, 75% 3%, 100% 50%, 75% 97%, 25% 97%, 0% 50%);
+            background: linear-gradient(155deg, rgba(255,138,30,0.55), rgba(20,10,4,0.1) 40%, rgba(255,90,0,0.35));
+            padding: 1.5px;
+            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            animation: hexSpin 10s linear infinite;
+            opacity: 0.85;
+        }
+        @keyframes hexSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
         .brand-logo-static {
             width: 48px; height: 48px;
             object-fit: contain;
             object-position: center;
             filter: drop-shadow(0 0 16px rgba(255, 90, 0, 0.4));
             display: block;
+            position: relative; z-index: 1;
         }
         .brand-logo-wrap::after {
             content: '';
@@ -203,48 +310,54 @@
             background: radial-gradient(circle, rgba(255,90,0,0.28) 0%, transparent 70%);
             animation: emberPulse 3.5s ease-in-out infinite;
             pointer-events: none;
-            z-index: -1;
+            z-index: 0;
         }
         @keyframes emberPulse {
             0%, 100% { opacity: 0.4; transform: scale(0.9); }
             50% { opacity: 1; transform: scale(1.08); }
         }
         .brand-wordmark-img {
-            height: 36px;
+            height: 34px;
             width: auto;
-            max-width: 140px;
+            max-width: 150px;
             object-fit: contain;
             object-position: left center;
-            filter: drop-shadow(0 2px 6px rgba(0,0,0,0.5));
+            filter: drop-shadow(0 2px 6px rgba(0,0,0,0.5)) drop-shadow(0 0 14px rgba(255,90,0,0.18));
         }
         .brand-sub {
             font-size: 9px;
-            font-weight: 600;
-            letter-spacing: 0.22em;
-            color: #8B949D;
+            font-weight: 700;
+            letter-spacing: 0.24em;
+            background: linear-gradient(90deg, #FF9A3D, #8B949D 65%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
             text-transform: uppercase;
-            margin-top: 2px;
+            margin-top: 3px;
         }
 
         /* ===== VANTY MAGIC UI ===== */
         .money-vanty, .stat-money, #stat-value {
-            font-weight: 800;
+            font-weight: 900;
             font-variant-numeric: tabular-nums;
             letter-spacing: -0.02em;
-            background: linear-gradient(180deg, #FFB347 0%, #FF5A00 42%, #C93400 100%);
+            background: linear-gradient(180deg, #FFC97A 0%, #FF5A00 42%, #C93400 100%);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
-            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.45));
+            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.45)) drop-shadow(0 0 14px rgba(255,90,0,0.35));
         }
         .btn-vanty {
             position: relative;
             overflow: hidden;
-            background: linear-gradient(135deg, #FF7A00 0%, #FF5A00 45%, #C93400 100%);
-            color: #0a0a0b !important;
-            font-weight: 800;
-            border: 1px solid rgba(255, 180, 80, 0.35);
-            box-shadow: 0 0 0 1px rgba(255,90,0,0.15), 0 8px 24px rgba(255,90,0,0.25), inset 0 1px 0 rgba(255,255,255,0.25);
+            background: linear-gradient(135deg, #FF8A1E 0%, #FF5A00 45%, #C93400 100%);
+            color: #1a0900 !important;
+            font-weight: 900;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+            font-size: 0.8em;
+            border: 1px solid rgba(255, 190, 100, 0.5);
+            box-shadow: 0 0 0 1px rgba(255,90,0,0.2), 0 10px 30px rgba(255,90,0,0.4), inset 0 1.5px 0 rgba(255,255,255,0.45), inset 0 -6px 10px -6px rgba(0,0,0,0.4);
             transition: transform 0.15s ease, box-shadow 0.2s ease, filter 0.2s ease;
         }
         .btn-vanty::before {
@@ -256,12 +369,12 @@
             pointer-events: none;
         }
         .btn-vanty:hover {
-            transform: translateY(-1px);
-            filter: brightness(1.08);
-            box-shadow: 0 0 0 1px rgba(255,90,0,0.3), 0 12px 32px rgba(255,90,0,0.35), inset 0 1px 0 rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+            filter: brightness(1.12);
+            box-shadow: 0 0 0 1px rgba(255,90,0,0.35), 0 16px 40px rgba(255,90,0,0.5), inset 0 1.5px 0 rgba(255,255,255,0.5);
         }
         .btn-vanty:hover::before { transform: translateX(120%); }
-        .btn-vanty:active { transform: translateY(1px) scale(0.98); filter: brightness(0.95); }
+        .btn-vanty:active { transform: translateY(1px) scale(0.97); filter: brightness(0.92); }
         .btn-ghost-vanty {
             background: linear-gradient(145deg, rgba(255,90,0,0.12), rgba(201,52,0,0.06));
             border: 1px solid rgba(255,90,0,0.28);
@@ -274,6 +387,27 @@
             border-color: rgba(255,90,0,0.45);
             box-shadow: 0 0 20px rgba(255,90,0,0.15);
             color: #FFB347;
+        }
+        .panel-title {
+            display: flex; align-items: center; gap: 9px;
+            font-weight: 800; color: #F2F4F5;
+            letter-spacing: 0.005em;
+        }
+        .panel-title .hex-bullet {
+            width: 20px; height: 20px; flex-shrink: 0;
+            clip-path: polygon(25% 3%, 75% 3%, 100% 50%, 75% 97%, 25% 97%, 0% 50%);
+            background: linear-gradient(150deg, #FFB347, #FF5A00 55%, #C93400);
+            box-shadow: 0 2px 8px rgba(255,90,0,0.35);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 9px; color: #1a0900;
+        }
+        .search-bar {
+            transition: all 0.2s ease;
+        }
+        .search-bar:focus-within {
+            border-color: rgba(255,90,0,0.4);
+            box-shadow: 0 0 0 3px rgba(255,90,0,0.08);
+            background: rgba(7,9,15,0.85);
         }
         .nav-item { overflow: hidden; }
         .nav-item::after {
@@ -345,9 +479,122 @@
             border-radius: 12px;
             box-shadow: 0 0 0 1px #e5e7eb;
         }
+
+        /* ===== BRUTAL MODE: embers + pulse ===== */
+        .ember-field {
+            position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+        }
+        .ember-field span {
+            position: absolute; bottom: -20px; border-radius: 50%;
+            background: radial-gradient(circle, #FFB347 0%, #FF5A00 55%, transparent 75%);
+            opacity: 0; filter: blur(0.5px);
+            animation: emberRise linear infinite;
+        }
+        @keyframes emberRise {
+            0% { transform: translateY(0) translateX(0) scale(1); opacity: 0; }
+            8% { opacity: 0.55; }
+            50% { transform: translateY(-52vh) translateX(var(--drift, 12px)) scale(0.85); }
+            92% { opacity: 0.25; }
+            100% { transform: translateY(-105vh) translateX(calc(var(--drift, 12px) * 2)) scale(0.4); opacity: 0; }
+        }
+        @keyframes badgePulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255,90,0,0.5); }
+            50% { box-shadow: 0 0 0 4px rgba(255,90,0,0); }
+        }
+        #navBadgeCount { animation: badgePulse 2.4s ease-in-out infinite; }
+        .nav-item.active .nav-icon-chip { animation: emberPulse 2.2s ease-in-out infinite; }
+        h1, h2, h3 { letter-spacing: -0.01em; }
+        .kpi-icon-hex, .panel-title .hex-bullet { animation: emberPulse 3s ease-in-out infinite; }
+        .btn-vanty span, .btn-vanty i { position: relative; z-index: 1; }
+
+        /* ===== EMBERS + MOTION LAYER (v2.8) ===== */
+        #emberCanvas {
+            position: fixed; inset: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 0;
+            opacity: 0.55;
+        }
+        body > .flex.h-screen { position: relative; z-index: 1; }
+        .sidebar, main, header, aside { position: relative; z-index: 1; }
+
+        /* Motion file inspired: technical panels */
+        .panel-metal {
+            background: linear-gradient(145deg, #0c1115, #070a0d);
+            border: 1px solid #202a31;
+            position: relative;
+            overflow: hidden;
+        }
+        .panel-metal::after {
+            content: '';
+            position: absolute; right: -40px; bottom: -40px;
+            width: 120px; height: 120px;
+            border: 1px solid rgba(255,90,0,0.08);
+            transform: rotate(45deg);
+            pointer-events: none;
+        }
+
+        /* Button ripple */
+        .btn-vanty, .btn-ghost-vanty, .nav-item, button.topbtn {
+            position: relative;
+            overflow: hidden;
+        }
+        .vanty-ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 180, 80, 0.35);
+            transform: scale(0);
+            animation: vRipple 0.65s ease-out forwards;
+            pointer-events: none;
+        }
+        @keyframes vRipple {
+            to { transform: scale(2.6); opacity: 0; }
+        }
+
+        /* Soft float for KPI icons */
+        @keyframes kpiFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-3px); }
+        }
+        .kpi:hover .kpi-icon-hex { animation: kpiFloat 1.8s ease-in-out infinite; }
+
+        /* Live core glow */
+        .live-core {
+            border: 1px solid #183c33;
+            background: linear-gradient(145deg, #07120f, #050a09);
+            box-shadow: 0 0 20px rgba(34, 215, 160, 0.08);
+        }
+
+        /* Ambient scan line once on load */
+        @keyframes powerScan {
+            0% { transform: translateY(-100%); opacity: 0; }
+            10% { opacity: 0.6; }
+            100% { transform: translateY(100vh); opacity: 0; }
+        }
+        .power-scan {
+            position: fixed; left: 0; right: 0; height: 2px; z-index: 50; pointer-events: none;
+            background: linear-gradient(90deg, transparent, rgba(255,90,0,0.7), transparent);
+            box-shadow: 0 0 20px rgba(255,90,0,0.5);
+            animation: powerScan 1.1s ease-out 0.3s 1 forwards;
+            opacity: 0;
+        }
+
     </style>
 </head>
 <body class="min-h-screen antialiased overflow-hidden">
+    <canvas id="emberCanvas" aria-hidden="true"></canvas>
+    <div class="power-scan" aria-hidden="true"></div>
+
+    <div class="ember-field" aria-hidden="true">
+        <span style="left:6%; width:3px; height:3px; --drift:18px; animation-duration:9s; animation-delay:0s;"></span>
+        <span style="left:14%; width:2px; height:2px; --drift:-14px; animation-duration:11s; animation-delay:1.5s;"></span>
+        <span style="left:23%; width:4px; height:4px; --drift:10px; animation-duration:8s; animation-delay:3s;"></span>
+        <span style="left:34%; width:2px; height:2px; --drift:-8px; animation-duration:12s; animation-delay:0.8s;"></span>
+        <span style="left:47%; width:3px; height:3px; --drift:16px; animation-duration:10s; animation-delay:4.2s;"></span>
+        <span style="left:58%; width:2px; height:2px; --drift:-18px; animation-duration:9.5s; animation-delay:2.1s;"></span>
+        <span style="left:67%; width:4px; height:4px; --drift:12px; animation-duration:13s; animation-delay:5s;"></span>
+        <span style="left:78%; width:2px; height:2px; --drift:-10px; animation-duration:8.5s; animation-delay:1s;"></span>
+        <span style="left:86%; width:3px; height:3px; --drift:14px; animation-duration:11.5s; animation-delay:3.6s;"></span>
+        <span style="left:93%; width:2px; height:2px; --drift:-16px; animation-duration:10.5s; animation-delay:2.8s;"></span>
+    </div>
 
     <div id="sidebarOverlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
 
@@ -355,8 +602,9 @@
         
         <!-- SIDEBAR (TerraFlux structure) -->
         <aside id="sidebar" class="sidebar flex flex-col shrink-0 h-full">
-            <div class="px-4 py-5 flex items-center gap-3 border-b border-[#1A2026]">
+            <div class="brand-header-row px-4 py-5 flex items-center gap-3.5">
                 <div class="brand-logo-wrap" title="Vanty Care">
+                    <div class="brand-logo-hex-ring"></div>
                     <img src="vanty-logo-icon.png" alt="Vanty Care" class="brand-logo-static" width="48" height="48">
                 </div>
                 <div class="min-w-0">
@@ -366,42 +614,42 @@
             </div>
             
             <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-                <div class="text-[10px] font-bold text-slate-600 uppercase tracking-widest px-3 mb-2">Principal</div>
+                <div class="nav-section-label">Principal</div>
                 <div class="nav-item active" data-panel="dashboard" onclick="switchPanel('dashboard')">
-                    <i class="fa-solid fa-chart-pie"></i><span>Overview</span>
+                    <span class="nav-icon-chip"><i class="fa-solid fa-chart-pie"></i></span><span>Overview</span>
                 </div>
                 <div class="nav-item" data-panel="garantias" onclick="switchPanel('garantias')">
-                    <i class="fa-solid fa-shield-halved"></i><span>Garantias</span>
-                    <span id="navBadgeCount" class="ml-auto text-[10px] font-bold bg-orange-500/15 text-orange-400 px-1.5 py-0.5 rounded-md">0</span>
+                    <span class="nav-icon-chip"><i class="fa-solid fa-shield-halved"></i></span><span>Garantias</span>
+                    <span id="navBadgeCount" class="ml-auto text-[10px] font-bold bg-orange-500/15 text-orange-400 px-1.5 py-0.5 rounded-md border border-orange-500/10">0</span>
                 </div>
                 <div class="nav-item" data-panel="registar" onclick="switchPanel('registar')">
-                    <i class="fa-solid fa-plus-circle"></i><span>Registar Nova</span>
+                    <span class="nav-icon-chip"><i class="fa-solid fa-plus-circle"></i></span><span>Registar Nova</span>
                 </div>
                 <div class="nav-item" data-panel="rma" onclick="switchPanel('rma')">
-                    <i class="fa-solid fa-wrench"></i><span>Pedidos RMA</span>
+                    <span class="nav-icon-chip"><i class="fa-solid fa-wrench"></i></span><span>Pedidos RMA</span>
                 </div>
                 <div class="nav-item" data-panel="stats" onclick="switchPanel('stats')">
-                    <i class="fa-solid fa-star-half-stroke"></i><span>Estatísticas</span>
+                    <span class="nav-icon-chip"><i class="fa-solid fa-star-half-stroke"></i></span><span>Estatísticas</span>
                 </div>
                 <div class="nav-item" data-panel="cartoes" onclick="switchPanel('cartoes')">
-                    <i class="fa-solid fa-wallet"></i><span>Cartões</span>
-                    <span id="navBadgeCards" class="ml-auto text-[10px] font-bold bg-violet-500/15 text-violet-300 px-1.5 py-0.5 rounded-md">0</span>
+                    <span class="nav-icon-chip"><i class="fa-solid fa-wallet"></i></span><span>Cartões</span>
+                    <span id="navBadgeCards" class="ml-auto text-[10px] font-bold bg-violet-500/15 text-violet-300 px-1.5 py-0.5 rounded-md border border-violet-500/10">0</span>
                 </div>
-                <div class="text-[10px] font-bold text-slate-600 uppercase tracking-widest px-3 mb-2 mt-5">Conta</div>
+                <div class="nav-section-label mt-5">Conta</div>
                 <div class="nav-item" data-panel="perfil" onclick="switchPanel('perfil')">
-                    <i class="fa-solid fa-user"></i><span>Perfil / Casa</span>
+                    <span class="nav-icon-chip"><i class="fa-solid fa-user"></i></span><span>Perfil / Casa</span>
                 </div>
                 <div class="nav-item" onclick="loadProducts()">
-                    <i class="fa-solid fa-rotate"></i><span>Sincronizar</span>
+                    <span class="nav-icon-chip"><i class="fa-solid fa-rotate"></i></span><span>Sincronizar</span>
                 </div>
             </nav>
             
             <div class="px-4 py-4 border-t border-white/[0.04]">
-                <div class="flex items-center gap-2 px-2 py-2 rounded-lg bg-emerald-500/5 border border-emerald-500/10">
+                <div class="flex items-center gap-2 px-2 py-2 rounded-lg live-core">
                     <div class="live-dot"></div>
                     <div>
                         <div class="text-[11px] font-semibold text-emerald-400">Supabase Live</div>
-                        <div class="text-[10px] text-slate-500">v2.7 · Magic UI</div>
+                        <div class="text-[10px] text-slate-500">v2.8 · Embers + Motion</div>
                     </div>
                 </div>
             </div>
@@ -409,9 +657,10 @@
 
         <!-- MAIN -->
         <div class="flex-1 flex flex-col min-w-0 h-full">
-            <header class="h-14 shrink-0 border-b border-white/[0.05] bg-surface-900/80 backdrop-blur-xl flex items-center justify-between px-4 lg:px-6 gap-4">
+            <header class="h-14 shrink-0 border-b border-white/[0.05] bg-surface-900/80 backdrop-blur-xl flex items-center justify-between px-4 lg:px-6 gap-4 relative">
+                <div class="absolute left-0 right-0 bottom-0 h-px bg-gradient-to-r from-transparent via-orange-500/25 to-transparent pointer-events-none"></div>
                 <div class="flex items-center gap-3">
-                    <button onclick="toggleSidebar()" class="lg:hidden w-9 h-9 rounded-lg bg-surface-800 flex items-center justify-center text-slate-400 hover:text-white">
+                    <button onclick="toggleSidebar()" class="lg:hidden w-9 h-9 rounded-lg bg-surface-800 border border-white/[0.05] flex items-center justify-center text-slate-400 hover:text-orange-400 hover:border-orange-500/30 transition-all">
                         <i class="fa-solid fa-bars"></i>
                     </button>
                     <div class="search-bar hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg w-64">
@@ -420,16 +669,16 @@
                     </div>
                 </div>
                 <div class="flex items-center gap-2.5">
-                    <button onclick="loadProducts()" class="w-9 h-9 rounded-lg bg-surface-800 border border-white/[0.05] flex items-center justify-center text-slate-400 hover:text-orange-400 hover:border-orange-500/30 transition-all" title="Atualizar">
+                    <button onclick="loadProducts()" class="w-9 h-9 rounded-lg bg-surface-800 border border-white/[0.05] flex items-center justify-center text-slate-400 hover:text-orange-400 hover:border-orange-500/30 hover:shadow-[0_0_14px_rgba(255,90,0,0.18)] transition-all" title="Atualizar">
                         <i class="fa-solid fa-rotate-right text-xs"></i>
                     </button>
                     <button id="authHeaderBtn" onclick="openAuthModal()" class="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-surface-800 border border-white/[0.06] text-[11px] font-semibold text-slate-300 hover:text-orange-300 hover:border-orange-500/30 transition-all">
                         <i class="fa-solid fa-right-to-bracket"></i> <span id="authHeaderLabel">Entrar</span>
                     </button>
-                    <div class="flex items-center gap-2 pl-2 border-l border-white/[0.06] cursor-pointer" onclick="switchPanel('perfil')">
-                        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500/20 to-orange-700/20 border border-orange-500/20 flex items-center justify-center text-orange-400 text-xs font-bold" id="avatarInitials">JS</div>
+                    <div class="flex items-center gap-2 pl-2.5 ml-0.5 border-l border-white/[0.06] cursor-pointer group" onclick="switchPanel('perfil')">
+                        <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500/25 to-orange-700/20 border border-orange-500/25 flex items-center justify-center text-orange-400 text-xs font-bold group-hover:border-orange-400/50 group-hover:shadow-[0_0_12px_rgba(255,90,0,0.25)] transition-all" id="avatarInitials">JS</div>
                         <div class="hidden sm:block">
-                            <div class="text-xs font-semibold text-slate-200 leading-tight" id="topUserName">João Silva</div>
+                            <div class="text-xs font-semibold text-slate-200 leading-tight group-hover:text-orange-200 transition-colors" id="topUserName">João Silva</div>
                             <div class="text-[10px] text-slate-500" id="topUserCountry">🇵🇹 Portugal</div>
                         </div>
                     </div>
@@ -450,31 +699,31 @@
                     </div>
                     <div class="grid grid-cols-2 xl:grid-cols-4 gap-3">
                         <div class="kpi p-4 flex items-center gap-3.5">
-                            <div class="w-11 h-11 rounded-xl bg-orange-500/10 text-orange-400 flex items-center justify-center text-lg border border-orange-500/15"><i class="fa-solid fa-shield-halved"></i></div>
+                            <div class="kpi-icon-hex bg-orange-500/10 text-orange-400"><i class="fa-solid fa-shield-halved"></i></div>
                             <div>
                                 <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Garantias Ativas</p>
-                                <p class="text-2xl font-bold text-white tabular-nums leading-tight" id="stat-active">0</p>
+                                <p class="text-2xl font-black text-white tabular-nums leading-tight" id="stat-active">0</p>
                             </div>
                         </div>
                         <div class="kpi p-4 flex items-center gap-3.5">
-                            <div class="w-11 h-11 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-lg border border-indigo-500/15"><i class="fa-solid fa-coins"></i></div>
+                            <div class="kpi-icon-hex bg-indigo-500/10 text-indigo-400"><i class="fa-solid fa-coins"></i></div>
                             <div>
                                 <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Total Investido</p>
                                 <p class="text-2xl leading-tight money-vanty" id="stat-value">0,00 €</p>
                             </div>
                         </div>
                         <div class="kpi p-4 flex items-center gap-3.5">
-                            <div class="w-11 h-11 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center text-lg border border-amber-500/15"><i class="fa-solid fa-file-invoice"></i></div>
+                            <div class="kpi-icon-hex bg-amber-500/10 text-amber-400"><i class="fa-solid fa-file-invoice"></i></div>
                             <div>
                                 <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Faturas Guardadas</p>
-                                <p class="text-2xl font-bold text-white tabular-nums leading-tight" id="stat-invoices">0</p>
+                                <p class="text-2xl font-black text-white tabular-nums leading-tight" id="stat-invoices">0</p>
                             </div>
                         </div>
                         <div class="kpi p-4 flex items-center gap-3.5">
-                            <div class="w-11 h-11 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-lg border border-emerald-500/15"><i class="fa-solid fa-scale-balanced"></i></div>
+                            <div class="kpi-icon-hex bg-emerald-500/10 text-emerald-400"><i class="fa-solid fa-scale-balanced"></i></div>
                             <div>
                                 <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Jurisdição</p>
-                                <p class="text-lg font-bold text-emerald-400 leading-tight" id="stat-jurisdiction">UE · 3 Anos</p>
+                                <p class="text-lg font-black text-emerald-400 leading-tight" id="stat-jurisdiction">UE · 3 Anos</p>
                             </div>
                         </div>
                     </div>
@@ -482,10 +731,10 @@
                     <div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
                         <div class="xl:col-span-2 card p-5">
                             <div class="flex items-center justify-between mb-4">
-                                <h2 class="text-sm font-bold text-white flex items-center gap-2">
-                                    <i class="fa-solid fa-clock-rotate-left text-orange-400 text-xs"></i> Garantias Recentes
+                                <h2 class="panel-title text-sm">
+                                    <span class="hex-bullet"><i class="fa-solid fa-clock-rotate-left"></i></span> Garantias Recentes
                                 </h2>
-                                <button onclick="switchPanel('garantias')" class="text-[11px] text-orange-400 hover:text-orange-300 font-semibold">Ver todas →</button>
+                                <button onclick="switchPanel('garantias')" class="text-[11px] text-orange-400 hover:text-orange-300 font-semibold px-2.5 py-1 rounded-lg hover:bg-orange-500/10 transition-all">Ver todas →</button>
                             </div>
                             <div id="recentFeed" class="space-y-3">
                                 <div class="text-center py-10 text-slate-600 text-sm"><i class="fa-solid fa-spinner animate-spin text-orange-400 mb-2"></i><p>A carregar...</p></div>
@@ -493,7 +742,7 @@
                         </div>
                         <div class="space-y-4">
                             <div class="card p-5">
-                                <h2 class="text-sm font-bold text-white mb-3 flex items-center gap-2"><i class="fa-solid fa-bolt text-amber-400 text-xs"></i> Ações Rápidas</h2>
+                                <h2 class="panel-title text-sm mb-3"><span class="hex-bullet"><i class="fa-solid fa-bolt"></i></span> Ações Rápidas</h2>
                                 <div class="space-y-2">
                                     <button onclick="switchPanel('registar')" class="btn-ghost-vanty w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm">
                                         <i class="fa-solid fa-plus"></i> Registar Nova Garantia
@@ -3266,6 +3515,74 @@
             const b = document.getElementById('navBadgeCards');
             if (b) b.innerText = String(n);
         })();
+
+        // ===== EMBERS (brasas a subir) =====
+        (function initEmbers() {
+            const canvas = document.getElementById('emberCanvas');
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            let w = 0, h = 0, particles = [], raf = 0, reduced = false;
+            try { reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (_) {}
+            if (reduced) { canvas.style.display = 'none'; return; }
+
+            function resize() {
+                w = canvas.width = window.innerWidth;
+                h = canvas.height = window.innerHeight;
+                const count = Math.min(70, Math.floor((w * h) / 22000));
+                particles = Array.from({ length: count }, () => spawn(true));
+            }
+            function spawn(randomY) {
+                return {
+                    x: Math.random() * w,
+                    y: randomY ? Math.random() * h : h + Math.random() * 40,
+                    r: 0.6 + Math.random() * 2.2,
+                    vy: 0.25 + Math.random() * 0.9,
+                    vx: (Math.random() - 0.5) * 0.35,
+                    life: 0.25 + Math.random() * 0.75,
+                    decay: 0.0015 + Math.random() * 0.003,
+                    hue: 18 + Math.random() * 22
+                };
+            }
+            function tick() {
+                ctx.clearRect(0, 0, w, h);
+                for (let i = 0; i < particles.length; i++) {
+                    const p = particles[i];
+                    p.y -= p.vy;
+                    p.x += p.vx + Math.sin(p.y * 0.01) * 0.15;
+                    p.life -= p.decay;
+                    if (p.life <= 0 || p.y < -10) particles[i] = spawn(false);
+                    const a = Math.max(0, p.life);
+                    const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 4);
+                    g.addColorStop(0, `hsla(${p.hue},100%,62%,${0.55 * a})`);
+                    g.addColorStop(0.4, `hsla(${p.hue},100%,45%,${0.22 * a})`);
+                    g.addColorStop(1, `hsla(${p.hue},100%,30%,0)`);
+                    ctx.fillStyle = g;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.r * 4, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                raf = requestAnimationFrame(tick);
+            }
+            window.addEventListener('resize', resize);
+            resize();
+            tick();
+
+            // Ripple on primary actions
+            document.addEventListener('click', function (e) {
+                const t = e.target.closest('.btn-vanty, .btn-ghost-vanty, .nav-item');
+                if (!t) return;
+                const rect = t.getBoundingClientRect();
+                const r = document.createElement('span');
+                r.className = 'vanty-ripple';
+                const size = Math.max(rect.width, rect.height);
+                r.style.width = r.style.height = size + 'px';
+                r.style.left = (e.clientX - rect.left - size / 2) + 'px';
+                r.style.top = (e.clientY - rect.top - size / 2) + 'px';
+                t.appendChild(r);
+                setTimeout(() => r.remove(), 700);
+            }, { passive: true });
+        })();
+
         switchPanel('dashboard');
         document.getElementById('authModal')?.addEventListener('click', e => { if (e.target === e.currentTarget) closeAuthModal(); });
     </script>
