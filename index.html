@@ -225,6 +225,102 @@
             text-transform: uppercase;
             margin-top: 2px;
         }
+
+        /* ===== VANTY MAGIC UI ===== */
+        .money-vanty, .stat-money, #stat-value {
+            font-weight: 800;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -0.02em;
+            background: linear-gradient(180deg, #FFB347 0%, #FF5A00 42%, #C93400 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.45));
+        }
+        .btn-vanty {
+            position: relative;
+            overflow: hidden;
+            background: linear-gradient(135deg, #FF7A00 0%, #FF5A00 45%, #C93400 100%);
+            color: #0a0a0b !important;
+            font-weight: 800;
+            border: 1px solid rgba(255, 180, 80, 0.35);
+            box-shadow: 0 0 0 1px rgba(255,90,0,0.15), 0 8px 24px rgba(255,90,0,0.25), inset 0 1px 0 rgba(255,255,255,0.25);
+            transition: transform 0.15s ease, box-shadow 0.2s ease, filter 0.2s ease;
+        }
+        .btn-vanty::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.35) 50%, transparent 70%);
+            transform: translateX(-120%);
+            transition: transform 0.55s ease;
+            pointer-events: none;
+        }
+        .btn-vanty:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.08);
+            box-shadow: 0 0 0 1px rgba(255,90,0,0.3), 0 12px 32px rgba(255,90,0,0.35), inset 0 1px 0 rgba(255,255,255,0.3);
+        }
+        .btn-vanty:hover::before { transform: translateX(120%); }
+        .btn-vanty:active { transform: translateY(1px) scale(0.98); filter: brightness(0.95); }
+        .btn-ghost-vanty {
+            background: linear-gradient(145deg, rgba(255,90,0,0.12), rgba(201,52,0,0.06));
+            border: 1px solid rgba(255,90,0,0.28);
+            color: #FF7A00;
+            font-weight: 700;
+            transition: all 0.18s ease;
+        }
+        .btn-ghost-vanty:hover {
+            background: rgba(255,90,0,0.18);
+            border-color: rgba(255,90,0,0.45);
+            box-shadow: 0 0 20px rgba(255,90,0,0.15);
+            color: #FFB347;
+        }
+        .nav-item { overflow: hidden; }
+        .nav-item::after {
+            content: '';
+            position: absolute; inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,90,0,0.07), transparent);
+            opacity: 0; transition: opacity 0.25s ease; pointer-events: none;
+        }
+        .nav-item:hover::after { opacity: 1; }
+        .nav-item.active {
+            background: linear-gradient(90deg, #1a120c 0%, #17110D 55%, #0D1116 100%) !important;
+        }
+        .card { position: relative; }
+        .card::before {
+            content: '';
+            position: absolute; left: 12%; right: 12%; top: 0; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.14), transparent);
+            pointer-events: none; z-index: 1;
+        }
+        .kpi {
+            background: linear-gradient(155deg, #161c22 0%, #0D1116 55%, #0a0d11 100%) !important;
+        }
+        .kpi:hover {
+            border-color: rgba(255,90,0,0.28) !important;
+            box-shadow: 0 8px 28px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,90,0,0.1);
+        }
+        main {
+            background-image:
+                radial-gradient(ellipse 50% 40% at 92% 8%, rgba(255,90,0,0.055), transparent 60%),
+                radial-gradient(ellipse 40% 30% at 8% 85%, rgba(255,90,0,0.03), transparent 50%);
+        }
+        @keyframes panelRise {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        #panel-dashboard:not(.panel-hidden),
+        #panel-garantias:not(.panel-hidden),
+        #panel-registar:not(.panel-hidden),
+        #panel-cartoes:not(.panel-hidden),
+        #panel-stats:not(.panel-hidden),
+        #panel-perfil:not(.panel-hidden),
+        #panel-rma:not(.panel-hidden) {
+            animation: panelRise 0.3s ease-out;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, #FF5A00, #C93400) !important;
+        }
         .loyalty-card-3d {
             perspective: 1000px;
         }
@@ -305,7 +401,7 @@
                     <div class="live-dot"></div>
                     <div>
                         <div class="text-[11px] font-semibold text-emerald-400">Supabase Live</div>
-                        <div class="text-[10px] text-slate-500">v2.6 · Design system</div>
+                        <div class="text-[10px] text-slate-500">v2.7 · Magic UI</div>
                     </div>
                 </div>
             </div>
@@ -364,7 +460,7 @@
                             <div class="w-11 h-11 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-lg border border-indigo-500/15"><i class="fa-solid fa-coins"></i></div>
                             <div>
                                 <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Total Investido</p>
-                                <p class="text-2xl font-bold text-white tabular-nums leading-tight" id="stat-value">0,00 €</p>
+                                <p class="text-2xl leading-tight money-vanty" id="stat-value">0,00 €</p>
                             </div>
                         </div>
                         <div class="kpi p-4 flex items-center gap-3.5">
@@ -399,7 +495,7 @@
                             <div class="card p-5">
                                 <h2 class="text-sm font-bold text-white mb-3 flex items-center gap-2"><i class="fa-solid fa-bolt text-amber-400 text-xs"></i> Ações Rápidas</h2>
                                 <div class="space-y-2">
-                                    <button onclick="switchPanel('registar')" class="w-full flex items-center gap-3 px-3.5 py-3 rounded-xl bg-orange-500/10 hover:bg-orange-500/15 border border-orange-500/20 text-orange-300 text-sm font-semibold transition-all">
+                                    <button onclick="switchPanel('registar')" class="btn-ghost-vanty w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm">
                                         <i class="fa-solid fa-plus"></i> Registar Nova Garantia
                                     </button>
                                     <button onclick="switchPanel('perfil')" class="w-full flex items-center gap-3 px-3.5 py-3 rounded-xl bg-surface-800 hover:bg-surface-700 border border-white/[0.05] text-slate-300 text-sm font-medium transition-all">
@@ -424,7 +520,7 @@
                 <div id="panel-garantias" class="panel-hidden space-y-4">
                     <div class="flex items-center justify-between">
                         <h2 class="text-base font-bold text-white flex items-center gap-2"><i class="fa-solid fa-box-archive text-orange-400"></i> Todas as Garantias</h2>
-                        <button onclick="switchPanel('registar')" class="px-3.5 py-2 bg-orange-500 hover:bg-orange-400 text-slate-950 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5">
+                        <button onclick="switchPanel('registar')" class="btn-vanty px-3.5 py-2 text-xs rounded-lg flex items-center gap-1.5">
                             <i class="fa-solid fa-plus"></i> Nova
                         </button>
                     </div>
@@ -514,7 +610,7 @@
                                     </div>
                                     <p class="text-[10px] text-slate-600 mt-1">O SN não é extraído da fatura — use a foto da etiqueta do equipamento.</p>
                                 </div>
-                                <button type="submit" id="submitBtn" class="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white font-bold p-3.5 rounded-xl transition-all shadow-lg shadow-orange-500/20 active:scale-[0.98] flex items-center justify-center gap-2">
+                                <button type="submit" id="submitBtn" class="btn-vanty w-full p-3.5 rounded-xl flex items-center justify-center gap-2 text-sm">
                                     <i class="fa-solid fa-floppy-disk"></i> Guardar Garantia & Fatura
                                 </button>
                             </form>
@@ -589,7 +685,7 @@
                                     <textarea id="inputAddress" rows="2" placeholder="Rua, nº, código postal, localidade" class="w-full input-field p-2.5 text-sm text-white resize-none"></textarea>
                                     <p class="text-[10px] text-slate-600 mt-1">Necessária para assistência ao domicílio (grandes volumes).</p>
                                 </div>
-                                <button type="submit" class="w-full bg-orange-500 hover:bg-orange-400 text-slate-950 font-bold p-2.5 rounded-xl text-sm transition-all mt-1">Guardar Perfil</button>
+                                <button type="submit" class="btn-vanty w-full p-2.5 rounded-xl text-sm mt-1">Guardar Perfil</button>
                             </form>
                         </div>
                     </div>
@@ -732,7 +828,7 @@
                             </h2>
                             <p class="text-[11px] text-slate-500 mt-1">Mini vault — mostra o código de barras na caixa sem abrir a app da loja.</p>
                         </div>
-                        <button type="button" onclick="openAddCardModal()" class="px-3.5 py-2 rounded-lg bg-violet-500 hover:bg-violet-400 text-white text-xs font-bold transition-all flex items-center gap-1.5">
+                        <button type="button" onclick="openAddCardModal()" class="btn-vanty px-3.5 py-2 rounded-lg text-xs flex items-center gap-1.5">
                             <i class="fa-solid fa-plus"></i> Adicionar cartão
                         </button>
                     </div>
@@ -794,7 +890,7 @@
                 </div>
                 <p class="text-[10px] text-slate-600 mt-1">Ex.: PIN E.Leclerc para gastar saldo. Fica só neste dispositivo, oculto por defeito.</p>
             </div>
-            <button type="button" onclick="saveLoyaltyCard()" class="w-full py-2.5 rounded-xl bg-violet-500 hover:bg-violet-400 text-white text-sm font-bold">Guardar cartão</button>
+            <button type="button" onclick="saveLoyaltyCard()" class="btn-vanty w-full py-2.5 rounded-xl text-sm">Guardar cartão</button>
         </div>
     </div>
 
@@ -2447,7 +2543,7 @@
                         <input type="checkbox" class="multi-item-cb mt-0.5 accent-orange-500" data-idx="${i}" checked onchange="syncSelectedItemToForm()">
                         <span class="flex-1 min-w-0">
                             <span class="block text-xs font-semibold text-slate-100 leading-snug">${escapeHtml(it.name)}</span>
-                            <span class="text-[11px] text-emerald-400 font-bold tabular-nums">${it.price.toFixed(2)} €</span>
+                            <span class="money-vanty text-[11px]">${it.price.toFixed(2)} €</span>
                             ${it.iva != null ? `<span class="text-[10px] text-amber-400/80 ml-1.5">IVA ${it.iva}%</span>` : ''}
                         </span>
                     </label>
@@ -2915,7 +3011,7 @@
                         </div>
                     </div>
                     <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] bg-[#0a0a0b]/50 p-2.5 rounded-xl border border-white/[0.04]">
-                        <div><p class="text-slate-600 text-[9px] uppercase font-bold tracking-wider">Valor</p><p class="font-bold text-slate-100 mt-0.5 tabular-nums">${price.toLocaleString('pt-PT', { minimumFractionDigits: 2 })} €</p></div>
+                        <div><p class="text-slate-600 text-[9px] uppercase font-bold tracking-wider">Valor</p><p class="money-vanty mt-0.5 text-sm">${price.toLocaleString('pt-PT', { minimumFractionDigits: 2 })} €</p></div>
                         <div><p class="text-slate-600 text-[9px] uppercase font-bold tracking-wider">Série</p><p class="font-mono text-slate-300 mt-0.5 truncate">${escapeHtml(prod.numero_serie || '—')}</p></div>
                         <div><p class="text-slate-600 text-[9px] uppercase font-bold tracking-wider">Fatura</p><p class="font-semibold mt-0.5 flex items-center gap-1 ${receipt ? 'text-emerald-400' : 'text-amber-400'}"><i class="fa-solid ${receipt ? 'fa-file-circle-check' : 'fa-triangle-exclamation'} text-[9px]"></i> ${receipt ? 'OK' : 'Pendente'}</p></div>
                         <div><p class="text-slate-600 text-[9px] uppercase font-bold tracking-wider">IVA</p><p class="font-medium text-slate-300 mt-0.5">${ivaLabel}</p></div>
