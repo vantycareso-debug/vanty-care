@@ -798,7 +798,7 @@
                     <div class="live-dot"></div>
                     <div>
                         <div class="text-[11px] font-semibold text-emerald-400">Supabase Live</div>
-                        <div class="text-[10px] text-slate-500">v3.5 · Email automático</div>
+                        <div class="text-[10px] text-slate-500">v3.5.1 · Email TESTE</div>
                     </div>
                 </div>
             </div>
@@ -1613,6 +1613,12 @@
         const SUPABASE_URL = 'https://dhhqrjopwvtxzgfyjdrc.supabase.co';
         const SUPABASE_KEY = 'sb_publishable_Hplq0WcOKp6kM_tN7Kx8Rw_b4lLqYFd';
         const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // === MODO TESTE EMAIL ===
+        // true  = todos os pedidos vão só para EMAIL_TESTE (não contacta marcas)
+        // false = envia para o contacto oficial da marca / loja
+        const MODO_TESTE_EMAIL = true;
+        const EMAIL_TESTE = 'vantycareso@gmail.com';
         const STORAGE_BUCKET = 'faturas';
 
         let selectedReceipt = null, currentProducts = [], activeRmaProduct = null, ocrWorker = null, searchQuery = '';
@@ -4712,12 +4718,19 @@
             if (inW && support && support.type === 'email' && support.contact) {
                 to = support.contact;
             }
+            // Modo teste: nunca contactar marcas de verdade
+            const toReal = to;
+            if (typeof MODO_TESTE_EMAIL !== 'undefined' && MODO_TESTE_EMAIL) {
+                to = EMAIL_TESTE;
+            }
 
             const subject =
+                (MODO_TESTE_EMAIL ? '[TESTE Vanty] ' : '') +
                 `[Assistência Vanty Care] ${activeRmaProduct.nome_produto || 'Produto'}` +
                 (brand ? ` · ${brand}` : '') +
                 ` — SN: ${activeRmaProduct.numero_serie || 'N/A'}` +
-                (inW ? ' · EM GARANTIA' : ' · FORA DE GARANTIA');
+                (inW ? ' · EM GARANTIA' : ' · FORA DE GARANTIA') +
+                (MODO_TESTE_EMAIL ? ` · (destino real seria: ${toReal})` : '');
 
             const destLabel = inW
                 ? (brand ? `Apoio ao Cliente ${brand}` : `Apoio (${activeRmaProduct.loja || 'loja'})`)
@@ -4855,8 +4868,8 @@ ${addr}`;
             });
 
             try {
-                // Portal URL da marca (sem email) → descarrega fatura + abre portal
-                if (payload.inW && payload.support && payload.support.type === 'url') {
+                // Portal URL da marca — em modo teste NÃO abrir site da marca
+                if (payload.inW && payload.support && payload.support.type === 'url' && !MODO_TESTE_EMAIL) {
                     if (payload.hasInvoice) {
                         const a = document.createElement('a');
                         a.href = payload.receipt.data;
@@ -4875,14 +4888,20 @@ ${addr}`;
                     renderRmaFeed();
                     return;
                 }
+                // Modo teste + marca só tem URL: mesmo assim enviamos email de teste com o texto
+                if (payload.inW && payload.support && payload.support.type === 'url' && MODO_TESTE_EMAIL) {
+                    payload.to = EMAIL_TESTE;
+                }
 
                 // Envio automático (Edge + Resend)
                 const result = await sendAssistViaEdge(payload);
                 showToast(
+                    (MODO_TESTE_EMAIL ? 'MODO TESTE — ' : '') +
                     'Email enviado automaticamente' +
                     (result.has_attachment ? ' com a fatura em anexo.' : '.') +
-                    '\nPara: ' + payload.to,
-                    'Assistência enviada',
+                    '\nPara: ' + payload.to +
+                    (MODO_TESTE_EMAIL ? '\n(Marcas não foram contactadas)' : ''),
+                    MODO_TESTE_EMAIL ? 'Teste OK' : 'Assistência enviada',
                     'success'
                 );
                 closeRmaModal();
