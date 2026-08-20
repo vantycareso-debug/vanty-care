@@ -274,16 +274,74 @@
             border: 1px solid rgba(148, 163, 184, 0.08);
         }
         @media (max-width: 1023px) {
-            .sidebar {
-                position: fixed; left: -260px; top: 0; bottom: 0; z-index: 60;
-                transition: left 0.25s ease;
+            html, body {
+                overflow-x: hidden;
+                max-width: 100vw;
             }
-            .sidebar.open { left: 0; }
+            body > .flex.h-screen {
+                width: 100%;
+                max-width: 100vw;
+                min-width: 0;
+            }
+            .sidebar {
+                position: fixed !important;
+                left: -280px;
+                top: 0; bottom: 0;
+                width: min(280px, 86vw) !important;
+                z-index: 80 !important;
+                transition: left 0.28s ease;
+                box-shadow: 8px 0 32px rgba(0,0,0,0.55);
+            }
+            .sidebar.open { left: 0 !important; }
             .sidebar-overlay {
-                display: none; position: fixed; inset: 0;
-                background: rgba(0,0,0,0.6); z-index: 55;
+                display: none;
+                position: fixed;
+                inset: 0;
+                background: rgba(0,0,0,0.65);
+                z-index: 75 !important;
+                -webkit-backdrop-filter: blur(2px);
+                backdrop-filter: blur(2px);
             }
             .sidebar-overlay.show { display: block; }
+            /* Conteúdo principal ocupa 100% — sidebar não empurra */
+            body > .flex.h-screen > .flex-1 {
+                width: 100% !important;
+                max-width: 100% !important;
+                min-width: 0 !important;
+                margin-left: 0 !important;
+            }
+            header {
+                padding-left: 12px !important;
+                padding-right: 12px !important;
+            }
+            main, .flex-1.flex.flex-col {
+                min-width: 0 !important;
+                overflow-x: hidden;
+            }
+            /* Evitar cartões e grelhas a rebentar para a direita */
+            .card, .kpi, .panel-metal, .modal-panel {
+                max-width: 100%;
+            }
+            .grid {
+                min-width: 0;
+            }
+            /* KPIs empilháveis */
+            #panel-dashboard .grid.grid-cols-2 {
+                grid-template-columns: 1fr 1fr;
+                gap: 0.5rem;
+            }
+            @media (max-width: 380px) {
+                #panel-dashboard .grid.grid-cols-2 {
+                    grid-template-columns: 1fr;
+                }
+            }
+            /* Texto e botões não saltam fora */
+            h1, h2, h3, p, span, button, a, label {
+                word-break: break-word;
+            }
+            .money-vanty {
+                font-size: clamp(1.1rem, 5vw, 1.5rem);
+            }
         }
         .panel-hidden { display: none !important; }
         .brand-header-row {
@@ -537,8 +595,10 @@
             pointer-events: none; z-index: 0;
             opacity: 0.28;
         }
-        body > .flex.h-screen { position: relative; z-index: 1; }
-        .sidebar, main, header, aside { position: relative; z-index: 1; }
+        body > .flex.h-screen { position: relative; z-index: 1; min-width: 0; width: 100%; max-width: 100vw; }
+        /* NÃO forçar position:relative na sidebar — no mobile ela é fixed */
+        main, header { position: relative; z-index: 1; }
+        aside.sidebar { z-index: 70; }
 
         /* Motion file inspired: technical panels */
         .panel-metal {
@@ -798,7 +858,7 @@
                     <div class="live-dot"></div>
                     <div>
                         <div class="text-[11px] font-semibold text-emerald-400">Supabase Live</div>
-                        <div class="text-[10px] text-slate-500">v3.5.1 · Email TESTE</div>
+                        <div class="text-[10px] text-slate-500">v3.5.2 · Mobile fix + email teste</div>
                     </div>
                 </div>
             </div>
@@ -2982,8 +3042,7 @@
             document.querySelectorAll('.nav-item[data-panel]').forEach(n => {
                 n.classList.toggle('active', n.dataset.panel === id);
             });
-            document.getElementById('sidebar').classList.remove('open');
-            document.getElementById('sidebarOverlay').classList.remove('show');
+            toggleSidebar(true);
             if (id === 'stats') refreshStatsPanel();
             if (id === 'rma') { renderRmaFeed(); renderPartnersFeed(); }
             if (id === 'arquivo') renderArchiveFeed();
@@ -3588,9 +3647,20 @@
             }).join('');
         }
 
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('open');
-            document.getElementById('sidebarOverlay').classList.toggle('show');
+        function toggleSidebar(forceClose) {
+            const sb = document.getElementById('sidebar');
+            const ov = document.getElementById('sidebarOverlay');
+            if (!sb || !ov) return;
+            if (forceClose === true) {
+                sb.classList.remove('open');
+                ov.classList.remove('show');
+                document.body.style.overflow = '';
+                return;
+            }
+            const open = sb.classList.toggle('open');
+            ov.classList.toggle('show', open);
+            // evita scroll do fundo no telemóvel com menu aberto
+            document.body.style.overflow = open ? 'hidden' : '';
         }
 
         function getInvoicesStore() {
