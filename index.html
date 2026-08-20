@@ -760,6 +760,55 @@
             height: 28px; width: auto; max-width: 180px; object-fit: contain;
         }
 
+
+        /* ===== MOBILE SIDEBAR — legível e opaco ===== */
+        @media (max-width: 1023px) {
+            #sidebar.sidebar {
+                background: #0D1116 !important;
+                background-image: none !important;
+                opacity: 1 !important;
+                filter: none !important;
+                -webkit-backdrop-filter: none !important;
+                backdrop-filter: none !important;
+                transform: translateZ(0);
+                isolation: isolate;
+                color: #F2F4F5 !important;
+            }
+            #sidebar .nav-item {
+                color: #C8D0D8 !important;
+                opacity: 1 !important;
+                filter: none !important;
+            }
+            #sidebar .nav-item span,
+            #sidebar .nav-item i {
+                color: inherit !important;
+                opacity: 1 !important;
+            }
+            #sidebar .nav-item.active {
+                color: #FFD8AD !important;
+            }
+            #sidebar .nav-section-label {
+                color: #8B949D !important;
+                opacity: 1 !important;
+            }
+            #sidebar .brand-sub {
+                color: #8B949D !important;
+            }
+            /* Overlay sem blur excessivo (desfocava o menu em alguns browsers) */
+            .sidebar-overlay {
+                background: rgba(0, 0, 0, 0.72) !important;
+                -webkit-backdrop-filter: none !important;
+                backdrop-filter: none !important;
+            }
+            /* Garantir que a sidebar está acima do overlay */
+            #sidebar.sidebar.open {
+                z-index: 90 !important;
+            }
+            .sidebar-overlay.show {
+                z-index: 85 !important;
+            }
+        }
+
     </style>
 </head>
 <body class="min-h-screen antialiased overflow-hidden">
@@ -858,7 +907,7 @@
                     <div class="live-dot"></div>
                     <div>
                         <div class="text-[11px] font-semibold text-emerald-400">Supabase Live</div>
-                        <div class="text-[10px] text-slate-500">v3.5.2 · Mobile fix + email teste</div>
+                        <div class="text-[10px] text-slate-500">v3.5.3 · Menu legível + Gmail SMTP</div>
                     </div>
                 </div>
             </div>
