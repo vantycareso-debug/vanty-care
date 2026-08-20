@@ -2,7 +2,7 @@
 <html lang="pt">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Vanty Care — Gestão Global de Garantias</title>
     <link rel="icon" type="image/png" href="vanty-favicon.png">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -824,16 +824,25 @@
             }
         }
 
-        /* Header quick actions + safe area registo */
+        /* Header quick actions + safe area registo (Samsung nav bar) */
+        .submit-nav-spacer {
+            height: 0;
+        }
         @media (max-width: 1023px) {
             #panel-registar {
-                padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
+                /* espaço para botão sticky + barra 3 botões Samsung (~48–56px) */
+                padding-bottom: calc(6.5rem + env(safe-area-inset-bottom, 0px));
             }
             #panel-registar .card {
-                padding-bottom: 0.5rem;
+                padding-bottom: 0.25rem;
             }
             #submitBar {
-                margin-top: 0.5rem;
+                margin-top: 0.75rem;
+                padding-bottom: 0 !important;
+            }
+            .submit-nav-spacer {
+                /* fallback forte quando safe-area não reporta na Samsung */
+                height: max(52px, calc(env(safe-area-inset-bottom, 0px) + 36px));
             }
             main .overflow-y-auto,
             .flex-1.overflow-y-auto {
@@ -940,7 +949,7 @@
                     <div class="live-dot"></div>
                     <div>
                         <div class="text-[11px] font-semibold text-emerald-400">Supabase Live</div>
-                        <div class="text-[10px] text-slate-500">v3.5.5 · Atalhos + & cartões</div>
+                        <div class="text-[10px] text-slate-500">v3.5.6 · Safe area Samsung</div>
                     </div>
                 </div>
             </div>
@@ -1162,10 +1171,12 @@
                                     <p class="text-[10px] text-slate-600 mt-1">O SN não é extraído da fatura — use a foto da etiqueta do equipamento.</p>
                                 </div>
                                 <div class="h-2 sm:h-0"></div>
-                                <div id="submitBar" class="sticky bottom-0 z-20 -mx-1 px-1 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-gradient-to-t from-[#0a0d11] via-[#0a0d11]/95 to-transparent">
+                                <div id="submitBar" class="sticky bottom-0 z-20 -mx-1 px-1 pt-4 bg-gradient-to-t from-[#0a0d11] from-40% via-[#0a0d11]/95 to-transparent">
                                     <button type="submit" id="submitBtn" class="btn-vanty w-full p-3.5 rounded-xl flex items-center justify-center gap-2 text-sm shadow-lg shadow-orange-500/20">
                                         <i class="fa-solid fa-floppy-disk"></i> Guardar Garantia & Fatura
                                     </button>
+                                    <!-- espaço extra p/ barra de navegação Samsung / Android -->
+                                    <div class="submit-nav-spacer" aria-hidden="true"></div>
                                 </div>
                             </form>
                         </div>
@@ -3139,6 +3150,7 @@
             if (id === 'rma') { renderRmaFeed(); renderPartnersFeed(); }
             if (id === 'arquivo') renderArchiveFeed();
             if (id === 'cartoes') renderLoyaltyCards();
+            if (id === 'registar') setTimeout(adjustSubmitNavSpacer, 50);
         }
 
         // ---------- CARTÕES DE FIDELIZAÇÃO ----------
@@ -5179,6 +5191,27 @@ ${addr}`;
         document.getElementById('rmaModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeRmaModal(); });
         document.getElementById('invoiceModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeInvoiceModal(); });
         document.getElementById('productDetailModal').addEventListener('click', e => { if (e.target === e.currentTarget) closeProductDetail(); });
+
+
+        // Ajuste fino botão Guardar vs barra de navegação Android/Samsung
+        function adjustSubmitNavSpacer() {
+            const sp = document.querySelector('.submit-nav-spacer');
+            if (!sp) return;
+            let extra = 52;
+            try {
+                if (window.visualViewport) {
+                    const gap = window.innerHeight - window.visualViewport.height - (window.visualViewport.offsetTop || 0);
+                    if (gap > 0) extra = Math.max(52, Math.round(gap) + 12);
+                }
+            } catch (_) {}
+            sp.style.height = extra + 'px';
+        }
+        window.addEventListener('resize', adjustSubmitNavSpacer);
+        if (window.visualViewport) {
+            window.visualViewport.addEventListener('resize', adjustSubmitNavSpacer);
+            window.visualViewport.addEventListener('scroll', adjustSubmitNavSpacer);
+        }
+        document.addEventListener('DOMContentLoaded', adjustSubmitNavSpacer);
 
         renderProfile();
         initAuth().then(() => loadProducts());
