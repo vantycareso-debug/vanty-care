@@ -798,7 +798,7 @@
                     <div class="live-dot"></div>
                     <div>
                         <div class="text-[11px] font-semibold text-emerald-400">Supabase Live</div>
-                        <div class="text-[10px] text-slate-500">v3.0 · Assistência + Arquivo</div>
+                        <div class="text-[10px] text-slate-500">v3.5 · Email automático</div>
                     </div>
                 </div>
             </div>
@@ -1398,6 +1398,7 @@
             <div class="bg-[#0a0a0b]/70 p-4 rounded-xl border border-white/[0.05] text-xs space-y-2.5">
                 <div class="flex justify-between border-b border-white/[0.04] pb-2"><span class="text-slate-500">Titular</span><span class="font-semibold text-slate-200" id="rmaModalUser">—</span></div>
                 <div class="flex justify-between border-b border-white/[0.04] pb-2"><span class="text-slate-500">Equipamento</span><span class="font-bold text-orange-400" id="rmaModalProduct">—</span></div>
+                <div class="flex justify-between border-b border-white/[0.04] pb-2"><span class="text-slate-500">Marca</span><span class="font-bold text-white" id="rmaModalBrand">—</span></div>
                 <div class="flex justify-between border-b border-white/[0.04] pb-2"><span class="text-slate-500">Loja</span><span class="font-medium text-slate-200" id="rmaModalStore">—</span></div>
                 <div class="flex justify-between border-b border-white/[0.04] pb-2"><span class="text-slate-500">Nº de Série</span><span class="font-mono text-slate-300" id="rmaModalSerial">—</span></div>
                 <div class="flex justify-between items-center pt-1"><span class="text-slate-500">Prova de Compra</span>
@@ -2177,7 +2178,566 @@
             { id: 'gaming', label: 'Gaming / Consolas', re: /playstation|xbox|nintendo|switch|consola|joystick|gaming|gpu|placa\s*gr[aá]fica|ps[45]\b/i }
         ];
 
+
+
+
+        /**
+         * Diretório de marcas × país
+         * Fonte PT: lista operacional do utilizador (assistência real)
+         * contact: email | URL | type
+         * Em produção → tabela Supabase marcas_suporte
+         */
+        const BRAND_DIRECTORY = {
+            'Samsung': {
+                detect: /\bsamsung\b|\bgalaxy\b/i,
+                support: {
+                    PT: { contact: 'sep.contactus@samsung.com', type: 'email', phone: '210 608 098', home_service: true, notes: 'Geral; mobile: suporte.mobile@decsis.pt · 212 555 500; domésticos: hhp.samsung@mavideo.pt' },
+                    ES: { contact: 'https://www.samsung.com/es/support/', type: 'url', home_service: true },
+                    FR: { contact: 'https://www.samsung.com/fr/support/', type: 'url', home_service: true },
+                    DE: { contact: 'https://www.samsung.com/de/support/', type: 'url', home_service: true },
+                    US: { contact: 'https://www.samsung.com/us/support/', type: 'url', home_service: true }
+                }
+            },
+            'LG': {
+                detect: /\blg\b/i,
+                support: {
+                    PT: { contact: 'pt.cic@lge.com', type: 'email', phone: '808 785 454', home_service: true },
+                    ES: { contact: 'https://www.lg.com/es/support', type: 'url', home_service: true },
+                    FR: { contact: 'https://www.lg.com/fr/support', type: 'url', home_service: true },
+                    DE: { contact: 'https://www.lg.com/de/support', type: 'url', home_service: true }
+                }
+            },
+            'Sony': {
+                detect: /\bsony\b|\bbravia\b/i,
+                support: {
+                    PT: { contact: 'cic.portugal@eu.sony.com', type: 'email', phone: '808 200 185', home_service: true },
+                    ES: { contact: 'https://www.sony.es/electronics/support', type: 'url', home_service: true }
+                }
+            },
+            'PlayStation': {
+                detect: /\bplaystation\b|\bps[45]\b/i,
+                support: {
+                    PT: { contact: 'cic.portugal@eu.sony.com', type: 'email', phone: '211 121 813', home_service: false }
+                }
+            },
+            'Apple': {
+                detect: /\bapple\b|\biphone\b|\bipad\b|\bmacbook\b|\bairpods\b/i,
+                support: {
+                    PT: { contact: 'https://getsupport.apple.com', type: 'url', home_service: false },
+                    ES: { contact: 'https://getsupport.apple.com', type: 'url', home_service: false },
+                    US: { contact: 'https://getsupport.apple.com', type: 'url', home_service: false }
+                }
+            },
+            'Xiaomi': {
+                detect: /\bxiaomi\b|\bredmi\b|\bpoco\b/i,
+                support: {
+                    PT: { contact: 'care.xiaomi@tamet.pt', type: 'email', phone: '707 201 516', home_service: false }
+                }
+            },
+            'TP-Link': {
+                detect: /\btp[\s.\-]*link\b|\btapo\b/i,
+                support: {
+                    PT: { contact: 'support.pt@tp-link.com', type: 'email', home_service: false },
+                    ES: { contact: 'support.es@tp-link.com', type: 'email', home_service: false }
+                }
+            },
+            'Bosch': {
+                detect: /\bbosch\b/i,
+                support: {
+                    PT: { contact: 'bshp.reparacao@bshg.com', type: 'email', home_service: true, notes: 'Esquentadores: assistencia.tecnica@pt.bosch.com · 808 275 325' },
+                    ES: { contact: 'https://www.bosch-home.es/servicio-al-cliente', type: 'url', home_service: true }
+                }
+            },
+            'Siemens': {
+                detect: /\bsiemens\b/i,
+                support: {
+                    PT: { contact: 'bshp.reparacao@bshg.com', type: 'email', phone: '707 500 545', home_service: true }
+                }
+            },
+            'Junkers': {
+                detect: /\bjunkers\b/i,
+                support: {
+                    PT: { contact: 'assistencia.tecnica@pt.bosch.com', type: 'email', phone: '808 234 212', home_service: true }
+                }
+            },
+            'Neckar': {
+                detect: /\bneckar\b/i,
+                support: {
+                    PT: { contact: 'assistencia.tecnica@pt.bosch.com', type: 'email', phone: '808 234 212', home_service: true }
+                }
+            },
+            'Whirlpool': {
+                detect: /\bwhirlpool\b|\bwhirpool\b|\bhotpoint\b/i,
+                support: {
+                    PT: { contact: 'atencao_ao_cliente@whirlpool.com', type: 'email', phone: '707 203 204', home_service: true, notes: 'Alt. 217 234 756 · agendar: whirlpool.pt/suporte ou whirlpoolservice.pt · grupo Beko Europe' }
+                }
+            },
+            'Indesit': {
+                detect: /\bindesit\b/i,
+                support: {
+                    PT: { contact: 'atencao_ao_cliente@whirlpool.com', type: 'email', phone: '707 203 204', home_service: true, notes: 'Mesma linha Whirlpool/Beko Europe · 217 234 756 · indesit.pt/suporte · antigo interventions.portugal@indesit.com provavelmente descontinuado' }
+                }
+            },
+            'Hotpoint': {
+                detect: /\bhotpoint\b/i,
+                support: {
+                    PT: { contact: 'atencao_ao_cliente@whirlpool.com', type: 'email', phone: '707 203 204', home_service: true, notes: 'Beko Europe Iberia · mesma linha Whirlpool/Indesit' }
+                }
+            },
+            'Ariston': {
+                detect: /\bariston\b/i,
+                support: {
+                    PT: { contact: 'https://www.ariston.com/pt-pt/contactos/', type: 'url', phone: '219 605 300', home_service: true, notes: 'Ariston Group (água/clima/caldeiras) — canal oficial distinto do Indesit/Whirlpool eletrodomésticos' }
+                }
+            },
+            'AEG': {
+                detect: /\baeg\b/i,
+                support: {
+                    PT: { contact: 'rma.pt@electrolux.com', type: 'email', phone: '21 030 42 61', home_service: true }
+                }
+            },
+            'Electrolux': {
+                detect: /\belectrolux\b|\beletrolux\b/i,
+                support: {
+                    PT: { contact: 'rma.pt@electrolux.com', type: 'email', phone: '21 030 42 61', home_service: true, notes: 'Peq. domésticos: www.electromaquinas.pt · 234 302 200' }
+                }
+            },
+            'Candy': {
+                detect: /\bcandy\b/i,
+                support: {
+                    PT: { contact: 'service.portugal@candy-hoover.com', type: 'email', phone: '707 200 188', home_service: true }
+                }
+            },
+            'Hoover': {
+                detect: /\bhoover\b/i,
+                support: {
+                    PT: { contact: 'service.portugal@candy-hoover.com', type: 'email', phone: '707 200 188', home_service: true }
+                }
+            },
+            'Beko': {
+                detect: /\bbeko\b/i,
+                support: {
+                    PT: { contact: 'apoiotecnicoportugal@beko.com', type: 'email', phone: '707 203 204', home_service: true, notes: 'Alt. 217 234 799 · beko.care@beko.com · antigo apoiobeko@connecta.pt / 707 014 192 ainda referido em alguns fluxos' }
+                }
+            },
+            'HP': {
+                detect: /\bhp\b|\bhewlett\b/i,
+                support: {
+                    PT: { contact: 'https://support.hp.com/pt-pt', type: 'url', phone: '210 608 027', home_service: false },
+                    ES: { contact: 'https://support.hp.com/es-es', type: 'url', home_service: false }
+                }
+            },
+            'Dell': {
+                detect: /\bdell\b|\binspiron\b|\bxps\b/i,
+                support: {
+                    PT: { contact: 'https://www.dell.com/support', type: 'url', home_service: false }
+                }
+            },
+            'Lenovo': {
+                detect: /\blenovo\b|\bthinkpad\b|\bideapad\b/i,
+                support: {
+                    PT: { contact: 'lenovo@enametech.com', type: 'email', phone: '707 500 137', home_service: false }
+                }
+            },
+            'Asus': {
+                detect: /\basus\b|\brog\b/i,
+                support: {
+                    PT: { contact: 'https://www.asus.com/pt/support/', type: 'url', phone: '211 451 758', home_service: false }
+                }
+            },
+            'Acer': {
+                detect: /\bacer\b/i,
+                support: {
+                    PT: { contact: 'https://www.acer.com/ac/pt/PT/content/support', type: 'url', phone: '808 300 011', home_service: false }
+                }
+            },
+            'Philips': {
+                detect: /\bphilips\b/i,
+                support: {
+                    PT: { contact: 'https://www.philips.pt/c-w/support-home.html', type: 'url', phone: '800 780 903', home_service: true, notes: 'SAT: satman@mail.telepac.pt · ASO: aso@aso.pt' }
+                }
+            },
+            'Hisense': {
+                detect: /\bhisense\b/i,
+                support: {
+                    PT: { contact: 'atencaoaocliente@hisenseiberia.com', type: 'email', phone: '707 780 368', home_service: true }
+                }
+            },
+            'Toshiba': {
+                detect: /\btoshiba\b|\btoshiva\b/i,
+                support: {
+                    PT: { contact: 'support.pt@toshiba-tv.com', type: 'email', phone: '707 502 247', home_service: true, notes: 'Alt: vestel@enametech.com · suporte@toshiva.pt' }
+                }
+            },
+            'Hitachi': {
+                detect: /\bhitachi\b/i,
+                support: {
+                    PT: { contact: 'vestel@enametech.com', type: 'email', phone: '300 527 427', home_service: true }
+                }
+            },
+            'Nintendo': {
+                detect: /\bnintendo\b|\bswitch\b/i,
+                support: {
+                    PT: { contact: 'sap@nintendo.pt', type: 'email', phone: '211 129 515', home_service: false }
+                }
+            },
+            'Xbox': {
+                detect: /\bxbox\b/i,
+                support: {
+                    PT: { contact: 'https://support.xbox.com', type: 'url', phone: '214 154 303', home_service: false }
+                }
+            },
+            'Microsoft': {
+                detect: /\bmicrosoft\b|\bsurface\b/i,
+                support: {
+                    PT: { contact: 'https://support.microsoft.com', type: 'url', home_service: false }
+                }
+            },
+            'Epson': {
+                detect: /\bepson\b/i,
+                support: {
+                    PT: { contact: 'https://www.epson.pt/support', type: 'url', phone: '707 222 000', home_service: false }
+                }
+            },
+            'Brother': {
+                detect: /\bbrother\b/i,
+                support: {
+                    PT: { contact: 'https://support.brother.com', type: 'url', phone: '214 254 450', home_service: false }
+                }
+            },
+            'BenQ': {
+                detect: /\bbenq\b/i,
+                support: {
+                    PT: { contact: 'https://www.benq.eu/pt-pt/support.html', type: 'url', phone: '213 164 113', home_service: false }
+                }
+            },
+            'Fujitsu': {
+                detect: /\bfujitsu\b/i,
+                support: {
+                    PT: { contact: 'https://www.fujitsu.com/pt/support/', type: 'url', phone: '210 114 149', home_service: false }
+                }
+            },
+            'Delba': {
+                detect: /\bdelba\b/i,
+                support: {
+                    PT: { contact: 'sacrofil@gmail.com', type: 'email', phone: '256 834 193', home_service: true, notes: 'encomendas@sacrofil.pt' }
+                }
+            },
+            'Flama': {
+                detect: /\bflama\b/i,
+                support: {
+                    PT: { contact: 'sat@flama.pt', type: 'email', phone: '256 850 170', home_service: true }
+                }
+            },
+            'Teka': {
+                detect: /\bteka\b/i,
+                support: {
+                    PT: { contact: 'sat@teka.pt', type: 'email', phone: '234 329 518', home_service: true }
+                }
+            },
+            'Meireles': {
+                detect: /\bmeireles\b/i,
+                support: {
+                    PT: { contact: 'geral@meireles.pt', type: 'email', phone: '808 200 426', home_service: true }
+                }
+            },
+            'Nardi': {
+                detect: /\bnardi\b/i,
+                support: {
+                    PT: { contact: 'geral@meireles.pt', type: 'email', phone: '808 200 426', home_service: true }
+                }
+            },
+            'Cata': {
+                detect: /\bcata\b/i,
+                support: {
+                    PT: { contact: 'junis@junis.pt', type: 'email', phone: '214 349 771', home_service: true }
+                }
+            },
+            'Orima': {
+                detect: /\borima\b/i,
+                support: {
+                    PT: { contact: 'assistencia@orima.pt', type: 'email', phone: '226 003 775', home_service: true }
+                }
+            },
+            'Edesa': {
+                detect: /\bedesa\b/i,
+                support: {
+                    PT: { contact: 'sategaia@sategaia.pt', type: 'email', phone: '225 099 124', home_service: true }
+                }
+            },
+            'Fagor': {
+                detect: /\bfagor\b/i,
+                support: {
+                    PT: { contact: 'sategaia@sategaia.pt', type: 'email', phone: '225 099 124', home_service: true }
+                }
+            },
+            'Daitsu': {
+                detect: /\bdaitsu\b/i,
+                support: {
+                    PT: { contact: 'atecnica@sorefoz.pt', type: 'email', phone: '233 401 916', home_service: true, notes: 'geral@servitis.pt' }
+                }
+            },
+            'Daikin': {
+                detect: /\bdaikin\b/i,
+                support: {
+                    PT: { contact: 'https://www.daikin.pt/pt_pt/clientes/suporte.html', type: 'url', home_service: true }
+                }
+            },
+            'Airlux': {
+                detect: /\bairlux\b/i,
+                support: {
+                    PT: { contact: 'sat@glem.pt', type: 'email', phone: '224 119 686', home_service: true }
+                }
+            },
+            'Delta Q': {
+                detect: /\bdelta\s*q\b|\bdeltaq\b/i,
+                support: {
+                    PT: { contact: 'clientes.retail@mydeltaq.com', type: 'email', phone: '219 169 240', home_service: false }
+                }
+            },
+            'Kenwood': {
+                detect: /\bkenwood\b/i,
+                support: {
+                    PT: { contact: 'rochasom@netcabo.pt', type: 'email', phone: '225 107 313', home_service: false }
+                }
+            },
+            'Rowenta': {
+                detect: /\browenta\b/i,
+                support: {
+                    PT: { contact: 'tvprincipe@tvprincipe.com.pt', type: 'email', phone: '227 312 438', home_service: false }
+                }
+            },
+            'Remington': {
+                detect: /\bremington\b/i,
+                support: {
+                    PT: { contact: 'remington@asgaard.pt', type: 'email', phone: '21 412 02 70', home_service: false }
+                }
+            },
+            'Russell Hobbs': {
+                detect: /\brussell[\s\-]*hobbs\b/i,
+                support: {
+                    PT: { contact: 'russellhobbs@asgaard.pt', type: 'email', phone: '21 412 0270', home_service: false }
+                }
+            },
+            'NGS': {
+                detect: /\bngs\b/i,
+                support: {
+                    PT: { contact: 'support@ngs.eu', type: 'email', home_service: false }
+                }
+            },
+            'SPC': {
+                detect: /\bspc\b/i,
+                support: {
+                    PT: { contact: 'support@spc-universe.com', type: 'email', phone: '707 201 553', home_service: false, notes: 'TAMET: suportespc@tamet.pt · doa.pt@spc-universe.com' }
+                }
+            },
+            'Wiko': {
+                detect: /\bwiko\b/i,
+                support: {
+                    PT: { contact: 'suportewiko@tamet.pt', type: 'email', phone: '707 201 553', home_service: false }
+                }
+            },
+            'Maxcom': {
+                detect: /\bmaxcom\b/i,
+                support: {
+                    PT: { contact: 'maxcom.pt@tamet.pt', type: 'email', phone: '707 201 516', home_service: false }
+                }
+            },
+            'Prixton': {
+                detect: /\bprixton\b/i,
+                support: {
+                    PT: { contact: 'sat@prixton.com', type: 'email', home_service: false }
+                }
+            },
+            'Primux': {
+                detect: /\bprimux\b/i,
+                support: {
+                    PT: { contact: 'soporte@primux.es', type: 'email', home_service: false }
+                }
+            },
+            'Infiniton': {
+                detect: /\binfiniton\b/i,
+                support: {
+                    PT: { contact: 'rma@megaexit.com', type: 'email', home_service: true, notes: 'Linha branca: rmablanca@megaexit.com' }
+                }
+            },
+            'TomTom': {
+                detect: /\btomtom\b/i,
+                support: {
+                    PT: { contact: 'https://www.tomtom.com/support/', type: 'url', phone: '808 781 221', home_service: false }
+                }
+            },
+            'Olympus': {
+                detect: /\bolympus\b/i,
+                support: {
+                    PT: { contact: 'https://www.olympus.pt', type: 'url', phone: '707 201 147', home_service: false }
+                }
+            },
+            'Casio': {
+                detect: /\bcasio\b/i,
+                support: {
+                    PT: { contact: 'https://www.casio.com', type: 'url', phone: '232 188 750', home_service: false }
+                }
+            },
+            'Dyson': {
+                detect: /\bdyson\b/i,
+                support: {
+                    PT: { contact: 'https://www.dyson.pt/support', type: 'url', home_service: false }
+                }
+            },
+            'Avenzo': {
+                detect: /\bavenzo\b/i,
+                support: {
+                    PT: { contact: 'sat@avenzo.biz', type: 'email', home_service: false }
+                }
+            },
+            'Bluesens': {
+                detect: /\bbluesens\b/i,
+                support: {
+                    PT: { contact: 'posvenda@bluesens.com', type: 'email', home_service: false }
+                }
+            },
+            'Grunkel': {
+                detect: /\bgrunkel\b/i,
+                support: {
+                    PT: { contact: 'repuestos@cointer.com', type: 'email', home_service: false }
+                }
+            },
+            'Jocca': {
+                detect: /\bjocca\b/i,
+                support: {
+                    PT: { contact: 'jocca@jocca.es', type: 'email', home_service: false }
+                }
+            },
+            'Telefunken': {
+                detect: /\btelefunken\b/i,
+                support: {
+                    PT: { contact: 'geral@lmasp.net', type: 'email', phone: '225 025 742', home_service: true }
+                }
+            },
+            'Confortec': {
+                detect: /\bconfortec\b/i,
+                support: {
+                    PT: { contact: 'geral@lmasp.net', type: 'email', phone: '225 025 742', home_service: true }
+                }
+            },
+            'Friparque': {
+                detect: /\bfriparque\b/i,
+                support: {
+                    PT: { contact: 'assistencias@friparque.pt', type: 'email', phone: '256 839 501', home_service: true }
+                }
+            },
+            'AT Informática': {
+                detect: /\bat\s*informatica\b|\batinformatica\b/i,
+                support: {
+                    PT: { contact: 'pedido@atinformatica.pt', type: 'email', phone: '229 059 999', home_service: false }
+                }
+            },
+            'eMachines': {
+                detect: /\bemachines\b/i,
+                support: {
+                    PT: { contact: 'support_pt@emachines.com', type: 'email', phone: '808 787 800', home_service: false }
+                }
+            },
+            'Loewe': {
+                detect: /\bloewe\b/i,
+                support: {
+                    PT: { contact: 'vpe.lda@netcabo.pt', type: 'email', phone: '229 418 844', home_service: false }
+                }
+            },
+            'SBS': {
+                detect: /\bsbs\b/i,
+                support: {
+                    PT: { contact: 'netbit@netbit.pt', type: 'email', phone: '917 627 863', home_service: false }
+                }
+            },
+            'Streamsystem': {
+                detect: /\bstreamsystem\b/i,
+                support: {
+                    PT: { contact: 'streamsystem@letmerepair.pt', type: 'email', home_service: false }
+                }
+            },
+            'Suprides': {
+                detect: /\bsuprides\b/i,
+                support: {
+                    PT: { contact: 'rma@suprides.pt', type: 'email', phone: '225 072 263', home_service: false }
+                }
+            },
+            'Archos': {
+                detect: /\barchos\b/i,
+                support: {
+                    PT: { contact: 'https://myextranet.archos.com/login', type: 'url', phone: '808 781 104', home_service: false }
+                }
+            },
+            'Energizer': {
+                detect: /\benergizer\b/i,
+                support: {
+                    PT: { contact: 'geral@tametgroup.com', type: 'email', home_service: false }
+                }
+            },
+            'Energy Sistem': {
+                detect: /\benergy\s*sistem\b|\benergysystem\b/i,
+                support: {
+                    PT: { contact: 'garantias@telenets.es', type: 'email', home_service: false }
+                }
+            },
+            'Emtec': {
+                detect: /\bemtec\b/i,
+                support: {
+                    PT: { contact: 'smonteiro@mayro.pt', type: 'email', phone: '21 942 78 30', home_service: false }
+                }
+            },
+            'Manta': {
+                detect: /\bmanta\b/i,
+                support: {
+                    PT: { contact: 'satfiel@satfiel.com', type: 'email', phone: '255 240 299', home_service: false }
+                }
+            },
+            'Groundtec': {
+                detect: /\bgroundtec\b|\blovit\b/i,
+                support: {
+                    PT: { contact: 'geral@groundtec.com.pt', type: 'email', home_service: false }
+                }
+            },
+            'Growing': {
+                detect: /\bgrowing\b/i,
+                support: {
+                    PT: { contact: '808202930@growing.pt', type: 'email', phone: '808 202 930', home_service: false }
+                }
+            },
+            'Crown': {
+                detect: /\bcrown\b/i,
+                support: {
+                    PT: { contact: 'spv.crowneurope@gmail.com', type: 'email', home_service: false }
+                }
+            },
+            'Celly': {
+                detect: /\bcelly\b|\bnilox\b/i,
+                support: {
+                    PT: { contact: 'devoluciones@esprinet.com', type: 'email', home_service: false }
+                }
+            }
+        };
+
+        function detectBrand(name) {
+
+            const n = String(name || '');
+            for (const [id, meta] of Object.entries(BRAND_DIRECTORY)) {
+                if (meta.detect && meta.detect.test(n)) return id;
+            }
+            return null;
+        }
+
+        /** Contacto oficial da marca no país do user (ou fallback EU/PT) */
+        function getBrandSupport(brand, country) {
+            if (!brand || !BRAND_DIRECTORY[brand]) return null;
+            const map = BRAND_DIRECTORY[brand].support || {};
+            const cc = country || (userProfile && userProfile.country) || 'PT';
+            return map[cc] || map['PT'] || map['ES'] || map['US'] || Object.values(map)[0] || null;
+        }
+
         function detectCategory(name) {
+
             const n = String(name || '')
                 .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // remove acentos
                 .replace(/\s+/g, ' ')
@@ -4000,7 +4560,8 @@
                     fim_garantia: fim,
                     preco_com_iva: it.price,
                     numero_serie: i === 0 ? serial : null,
-                    categoria: detectCategory(it.name)
+                    categoria: detectCategory(it.name),
+                    marca: detectBrand(it.name)
                 };
                 if (itemIva != null) record.taxa_iva = itemIva;
                 if (currentUser) record.user_id = currentUser.id;
@@ -4057,23 +4618,51 @@
             activeRmaProduct._in_warranty = inW;
             document.getElementById('rmaModalUser').innerText = `${userProfile.name} (NIF: ${userProfile.nif})`;
             document.getElementById('rmaModalProduct').innerText = activeRmaProduct.nome_produto || 'Produto';
+            const brand = activeRmaProduct.marca || detectBrand(activeRmaProduct.nome_produto) || '—';
+            activeRmaProduct._brand = brand === '—' ? null : brand;
+            const brandEl = document.getElementById('rmaModalBrand');
+            if (brandEl) brandEl.innerText = brand;
             document.getElementById('rmaModalStore').innerText = activeRmaProduct.loja || 'Loja';
             document.getElementById('rmaModalSerial').innerText = activeRmaProduct.numero_serie || 'N/A';
             const banner = document.getElementById('rmaWarrantyBanner');
             const partnersHint = document.getElementById('rmaPartnersHint');
             const submitLabel = document.getElementById('rmaSubmitLabel');
+            const support = brand && brand !== '—' ? getBrandSupport(brand === '—' ? null : brand, userProfile.country) : null;
+            activeRmaProduct._support = support;
             if (inW) {
                 banner.className = 'p-3 rounded-xl text-xs font-semibold border bg-emerald-500/10 border-emerald-500/25 text-emerald-300';
-                banner.innerHTML = '<i class="fa-solid fa-shield-halved mr-1.5"></i> <strong>Em garantia</strong> — pedido formal à marca/loja com prova de compra.';
-                if (partnersHint) partnersHint.classList.add('hidden');
-                if (submitLabel) submitLabel.innerText = 'Enviar à marca / loja';
+                let dest = 'marca/loja';
+                if (support) {
+                    dest = support.type === 'email' ? support.contact : ('portal ' + (activeRmaProduct._brand || brand));
+                    if (support.home_service) dest += ' · domicílio disponível';
+                }
+                banner.innerHTML = '<i class="fa-solid fa-shield-halved mr-1.5"></i> <strong>Em garantia</strong> (' + (userProfile.country || 'PT') + ') → ' + escapeHtml(dest);
+                if (partnersHint) {
+                    if (support) {
+                        partnersHint.classList.remove('hidden');
+                        partnersHint.innerHTML = 'Contacto oficial <strong class="text-slate-200">' + escapeHtml(activeRmaProduct._brand || brand) + '</strong> em <strong class="text-slate-300">' + escapeHtml(userProfile.country || 'PT') + '</strong>: ' + escapeHtml(support.contact) + (support.phone ? ' · Tel. ' + escapeHtml(support.phone) : '');
+                    } else {
+                        partnersHint.classList.add('hidden');
+                    }
+                }
+                if (submitLabel) submitLabel.innerText = support && support.type === 'url' ? 'Abrir suporte da marca' : 'Enviar à marca';
             } else {
                 banner.className = 'p-3 rounded-xl text-xs font-semibold border bg-amber-500/10 border-amber-500/25 text-amber-200';
                 banner.innerHTML = '<i class="fa-solid fa-clock mr-1.5"></i> <strong>Fora de garantia</strong> — encaminhamos para parceiros na tua zona (quando disponíveis).';
                 if (partnersHint) {
                     partnersHint.classList.remove('hidden');
                     const zone = userProfile.zone || 'a tua zona';
-                    partnersHint.innerHTML = 'Parceiros sugeridos para <strong class="text-slate-300">' + escapeHtml(zone) + '</strong> aparecem em Assistência. O pedido fica registado no sistema.';
+                    const b = activeRmaProduct._brand;
+                    const matched = VANTY_PARTNERS.filter(p =>
+                        (!b || p.brands.some(x => x.toLowerCase() === String(b).toLowerCase())) &&
+                        (!userProfile.zone || p.zones.includes(userProfile.zone))
+                    );
+                    partnersHint.innerHTML = b
+                        ? ('Marca <strong class="text-slate-200">' + escapeHtml(b) + '</strong> · zona <strong class="text-slate-300">' + escapeHtml(zone) + '</strong>. '
+                            + (matched.length
+                                ? matched.map(p => escapeHtml(p.name) + ' (' + p.rating + '★)').join(', ')
+                                : 'Sem parceiro validado ainda — regista o pedido na mesma.'))
+                        : ('Parceiros em <strong class="text-slate-300">' + escapeHtml(zone) + '</strong> na secção Assistência.');
                 }
                 if (submitLabel) submitLabel.innerText = 'Registar + contactar assistência';
             }
@@ -4090,38 +4679,264 @@
         }
         function closeRmaModal() { document.getElementById('rmaModal').classList.add('hidden'); document.getElementById('rmaDescription').value = ''; }
 
-        function sendRmaEmail() {
-            const desc = document.getElementById('rmaDescription').value.trim();
-            if (!desc) { showToast('Descreva o problema do equipamento.', 'RMA', 'warn'); return; }
+
+
+        function dataUrlToFile(dataUrl, filename) {
+            try {
+                const parts = String(dataUrl).split(',');
+                const mime = (parts[0].match(/:(.*?);/) || [])[1] || 'application/octet-stream';
+                const bin = atob(parts[1] || '');
+                const arr = new Uint8Array(bin.length);
+                for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+                return new File([arr], filename, { type: mime });
+            } catch (e) {
+                console.warn('dataUrlToFile', e);
+                return null;
+            }
+        }
+
+        function buildAssistEmailPayload(desc) {
             const receipt = getInvoice(activeRmaProduct.id);
-            const storeSlug = (activeRmaProduct.loja || 'loja').toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '');
-            const subject = encodeURIComponent(`[Assistência Vanty Care] ${activeRmaProduct.nome_produto} — SN: ${activeRmaProduct.numero_serie || 'N/A'}${inW ? ' · EM GARANTIA' : ' · FORA DE GARANTIA'}`);
-            const body = encodeURIComponent(`Exmos. Senhores do Apoio ao Cliente (${activeRmaProduct.loja}),\n\nVenho solicitar a reparação / acionamento de garantia:\n\n• Produto: ${activeRmaProduct.nome_produto}\n• Loja: ${activeRmaProduct.loja}\n• Data de Compra: ${activeRmaProduct.data_compra}\n• Nº de Série: ${activeRmaProduct.numero_serie || 'N/A'}\n• Titular / NIF: ${userProfile.name} (NIF: ${userProfile.nif})\n• Morada (para assistência ao domicílio): ${userProfile.address || 'A indicar'}\n• Email: ${userProfile.email}\n\nDescrição do Defeito:\n${desc}\n\n[PROVA DE COMPRA]: ${receipt ? receipt.name + ' — guardada no Vanty Care' : 'A enviar'}\n\nCom os melhores cumprimentos,\n${userProfile.name}\n${userProfile.email}\n${userProfile.address || ''}`);
             const inW = activeRmaProduct._in_warranty !== false && isProductInWarranty(activeRmaProduct);
+            const brand = activeRmaProduct._brand || detectBrand(activeRmaProduct.nome_produto);
+            const support = getBrandSupport(brand, userProfile.country) || activeRmaProduct._support;
+            const storeSlug = (activeRmaProduct.loja || 'loja').toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9]/g, '');
+            const addr = [userProfile.address, userProfile.postal_code, userProfile.locality].filter(Boolean).join(', ') || 'A indicar';
+            const country = userProfile.country || 'PT';
+            const hasInvoice = !!(receipt && receipt.data);
+            const invoiceName = hasInvoice
+                ? (receipt.name || (`fatura_${String(activeRmaProduct.nome_produto || 'produto').slice(0, 40).replace(/[^\w.\-]+/g, '_')}.pdf`))
+                : null;
+
+            let to = `suporte@${storeSlug || 'loja'}.pt`;
+            if (inW && support && support.type === 'email' && support.contact) {
+                to = support.contact;
+            }
+
+            const subject =
+                `[Assistência Vanty Care] ${activeRmaProduct.nome_produto || 'Produto'}` +
+                (brand ? ` · ${brand}` : '') +
+                ` — SN: ${activeRmaProduct.numero_serie || 'N/A'}` +
+                (inW ? ' · EM GARANTIA' : ' · FORA DE GARANTIA');
+
+            const destLabel = inW
+                ? (brand ? `Apoio ao Cliente ${brand}` : `Apoio (${activeRmaProduct.loja || 'loja'})`)
+                : `Assistência técnica${brand ? ' ' + brand : ''}`;
+
+            const text =
+`Exmos. Senhores (${destLabel}),
+
+Venho solicitar assistência técnica via Vanty Care:
+
+• Produto: ${activeRmaProduct.nome_produto || '—'}
+• Marca: ${brand || 'A confirmar'}
+• Loja de compra: ${activeRmaProduct.loja || '—'}
+• Data de compra: ${activeRmaProduct.data_compra || '—'}
+• Fim de garantia: ${activeRmaProduct.fim_garantia || '—'}
+• Estado: ${inW ? 'EM GARANTIA legal' : 'FORA DE GARANTIA'}
+• Nº de série: ${activeRmaProduct.numero_serie || 'N/A'}
+• Titular / NIF: ${userProfile.name} (NIF: ${userProfile.nif})
+• País: ${country}
+• Morada: ${addr}
+• Email do cliente: ${userProfile.email || '—'}
+
+Descrição do problema:
+${desc}
+
+${hasInvoice
+  ? `[PROVA DE COMPRA]: em anexo — ${invoiceName}`
+  : '[PROVA DE COMPRA]: não encontrada no sistema — cliente enviará em seguida'}
+
+—
+Enviado automaticamente pelo Vanty Care Warranty OS
+${userProfile.name || ''}
+${userProfile.email || ''}
+${addr}`;
+
+            const html = `<div style="font-family:system-ui,sans-serif;font-size:14px;line-height:1.5;color:#111">
+<p>Exmos. Senhores (<strong>${escapeHtml(destLabel)}</strong>),</p>
+<p>Venho solicitar assistência técnica via <strong>Vanty Care</strong>:</p>
+<ul>
+<li><strong>Produto:</strong> ${escapeHtml(activeRmaProduct.nome_produto || '—')}</li>
+<li><strong>Marca:</strong> ${escapeHtml(brand || 'A confirmar')}</li>
+<li><strong>Loja:</strong> ${escapeHtml(activeRmaProduct.loja || '—')}</li>
+<li><strong>Data compra:</strong> ${escapeHtml(String(activeRmaProduct.data_compra || '—'))}</li>
+<li><strong>Fim garantia:</strong> ${escapeHtml(String(activeRmaProduct.fim_garantia || '—'))}</li>
+<li><strong>Estado:</strong> ${inW ? 'EM GARANTIA legal' : 'FORA DE GARANTIA'}</li>
+<li><strong>Nº série:</strong> ${escapeHtml(activeRmaProduct.numero_serie || 'N/A')}</li>
+<li><strong>Titular / NIF:</strong> ${escapeHtml(userProfile.name)} (NIF: ${escapeHtml(userProfile.nif)})</li>
+<li><strong>País:</strong> ${escapeHtml(country)}</li>
+<li><strong>Morada:</strong> ${escapeHtml(addr)}</li>
+<li><strong>Email cliente:</strong> ${escapeHtml(userProfile.email || '—')}</li>
+</ul>
+<p><strong>Descrição do problema:</strong><br>${escapeHtml(desc).replace(/\n/g, '<br>')}</p>
+<p>${hasInvoice
+  ? `<strong>Prova de compra:</strong> em anexo — ${escapeHtml(invoiceName)}`
+  : '<em>Prova de compra não encontrada no sistema.</em>'}</p>
+<hr>
+<p style="color:#666;font-size:12px">Enviado automaticamente pelo Vanty Care Warranty OS</p>
+</div>`;
+
+            return {
+                to, subject, text, html, inW, brand, support, hasInvoice, invoiceName, receipt,
+                meta: {
+                    user_id: currentUser?.id || null,
+                    produto_id: String(activeRmaProduct.id).startsWith('local_') ? null : activeRmaProduct.id,
+                    produto_nome: activeRmaProduct.nome_produto,
+                    loja: activeRmaProduct.loja,
+                    descricao: desc
+                }
+            };
+        }
+
+        async function sendAssistViaEdge(payload) {
+            // Requer function deployada + RESEND_API_KEY
+            const url = `${SUPABASE_URL}/functions/v1/send-assistencia`;
+            const headers = {
+                'Content-Type': 'application/json',
+                apikey: SUPABASE_KEY,
+            };
+            if (currentUser) {
+                const { data } = await supabaseClient.auth.getSession();
+                const token = data?.session?.access_token;
+                if (token) headers.Authorization = `Bearer ${token}`;
+            } else {
+                headers.Authorization = `Bearer ${SUPABASE_KEY}`;
+            }
+            const body = {
+                to: payload.to,
+                subject: payload.subject,
+                text: payload.text,
+                html: payload.html,
+                meta: payload.meta,
+            };
+            if (payload.hasInvoice && payload.receipt?.data) {
+                body.attachment_base64 = payload.receipt.data;
+                body.attachment_filename = payload.invoiceName;
+                body.attachment_mime = payload.receipt.type || 'application/pdf';
+            }
+            const res = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body) });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                const msg = data.error || data.message || `HTTP ${res.status}`;
+                const err = new Error(msg);
+                err.status = res.status;
+                err.data = data;
+                throw err;
+            }
+            return data;
+        }
+
+        async function sendRmaEmail() {
+            const desc = document.getElementById('rmaDescription').value.trim();
+            if (!desc) { showToast('Descreve o problema do equipamento.', 'Assistência', 'warn'); return; }
+            if (!activeRmaProduct) return;
+
+            const payload = buildAssistEmailPayload(desc);
+            const btn = document.getElementById('rmaSubmitBtn');
+            const prevHtml = btn ? btn.innerHTML : '';
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> A enviar…';
+            }
+
+            // Registo local sempre
             saveRmaLocal({
                 id: 'rma_' + Date.now(),
                 produto_id: activeRmaProduct.id,
                 produto_nome: activeRmaProduct.nome_produto,
+                marca: payload.brand || null,
                 loja: activeRmaProduct.loja,
                 descricao: desc,
                 estado: 'aberto',
-                in_warranty: inW,
+                in_warranty: payload.inW,
+                has_invoice: payload.hasInvoice,
                 created_at: new Date().toISOString()
             });
-            if (currentUser) {
-                supabaseClient.from('rma_pedidos').insert([{
-                    user_id: currentUser.id,
-                    produto_id: String(activeRmaProduct.id).startsWith('local_') ? null : activeRmaProduct.id,
-                    produto_nome: activeRmaProduct.nome_produto,
-                    loja: activeRmaProduct.loja,
-                    descricao: desc,
-                    estado: 'aberto'
-                }]).then(({ error }) => { if (error) console.warn('RMA cloud:', error.message); });
+
+            try {
+                // Portal URL da marca (sem email) → descarrega fatura + abre portal
+                if (payload.inW && payload.support && payload.support.type === 'url') {
+                    if (payload.hasInvoice) {
+                        const a = document.createElement('a');
+                        a.href = payload.receipt.data;
+                        a.download = payload.invoiceName;
+                        a.click();
+                    }
+                    window.open(payload.support.contact, '_blank');
+                    showToast(
+                        'Pedido registado.\n' +
+                        (payload.hasInvoice ? 'Fatura descarregada para anexar no portal.\n' : '') +
+                        'Abrimos o suporte oficial da marca.',
+                        'Assistência',
+                        'success'
+                    );
+                    closeRmaModal();
+                    renderRmaFeed();
+                    return;
+                }
+
+                // Envio automático (Edge + Resend)
+                const result = await sendAssistViaEdge(payload);
+                showToast(
+                    'Email enviado automaticamente' +
+                    (result.has_attachment ? ' com a fatura em anexo.' : '.') +
+                    '\nPara: ' + payload.to,
+                    'Assistência enviada',
+                    'success'
+                );
+                closeRmaModal();
+                renderRmaFeed();
+            } catch (err) {
+                console.warn('Envio automático falhou, fallback:', err);
+                // Fallback: partilha / download + mailto
+                let shared = false;
+                if (payload.hasInvoice) {
+                    const file = dataUrlToFile(payload.receipt.data, payload.invoiceName);
+                    if (file && navigator.canShare) {
+                        try {
+                            const shareData = { files: [file], title: payload.subject, text: payload.text };
+                            if (navigator.canShare(shareData)) {
+                                await navigator.share(shareData);
+                                shared = true;
+                            }
+                        } catch (e) {
+                            if (e && e.name === 'AbortError') {
+                                closeRmaModal();
+                                renderRmaFeed();
+                                return;
+                            }
+                        }
+                    }
+                }
+                if (shared) {
+                    showToast('Envio automático indisponível.\nPartilhaste com a fatura em anexo.', 'Fallback', 'warn');
+                } else {
+                    if (payload.hasInvoice) {
+                        const a = document.createElement('a');
+                        a.href = payload.receipt.data;
+                        a.download = payload.invoiceName;
+                        document.body.appendChild(a);
+                        a.click();
+                        a.remove();
+                    }
+                    window.location.href =
+                        `mailto:${encodeURIComponent(payload.to)}?subject=${encodeURIComponent(payload.subject)}&body=${encodeURIComponent(payload.text)}`;
+                    showToast(
+                        'Envio automático ainda não ativo (configura Resend + Edge Function).\n' +
+                        'Abrimos o email' + (payload.hasInvoice ? ' e descarregámos a fatura para anexares.' : '.'),
+                        'Fallback manual',
+                        'warn'
+                    );
+                }
+                closeRmaModal();
+                renderRmaFeed();
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = prevHtml || '<i class="fa-solid fa-paper-plane"></i> Enviar pedido';
+                }
             }
-            window.location.href = `mailto:suporte@${storeSlug}.pt?subject=${subject}&body=${body}`;
-            showToast((inW ? 'Pedido em garantia registado.' : 'Pedido fora de garantia registado.') + '\nA abrir o email…', 'Assistência', 'success');
-            closeRmaModal();
-            renderRmaFeed();
         }
 
         function viewInvoice(productId) {
