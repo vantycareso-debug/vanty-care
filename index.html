@@ -823,6 +823,25 @@
                 backdrop-filter: none !important;
             }
         }
+
+        /* Header quick actions + safe area registo */
+        @media (max-width: 1023px) {
+            #panel-registar {
+                padding-bottom: calc(1.5rem + env(safe-area-inset-bottom, 0px));
+            }
+            #panel-registar .card {
+                padding-bottom: 0.5rem;
+            }
+            #submitBar {
+                margin-top: 0.5rem;
+            }
+            main .overflow-y-auto,
+            .flex-1.overflow-y-auto {
+                padding-bottom: 0.5rem;
+                -webkit-overflow-scrolling: touch;
+            }
+        }
+
     </style>
 </head>
 <body class="min-h-screen antialiased overflow-hidden">
@@ -921,7 +940,7 @@
                     <div class="live-dot"></div>
                     <div>
                         <div class="text-[11px] font-semibold text-emerald-400">Supabase Live</div>
-                        <div class="text-[10px] text-slate-500">v3.5.4 · Menu Android fix</div>
+                        <div class="text-[10px] text-slate-500">v3.5.5 · Atalhos + & cartões</div>
                     </div>
                 </div>
             </div>
@@ -940,8 +959,15 @@
                         <input type="text" id="searchInput" placeholder="Pesquisar garantias…  ·  Ctrl+K" class="bg-transparent text-sm text-slate-300 placeholder-slate-600 w-full focus:outline-none" oninput="filterProducts()">
                     </div>
                 </div>
-                <div class="flex items-center gap-2.5">
-                    <button onclick="loadProducts()" class="w-9 h-9 rounded-lg bg-surface-800 border border-white/[0.05] flex items-center justify-center text-slate-400 hover:text-orange-400 hover:border-orange-500/30 hover:shadow-[0_0_14px_rgba(255,90,0,0.18)] transition-all" title="Atualizar">
+                <div class="flex items-center gap-1.5 sm:gap-2.5">
+                    <button type="button" onclick="switchPanel('registar')" class="w-9 h-9 rounded-lg bg-orange-500/15 border border-orange-500/30 flex items-center justify-center text-orange-400 hover:bg-orange-500/25 hover:border-orange-400/50 hover:shadow-[0_0_14px_rgba(255,90,0,0.25)] transition-all" title="Nova garantia">
+                        <i class="fa-solid fa-plus text-sm"></i>
+                    </button>
+                    <button type="button" onclick="switchPanel('cartoes')" class="w-9 h-9 rounded-lg bg-surface-800 border border-white/[0.05] flex items-center justify-center text-slate-300 hover:text-violet-300 hover:border-violet-500/35 hover:shadow-[0_0_14px_rgba(139,92,246,0.2)] transition-all relative" title="Cartões">
+                        <i class="fa-solid fa-credit-card text-xs"></i>
+                        <span id="headerBadgeCards" class="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-violet-500 text-[9px] font-bold text-white flex items-center justify-center leading-none hidden">0</span>
+                    </button>
+                    <button type="button" onclick="loadProducts()" class="w-9 h-9 rounded-lg bg-surface-800 border border-white/[0.05] flex items-center justify-center text-slate-400 hover:text-orange-400 hover:border-orange-500/30 hover:shadow-[0_0_14px_rgba(255,90,0,0.18)] transition-all" title="Atualizar">
                         <i class="fa-solid fa-rotate-right text-xs"></i>
                     </button>
                     <button id="authHeaderBtn" onclick="openAuthModal()" class="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-surface-800 border border-white/[0.06] text-[11px] font-semibold text-slate-300 hover:text-orange-300 hover:border-orange-500/30 transition-all">
@@ -1135,9 +1161,12 @@
                                     </div>
                                     <p class="text-[10px] text-slate-600 mt-1">O SN não é extraído da fatura — use a foto da etiqueta do equipamento.</p>
                                 </div>
-                                <button type="submit" id="submitBtn" class="btn-vanty w-full p-3.5 rounded-xl flex items-center justify-center gap-2 text-sm">
-                                    <i class="fa-solid fa-floppy-disk"></i> Guardar Garantia & Fatura
-                                </button>
+                                <div class="h-2 sm:h-0"></div>
+                                <div id="submitBar" class="sticky bottom-0 z-20 -mx-1 px-1 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] bg-gradient-to-t from-[#0a0d11] via-[#0a0d11]/95 to-transparent">
+                                    <button type="submit" id="submitBtn" class="btn-vanty w-full p-3.5 rounded-xl flex items-center justify-center gap-2 text-sm shadow-lg shadow-orange-500/20">
+                                        <i class="fa-solid fa-floppy-disk"></i> Guardar Garantia & Fatura
+                                    </button>
+                                </div>
                             </form>
                         </div>
                     </div>
@@ -3137,6 +3166,15 @@
             localStorage.setItem('vanty_loyalty_cards', JSON.stringify(list));
             const badge = document.getElementById('navBadgeCards');
             if (badge) badge.innerText = String(list.length);
+            const hb = document.getElementById('headerBadgeCards');
+            if (hb) {
+                if (list.length > 0) {
+                    hb.classList.remove('hidden');
+                    hb.innerText = String(list.length);
+                } else {
+                    hb.classList.add('hidden');
+                }
+            }
         }
         function togglePinInputVis() {
             const inp = document.getElementById('cardPinInput');
@@ -3218,6 +3256,15 @@
             const list = getLoyaltyCards();
             const badge = document.getElementById('navBadgeCards');
             if (badge) badge.innerText = String(list.length);
+            const hb = document.getElementById('headerBadgeCards');
+            if (hb) {
+                if (list.length > 0) {
+                    hb.classList.remove('hidden');
+                    hb.innerText = String(list.length);
+                } else {
+                    hb.classList.add('hidden');
+                }
+            }
             if (!list.length) {
                 feed.innerHTML = `<div class="card p-10 text-center text-slate-500 text-sm sm:col-span-2 xl:col-span-3">
                     <div class="w-12 h-12 mx-auto rounded-xl bg-violet-500/10 text-violet-400 flex items-center justify-center text-xl mb-3"><i class="fa-solid fa-wallet"></i></div>
@@ -5139,6 +5186,11 @@ ${addr}`;
             const n = getLoyaltyCards().length;
             const b = document.getElementById('navBadgeCards');
             if (b) b.innerText = String(n);
+            const hb = document.getElementById('headerBadgeCards');
+            if (hb) {
+                if (n > 0) { hb.classList.remove('hidden'); hb.innerText = String(n); }
+                else hb.classList.add('hidden');
+            }
         })();
 
         // ===== EMBERS (brasas a subir) =====
