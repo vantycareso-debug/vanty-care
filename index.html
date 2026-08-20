@@ -5,6 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Vanty Care — Gestão Global de Garantias</title>
     <link rel="icon" type="image/png" href="vanty-favicon.png">
+    <link rel="apple-touch-icon" href="vanty-logo-icon.png">
+    <link rel="manifest" href="manifest.webmanifest">
+    <meta name="theme-color" content="#FF5A00">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Vanty Care">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
@@ -533,6 +540,7 @@
         #panel-garantias:not(.panel-hidden),
         #panel-registar:not(.panel-hidden),
         #panel-cartoes:not(.panel-hidden),
+        #panel-assistente:not(.panel-hidden),
         #panel-stats:not(.panel-hidden),
         #panel-perfil:not(.panel-hidden),
         #panel-rma:not(.panel-hidden) {
@@ -851,6 +859,36 @@
             }
         }
 
+
+        .ai-msg { max-width: 95%; }
+        .ai-bot {
+            background: rgba(255,90,0,0.06);
+            border: 1px solid rgba(255,90,0,0.15);
+            border-radius: 12px 12px 12px 4px;
+            padding: 10px 12px;
+        }
+        .ai-user {
+            margin-left: auto;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px 12px 4px 12px;
+            padding: 10px 12px;
+            color: #E8EEF4;
+        }
+        .ai-chip {
+            font-size: 10px; font-weight: 600;
+            padding: 5px 10px; border-radius: 999px;
+            background: #12171D; border: 1px solid #2A3138;
+            color: #A0AAB4; transition: all .15s;
+        }
+        .ai-chip:hover { border-color: rgba(255,90,0,0.4); color: #FFB347; }
+        .ai-rec {
+            margin-top: 8px; padding: 8px 10px;
+            border-radius: 10px; background: rgba(0,0,0,0.25);
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+        .ai-rec strong { color: #FFD8AD; }
+
     </style>
 </head>
 <body class="min-h-screen antialiased overflow-hidden">
@@ -931,6 +969,9 @@
                 <div class="nav-item" data-panel="stats" onclick="switchPanel('stats')">
                     <span class="nav-icon-chip"><i class="fa-solid fa-star-half-stroke"></i></span><span>Estatísticas</span>
                 </div>
+                <div class="nav-item" data-panel="assistente" onclick="switchPanel('assistente')">
+                    <span class="nav-icon-chip"><i class="fa-solid fa-robot"></i></span><span>Assistente AI</span>
+                </div>
                 <div class="nav-item" data-panel="cartoes" onclick="switchPanel('cartoes')">
                     <span class="nav-icon-chip"><i class="fa-solid fa-wallet"></i></span><span>Cartões</span>
                     <span id="navBadgeCards" class="ml-auto text-[10px] font-bold bg-violet-500/15 text-violet-300 px-1.5 py-0.5 rounded-md border border-violet-500/10">0</span>
@@ -949,7 +990,7 @@
                     <div class="live-dot"></div>
                     <div>
                         <div class="text-[11px] font-semibold text-emerald-400">Supabase Live</div>
-                        <div class="text-[10px] text-slate-500">v3.5.6 · Safe area Samsung</div>
+                        <div class="text-[10px] text-slate-500">v3.6 · PWA + Assistente AI</div>
                     </div>
                 </div>
             </div>
@@ -1441,7 +1482,46 @@
                     </div>
                 </div>
 
-                <!-- CARTÕES DE FIDELIZAÇÃO (mini vault) -->
+                
+                <!-- ASSISTENTE AI -->
+                <div id="panel-assistente" class="panel-hidden space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-2">
+                        <div>
+                            <h2 class="text-base font-bold text-white flex items-center gap-2"><i class="fa-solid fa-robot text-orange-400"></i> Assistente AI</h2>
+                            <p class="text-[11px] text-slate-500 mt-1">Pergunta o que comprar — responde com dados reais da comunidade (zona, loja, preço, rating).</p>
+                        </div>
+                        <button type="button" onclick="clearAssistenteChat()" class="text-[11px] text-slate-500 hover:text-orange-300 font-semibold">Limpar chat</button>
+                    </div>
+                    <div class="card p-0 overflow-hidden flex flex-col" style="min-height: min(62vh, 520px); max-height: min(70vh, 640px);">
+                        <div id="aiChatLog" class="flex-1 overflow-y-auto p-4 space-y-3 text-sm">
+                            <div class="ai-msg ai-bot">
+                                <p class="text-[10px] font-bold text-orange-400/90 mb-1">VANTY AI</p>
+                                <p class="text-slate-300 leading-relaxed">Olá. Pergunta por exemplo:</p>
+                                <ul class="mt-2 text-xs text-slate-400 space-y-1 list-disc list-inside">
+                                    <li>«Melhor máquina de roupa na minha zona»</li>
+                                    <li>«Smartphone barato com boas reviews»</li>
+                                    <li>«Onde compraram LG perto de mim»</li>
+                                </ul>
+                                <p class="mt-2 text-[11px] text-slate-500">Uso os registos e avaliações do sistema + a tua zona do perfil. Quanto mais dados, melhores as respostas.</p>
+                            </div>
+                        </div>
+                        <div class="border-t border-white/[0.06] p-3 space-y-2 bg-[#080a0d]/80">
+                            <div class="flex flex-wrap gap-1.5" id="aiSuggestions">
+                                <button type="button" class="ai-chip" onclick="askAssistente('Melhor máquina de roupa na minha zona')">Máquina de roupa</button>
+                                <button type="button" class="ai-chip" onclick="askAssistente('Melhor smartphone com bom rating')">Smartphone</button>
+                                <button type="button" class="ai-chip" onclick="askAssistente('TV com melhor reputação')">TV</button>
+                                <button type="button" class="ai-chip" onclick="askAssistente('O que compraram recentemente na minha zona')">Na minha zona</button>
+                            </div>
+                            <form id="aiChatForm" class="flex gap-2" onsubmit="event.preventDefault(); submitAssistente();">
+                                <input type="text" id="aiChatInput" class="flex-1 input-field p-2.5 text-sm text-white" placeholder="O que queres saber antes de comprar?" autocomplete="off">
+                                <button type="submit" class="btn-vanty px-4 rounded-xl text-sm font-bold shrink-0"><i class="fa-solid fa-paper-plane"></i></button>
+                            </form>
+                        </div>
+                    </div>
+                    <p class="text-[10px] text-slate-600 text-center">Respostas baseadas em dados Vanty Care (não é opinião genérica da internet).</p>
+                </div>
+
+<!-- CARTÕES DE FIDELIZAÇÃO (mini vault) -->
                 <div id="panel-cartoes" class="panel-hidden space-y-4">
                     <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
                         <div>
@@ -3137,8 +3217,156 @@
             }
         }
 
+
+        // ---------- ASSISTENTE AI (dados locais + zona) ----------
+        function initAssistentePanel() {
+            const log = document.getElementById('aiChatLog');
+            if (log && !log.dataset.ready) log.dataset.ready = '1';
+        }
+        function clearAssistenteChat() {
+            const log = document.getElementById('aiChatLog');
+            if (!log) return;
+            log.innerHTML = `<div class="ai-msg ai-bot"><p class="text-[10px] font-bold text-orange-400/90 mb-1">VANTY AI</p><p class="text-slate-300">Chat limpo. Em que te posso ajudar?</p></div>`;
+        }
+        function submitAssistente() {
+            const inp = document.getElementById('aiChatInput');
+            if (!inp) return;
+            const q = inp.value.trim();
+            if (!q) return;
+            inp.value = '';
+            askAssistente(q);
+        }
+        function appendAiMsg(role, html) {
+            const log = document.getElementById('aiChatLog');
+            if (!log) return;
+            const div = document.createElement('div');
+            div.className = 'ai-msg ' + (role === 'user' ? 'ai-user' : 'ai-bot');
+            if (role === 'bot') {
+                div.innerHTML = `<p class="text-[10px] font-bold text-orange-400/90 mb-1">VANTY AI</p>${html}`;
+            } else {
+                div.textContent = html;
+            }
+            log.appendChild(div);
+            log.scrollTop = log.scrollHeight;
+        }
+        function detectIntentCategory(q) {
+            const s = q.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            const map = [
+                ['grandes_eletro', /maquina de (roupa|lavar)|lavar roupa|lava[- ]?loi[cç]a|frigor|congelador|forno|fogao/],
+                ['telemoveis', /smart ?phone|telemovel|telefone|iphone|galaxy|xiaomi|redmi/],
+                ['tvs', /\btv\b|televis|monitor|oled|qled/],
+                ['portateis', /portatil|laptop|notebook|macbook|pc\b/],
+                ['climatizacao', /ar[- ]?cond|climatiz|aquecedor|ventilador/],
+                ['audio', /auscult|auricular|soundbar|coluna|jbl|airpods/],
+                ['pequenos_eletro', /aspirador|micro[- ]?ondas|cafeteira|torradeira|varinha/],
+                ['redes', /router|camara|tapo|tp[- ]?link|wifi/],
+                ['gaming', /consola|playstation|xbox|nintendo|switch/]
+            ];
+            for (const [id, re] of map) if (re.test(s)) return id;
+            return null;
+        }
+        function runLocalAdvisor(question) {
+            const q = String(question || '');
+            const zone = userProfile.zone || '';
+            const locality = userProfile.locality || '';
+            const country = userProfile.country || 'PT';
+            const cat = detectIntentCategory(q);
+            const wantZone = /zona|perto|minha zona|local|cidade|feira|regiao/i.test(q) || true;
+            const geo = {
+                country,
+                zone: zone || undefined,
+                locality: locality || undefined
+            };
+            // stats com filtro geo do perfil
+            let stats = typeof buildProductStats === 'function' ? buildProductStats(geo) : [];
+            if ((!stats || !stats.length) && (zone || locality)) {
+                stats = buildProductStats({ country }); // alargar se zona vazia de dados
+            }
+            if (cat) {
+                stats = stats.filter(s => {
+                    const c = s.category || detectCategory(s.name);
+                    return c === cat;
+                });
+            }
+            // keyword boost
+            const words = q.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').split(/\W+/).filter(w => w.length > 3);
+            stats = stats.map(s => {
+                const name = (s.name || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                let boost = 0;
+                words.forEach(w => { if (name.includes(w)) boost += 1; });
+                return { ...s, _boost: boost };
+            }).sort((a, b) => {
+                if (b._boost !== a._boost) return b._boost - a._boost;
+                const score = (x) => (Number(x.average ?? x.avgRating) || 0) * Math.log10(2 + (x.count || 0));
+                return score(b) - score(a);
+            });
+
+            // compras recentes na zona (produtos do user + comunidade via reviews)
+            const recentLocal = (currentProducts || []).filter(p => {
+                if (cat && (p.categoria || detectCategory(p.nome_produto)) !== cat) return false;
+                return true;
+            }).slice(0, 8);
+
+            const top = stats.slice(0, 5);
+            const lines = [];
+            lines.push(`<p class="text-slate-300 leading-relaxed">Com base nos dados Vanty Care` +
+                (zone || locality ? ` na tua zona (<strong class="text-orange-300">${escapeHtml([locality, zone].filter(Boolean).join(', '))}</strong>)` : '') +
+                `:</p>`);
+
+            if (!top.length) {
+                lines.push(`<p class="text-slate-400 mt-2 text-xs">Ainda há poucos registos/reviews para esta pergunta` +
+                    (cat ? ` na categoria <strong>${escapeHtml(categoryLabel(cat))}</strong>` : '') +
+                    `. Regista faturas e avaliações — o assistente fica mais forte.</p>`);
+                if (recentLocal.length) {
+                    lines.push(`<p class="text-slate-400 mt-2 text-xs">Nas <em>tuas</em> garantias encontrei:</p>`);
+                    recentLocal.slice(0, 3).forEach(p => {
+                        const price = parseFloat(p.preco_com_iva || p.preco || 0);
+                        lines.push(`<div class="ai-rec text-xs text-slate-300"><strong>${escapeHtml(p.nome_produto || '')}</strong><br>${escapeHtml(p.loja || '—')} · ${price ? price.toLocaleString('pt-PT', { minimumFractionDigits: 2 }) + ' €' : 'preço n/d'}</div>`);
+                    });
+                }
+                return lines.join('');
+            }
+
+            top.forEach((s, i) => {
+                const avg = (s.average != null || s.avgRating != null) ? Number(s.average ?? s.avgRating).toFixed(1) : '—';
+                const n = s.count || s.ratings?.length || 0;
+                const price = s.avgPrice != null ? Number(s.avgPrice).toLocaleString('pt-PT', { minimumFractionDigits: 2 }) + ' €' : (s.priceAvg != null ? Number(s.priceAvg).toLocaleString('pt-PT', { minimumFractionDigits: 2 }) + ' €' : null);
+                // try multiple field names from buildProductStats
+                const avgP = s.avgPrice ?? s.meanPrice ?? s.priceMean;
+                const priceStr = avgP != null && !isNaN(avgP)
+                    ? Number(avgP).toLocaleString('pt-PT', { minimumFractionDigits: 2 }) + ' €'
+                    : (s.prices && s.prices.length
+                        ? (s.prices.reduce((a,b)=>a+b,0)/s.prices.length).toLocaleString('pt-PT', { minimumFractionDigits: 2 }) + ' €'
+                        : 'preço médio n/d');
+                let stores = '';
+                if (s.stores && s.stores.length) stores = s.stores.slice(0, 3).join(', ');
+                else if (s.storeList) stores = s.storeList.slice(0, 3).join(', ');
+                lines.push(`<div class="ai-rec text-xs text-slate-300">
+                    <span class="text-orange-400 font-bold">#${i + 1}</span> <strong>${escapeHtml(s.name || s.key)}</strong><br>
+                    ★ ${avg} · ${n} review${n === 1 ? '' : 's'}
+                    ${priceStr ? ' · média ~ ' + priceStr : ''}
+                    ${stores ? '<br>Lojas: ' + escapeHtml(stores) : ''}
+                </div>`);
+            });
+
+            lines.push(`<p class="text-[11px] text-slate-500 mt-2">Isto reflete a comunidade Vanty Care, não marketing das marcas. Cruza sempre com a fatura e a tua garantia.</p>`);
+            return lines.join('');
+        }
+        function askAssistente(question) {
+            const q = String(question || '').trim();
+            if (!q) return;
+            appendAiMsg('user', q);
+            appendAiMsg('bot', '<p class="text-slate-500 text-xs"><i class="fa-solid fa-spinner animate-spin mr-1"></i> A analisar dados da zona…</p>');
+            setTimeout(() => {
+                const log = document.getElementById('aiChatLog');
+                if (log && log.lastChild) log.removeChild(log.lastChild);
+                const html = runLocalAdvisor(q);
+                appendAiMsg('bot', html);
+            }, 280);
+        }
+
         function switchPanel(id) {
-            ['dashboard', 'garantias', 'registar', 'rma', 'arquivo', 'perfil', 'stats', 'cartoes'].forEach(p => {
+            ['dashboard', 'garantias', 'registar', 'rma', 'arquivo', 'perfil', 'stats', 'assistente', 'cartoes'].forEach(p => {
                 const el = document.getElementById('panel-' + p);
                 if (el) el.classList.toggle('panel-hidden', p !== id);
             });
@@ -3150,6 +3378,7 @@
             if (id === 'rma') { renderRmaFeed(); renderPartnersFeed(); }
             if (id === 'arquivo') renderArchiveFeed();
             if (id === 'cartoes') renderLoyaltyCards();
+            if (id === 'assistente') initAssistentePanel();
             if (id === 'registar') setTimeout(adjustSubmitNavSpacer, 50);
         }
 
@@ -5212,6 +5441,14 @@ ${addr}`;
             window.visualViewport.addEventListener('scroll', adjustSubmitNavSpacer);
         }
         document.addEventListener('DOMContentLoaded', adjustSubmitNavSpacer);
+
+
+        // PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js').catch(err => console.warn('SW', err));
+            });
+        }
 
         renderProfile();
         initAuth().then(() => loadProducts());
