@@ -1,0 +1,33 @@
+{
+  "name": "Vanty Care — Warranty OS",
+  "short_name": "Vanty Care",
+  "description": "Garantias, faturas, cartões e reputação de produtos por zona.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#050608",
+  "theme_color": "#FF5A00",
+  "lang": "pt-PT",
+  "icons": [
+    {
+      "src": "vanty-logo-icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "vanty-logo-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "vanty-favicon.png",
+      "sizes": "64x64",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["finance", "shopping", "utilities"]
+}
