@@ -996,7 +996,7 @@
                     <div class="live-dot"></div>
                     <div>
                         <div class="text-[11px] font-semibold text-emerald-400">Supabase Live</div>
-                        <div class="text-[10px] text-slate-500">v4.2 · Mercado + marketplaces</div>
+                        <div class="text-[10px] text-slate-500">v4.4 · UI sem prompt nativo</div>
                     </div>
                 </div>
             </div>
@@ -1534,7 +1534,7 @@
                 <div id="panel-mercado" class="panel-hidden space-y-4">
                     <div>
                         <h2 class="text-base font-bold text-white flex items-center gap-2"><i class="fa-solid fa-store text-orange-400"></i> Mercado Vanty</h2>
-                        <p class="text-[11px] text-slate-500 mt-1">Ofertas diretas entre users · passaporte (fatura + garantia) na transferência. Marketplaces externos: botão anúncio no produto.</p>
+                        <p class="text-[11px] text-slate-500 mt-1">Ofertas com chat e estados (pendente → aceite → concluída + passaporte). Envio formal = em breve. Marketplaces externos no detalhe do produto.</p>
                     </div>
                     <div id="vantyMarketFeed" class="space-y-3"></div>
                 </div>
@@ -1715,6 +1715,28 @@
     </div>
 
     <!-- Receber transferência -->
+    <div 
+    <div id="offerChatModal" class="fixed inset-0 modal-backdrop z-[65] hidden flex items-center justify-center p-4">
+        <div class="card modal-panel w-full max-w-md p-0 overflow-hidden border border-orange-500/20 flex flex-col" style="max-height:min(80vh,560px)">
+            <div class="flex items-center justify-between px-4 py-3 border-b border-white/[0.06]">
+                <div class="min-w-0">
+                    <h3 class="text-sm font-bold text-white truncate" id="offerChatTitle">Negócio</h3>
+                    <p class="text-[10px] text-slate-500" id="offerChatStatus">—</p>
+                </div>
+                <button type="button" onclick="closeOfferChat()" class="text-slate-500 hover:text-white p-2"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="offerChatLog" class="flex-1 overflow-y-auto p-3 space-y-2 text-xs"></div>
+            <div class="p-3 border-t border-white/[0.06] space-y-2 bg-[#080a0d]/90">
+                <div id="offerChatActions" class="flex flex-wrap gap-1.5"></div>
+                <form class="flex gap-2" onsubmit="event.preventDefault(); sendOfferChatMessage();">
+                    <input type="text" id="offerChatInput" class="flex-1 input-field p-2.5 text-sm text-white" placeholder="Mensagem (sem dados bancários)…" maxlength="500" autocomplete="off">
+                    <button type="submit" class="btn-vanty px-3 rounded-xl text-sm shrink-0"><i class="fa-solid fa-paper-plane"></i></button>
+                </form>
+                <p class="text-[9px] text-slate-600">Não partilhes IBAN, passwords ou códigos de pagamento no chat. Expedição completa = futuro.</p>
+            </div>
+        </div>
+    </div>
+
     <div id="claimTransferModal" class="fixed inset-0 modal-backdrop z-[60] hidden flex items-center justify-center p-4">
         <div class="card modal-panel w-full max-w-md p-5 space-y-4 border border-orange-500/20">
             <div class="flex items-center justify-between">
@@ -1909,6 +1931,21 @@
     </div>
 
     <!-- Toast / System Modal -->
+    <div 
+    <!-- Prompt / Confirm estilizados (substitui prompt/confirm nativos) -->
+    <div id="systemPromptModal" class="fixed inset-0 modal-backdrop z-[90] hidden flex items-center justify-center p-4">
+        <div class="card modal-panel w-full max-w-sm p-5 space-y-4 border border-orange-500/20">
+            <h3 id="systemPromptTitle" class="text-sm font-bold text-white">—</h3>
+            <p id="systemPromptMessage" class="text-xs text-slate-400 leading-relaxed whitespace-pre-line">—</p>
+            <div id="systemPromptChoices" class="hidden space-y-1.5"></div>
+            <input type="text" id="systemPromptInput" class="w-full input-field p-3 text-sm text-white hidden" autocomplete="off">
+            <div class="flex gap-2 justify-end pt-1">
+                <button type="button" id="systemPromptCancel" class="px-4 py-2 rounded-xl bg-surface-800 border border-white/[0.08] text-slate-300 text-xs font-bold">Cancelar</button>
+                <button type="button" id="systemPromptOk" class="btn-vanty px-4 py-2 rounded-xl text-xs font-bold">OK</button>
+            </div>
+        </div>
+    </div>
+
     <div id="toastModal" class="fixed inset-0 modal-backdrop z-[60] hidden flex items-center justify-center p-4">
         <div class="card w-full max-w-sm p-5 border border-white/[0.1] shadow-2xl shadow-black/50 space-y-4 animate-[fadeIn_0.15s_ease]">
             <div class="flex items-start gap-3">
@@ -2279,6 +2316,81 @@
                 </div>`;
             }).join('');
         }
+
+
+        // ----- UI: prompt / confirm / choose no estilo Vanty -----
+        let _promptResolve = null;
+        function closeSystemPrompt(val) {
+            const modal = document.getElementById('systemPromptModal');
+            if (modal) modal.classList.add('hidden');
+            const r = _promptResolve;
+            _promptResolve = null;
+            if (r) r(val);
+        }
+        function vantyConfirm(message, title) {
+            return new Promise(resolve => {
+                _promptResolve = resolve;
+                document.getElementById('systemPromptTitle').innerText = title || 'Confirmar';
+                document.getElementById('systemPromptMessage').innerText = message || '';
+                document.getElementById('systemPromptMessage').classList.remove('hidden');
+                document.getElementById('systemPromptInput').classList.add('hidden');
+                document.getElementById('systemPromptChoices').classList.add('hidden');
+                document.getElementById('systemPromptChoices').innerHTML = '';
+                document.getElementById('systemPromptOk').innerText = 'Sim';
+                document.getElementById('systemPromptCancel').innerText = 'Não';
+                document.getElementById('systemPromptCancel').onclick = () => closeSystemPrompt(false);
+                document.getElementById('systemPromptOk').onclick = () => closeSystemPrompt(true);
+                document.getElementById('systemPromptModal').classList.remove('hidden');
+            });
+        }
+        function vantyPrompt(message, defaultValue, title) {
+            return new Promise(resolve => {
+                _promptResolve = resolve;
+                document.getElementById('systemPromptTitle').innerText = title || 'Introduzir';
+                document.getElementById('systemPromptMessage').innerText = message || '';
+                document.getElementById('systemPromptMessage').classList.remove('hidden');
+                const inp = document.getElementById('systemPromptInput');
+                inp.classList.remove('hidden');
+                inp.value = defaultValue != null ? String(defaultValue) : '';
+                document.getElementById('systemPromptChoices').classList.add('hidden');
+                document.getElementById('systemPromptChoices').innerHTML = '';
+                document.getElementById('systemPromptOk').innerText = 'OK';
+                document.getElementById('systemPromptCancel').innerText = 'Cancelar';
+                document.getElementById('systemPromptCancel').onclick = () => closeSystemPrompt(null);
+                document.getElementById('systemPromptOk').onclick = () => closeSystemPrompt(inp.value);
+                inp.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); closeSystemPrompt(inp.value); } };
+                document.getElementById('systemPromptModal').classList.remove('hidden');
+                setTimeout(() => inp.focus(), 50);
+            });
+        }
+        /** choices: [{id, label}] → resolve id or null */
+        function vantyChoose(message, choices, title) {
+            return new Promise(resolve => {
+                _promptResolve = resolve;
+                document.getElementById('systemPromptTitle').innerText = title || 'Escolher';
+                document.getElementById('systemPromptMessage').innerText = message || '';
+                document.getElementById('systemPromptInput').classList.add('hidden');
+                const box = document.getElementById('systemPromptChoices');
+                box.classList.remove('hidden');
+                box.innerHTML = (choices || []).map(c =>
+                    `<button type="button" class="w-full text-left px-3 py-2.5 rounded-xl bg-surface-800 border border-white/[0.08] text-sm text-slate-200 hover:border-orange-500/40 hover:text-orange-300 font-semibold transition-all" data-choice="${String(c.id).replace(/"/g, '')}">${escapeHtml(c.label)}</button>`
+                ).join('');
+                box.querySelectorAll('[data-choice]').forEach(btn => {
+                    btn.onclick = () => closeSystemPrompt(btn.getAttribute('data-choice'));
+                });
+                document.getElementById('systemPromptOk').classList.add('hidden');
+                document.getElementById('systemPromptCancel').innerText = 'Cancelar';
+                document.getElementById('systemPromptCancel').onclick = () => {
+                    document.getElementById('systemPromptOk').classList.remove('hidden');
+                    closeSystemPrompt(null);
+                };
+                document.getElementById('systemPromptModal').classList.remove('hidden');
+            }).then(val => {
+                document.getElementById('systemPromptOk').classList.remove('hidden');
+                return val;
+            });
+        }
+
 
         function showToast(message, title = 'Aviso', type = 'info') {
             const modal = document.getElementById('toastModal');
@@ -3868,8 +3980,8 @@
             showToast(store + ' adicionado ao vault.', 'Cartão', 'success');
             renderLoyaltyCards();
         }
-        function deleteLoyaltyCard(id) {
-            if (!confirm('Remover este cartão do vault?')) return;
+        async function deleteLoyaltyCard(id) {
+            if (!(await vantyConfirm('Remover este cartão do vault?', 'Cartões'))) return;
             setLoyaltyCards(getLoyaltyCards().filter(c => c.id !== id));
             renderLoyaltyCards();
             showToast('Cartão removido.', 'OK', 'info');
@@ -5121,17 +5233,6 @@
             return lines.join('\n');
         }
 
-        function copySaleListing() {
-            if (detailProductIndex == null) return;
-            const prod = currentProducts[detailProductIndex];
-            if (!prod) return;
-            const text = buildSaleListing(prod);
-            navigator.clipboard.writeText(text).then(() => {
-                showToast('Texto do anúncio copiado.\\nCola no OLX / Facebook / etc.', 'Anúncio', 'success');
-            }).catch(() => {
-                showToast(text, 'Copia manualmente', 'info');
-            });
-        }
 
         /** Marketplaces por país (abrir site; publicação continua manual) */
         const MARKETPLACES = {
@@ -5162,13 +5263,16 @@
             return MARKETPLACES[cc] || MARKETPLACES.PT;
         }
 
-        function openMarketplaceChooser(prod) {
+        async function openMarketplaceChooser(prod) {
             const cc = (userProfile && userProfile.country) || 'PT';
             const list = getMarketplacesForCountry(cc);
-            const names = list.map((m, i) => (i + 1) + ') ' + m.name).join('\n');
-            const pick = prompt('País: ' + cc + '\nEscolhe marketplace (número):\n' + names + '\n\n(O texto já está na área de transferência.)', '1');
-            const idx = Math.max(0, (parseInt(pick, 10) || 1) - 1);
-            const m = list[idx] || list[0];
+            const choice = await vantyChoose(
+                'Texto do anúncio já está copiado. Onde queres colar?',
+                list.map(m => ({ id: m.id, label: m.name })),
+                'Marketplace · ' + cc
+            );
+            if (!choice) return;
+            const m = list.find(x => x.id === choice) || list[0];
             if (m) window.open(m.url, '_blank', 'noopener');
         }
 
@@ -5195,27 +5299,63 @@
         function setListingsStore(list) {
             localStorage.setItem('vanty_for_sale', JSON.stringify(list));
         }
+        // ----- Ofertas + chat + estados validados -----
         function getOffersStore() {
             try { return JSON.parse(localStorage.getItem('vanty_offers') || '[]'); } catch { return []; }
         }
         function setOffersStore(list) {
             localStorage.setItem('vanty_offers', JSON.stringify(list));
         }
+        function getOfferChatsStore() {
+            try { return JSON.parse(localStorage.getItem('vanty_offer_chats') || '{}'); } catch { return {}; }
+        }
+        function setOfferChatsStore(map) {
+            localStorage.setItem('vanty_offer_chats', JSON.stringify(map));
+        }
 
-        function toggleProductForSale() {
+        const OFFER_STATUS_LABEL = {
+            pending: 'Pendente',
+            accepted: 'Aceite · combinar entrega',
+            rejected: 'Recusada',
+            completed: 'Concluída (passaporte)',
+            cancelled: 'Cancelada',
+            expired: 'Expirada'
+        };
+
+        let activeOfferChatId = null;
+
+        function getOfferById(id) {
+            return getOffersStore().find(o => o.id === id);
+        }
+        function getListingById(id) {
+            return getListingsStore().find(l => l.id === id);
+        }
+        function isMyListing(listing) {
+            if (!listing) return false;
+            return (currentProducts || []).some(p => String(p.id) === String(listing.product_id));
+        }
+
+        async function toggleProductForSale() {
             if (detailProductIndex == null) return;
             const prod = currentProducts[detailProductIndex];
             if (!prod) return;
             const list = getListingsStore();
             const i = list.findIndex(x => String(x.product_id) === String(prod.id));
             if (i >= 0) {
+                const lid = list[i].id;
                 list.splice(i, 1);
                 setListingsStore(list);
+                // cancel pending offers on this listing
+                const offers = getOffersStore().map(o => {
+                    if (o.listing_id === lid && o.status === 'pending') return { ...o, status: 'cancelled' };
+                    return o;
+                });
+                setOffersStore(offers);
                 showToast('Anúncio Vanty removido.', 'Venda', 'info');
             } else {
                 const v = estimateResaleValue(prod);
-                const priceStr = prompt('Preço pedido (€) no Vanty Care:', String(v.mid || v.paid || ''));
-                if (priceStr == null) return;
+                const priceStr = await vantyPrompt('Preço pedido (€) no Vanty Care', String(v.mid || v.paid || ''), 'Vender no Vanty');
+                if (priceStr == null || priceStr === '') return;
                 const price = parseFloat(String(priceStr).replace(',', '.'));
                 if (!(price > 0)) {
                     showToast('Preço inválido.', 'Venda', 'warn');
@@ -5235,71 +5375,245 @@
                     created_at: new Date().toISOString()
                 });
                 setListingsStore(list);
-                showToast('À venda no Vanty por ' + formatMoney(price) + '.\nOutros users (neste dispositivo / sync futura) podem fazer oferta.', 'Venda', 'success');
+                showToast('À venda no Vanty por ' + formatMoney(price) + '.', 'Venda', 'success');
             }
             refreshAssetLifecycleUI(prod);
             renderVantyMarket();
         }
 
-        function submitOfferForListing(listingId) {
-            const listing = getListingsStore().find(x => x.id === listingId);
+        async function submitOfferForListing(listingId) {
+            const listing = getListingById(listingId);
             if (!listing) return;
-            const amountStr = prompt('A tua oferta (€) por:\n' + listing.product_name, String(listing.price));
-            if (amountStr == null) return;
+            if (isMyListing(listing)) {
+                showToast('Não podes ofertar no teu próprio anúncio.', 'Oferta', 'warn');
+                return;
+            }
+            const amountStr = await vantyPrompt('A tua oferta (€) por: ' + listing.product_name, String(listing.price), 'Fazer oferta');
+            if (amountStr == null || amountStr === '') return;
             const amount = parseFloat(String(amountStr).replace(',', '.'));
             if (!(amount > 0)) {
                 showToast('Oferta inválida.', 'Oferta', 'warn');
                 return;
             }
             const offers = getOffersStore();
-            offers.unshift({
-                id: 'offer_' + Date.now(),
+            const id = 'offer_' + Date.now();
+            const offer = {
+                id,
                 listing_id: listingId,
+                product_id: listing.product_id,
                 product_name: listing.product_name,
                 amount,
+                list_price: listing.price,
                 buyer_name: userProfile.name || 'Comprador',
+                seller_name: listing.seller_name,
                 status: 'pending',
+                delivery: null, // pickup | shipping_later
+                expires_at: new Date(Date.now() + 48 * 3600 * 1000).toISOString(),
                 created_at: new Date().toISOString()
-            });
+            };
+            offers.unshift(offer);
             setOffersStore(offers);
-            showToast('Oferta de ' + formatMoney(amount) + ' enviada.\nO vendedor vê em Ofertas.', 'Oferta', 'success');
+            // mensagem sistema no chat
+            appendOfferSystemMessage(id, 'Oferta de ' + formatMoney(amount) + ' criada (pedido: ' + formatMoney(listing.price) + '). Válida 48h.');
+            showToast('Oferta enviada. Abre o chat para combinar.', 'Oferta', 'success');
             renderVantyMarket();
+            openOfferChat(id);
         }
 
         function respondOffer(offerId, accept) {
             const offers = getOffersStore();
             const o = offers.find(x => x.id === offerId);
             if (!o) return;
+            if (o.status !== 'pending') {
+                showToast('Esta oferta já não está pendente.', 'Oferta', 'warn');
+                return;
+            }
+            if (o.expires_at && new Date(o.expires_at) < new Date()) {
+                o.status = 'expired';
+                setOffersStore(offers);
+                showToast('Oferta expirada (48h).', 'Oferta', 'warn');
+                renderVantyMarket();
+                return;
+            }
             o.status = accept ? 'accepted' : 'rejected';
+            o.responded_at = new Date().toISOString();
             setOffersStore(offers);
             if (accept) {
-                showToast('Oferta aceite.\nUsa «Transferir» / passaporte para entregar o produto com fatura.', 'Negócio', 'success');
+                appendOfferSystemMessage(offerId, 'Oferta ACEITE. Combinem levantamento. Quando estiver fechado, o vendedor gera o Passaporte (Transferir) e marca como concluída.');
+                showToast('Oferta aceite.\nUsem o chat e depois o Passaporte.', 'Negócio', 'success');
+                openOfferChat(offerId);
             } else {
+                appendOfferSystemMessage(offerId, 'Oferta recusada pelo vendedor.');
                 showToast('Oferta recusada.', 'Oferta', 'info');
             }
             renderVantyMarket();
+            if (activeOfferChatId === offerId) renderOfferChat();
+        }
+
+        function markOfferDelivery(offerId, mode) {
+            const offers = getOffersStore();
+            const o = offers.find(x => x.id === offerId);
+            if (!o || o.status !== 'accepted') return;
+            o.delivery = mode; // 'pickup' | 'shipping_later'
+            setOffersStore(offers);
+            appendOfferSystemMessage(offerId,
+                mode === 'pickup'
+                    ? 'Combinado: levantamento em mão.'
+                    : 'Combinado: envio (tracking completo em breve — por agora combinam no chat).'
+            );
+            renderOfferChat();
+            renderVantyMarket();
+        }
+
+        function completeOfferWithPassport(offerId) {
+            const o = getOfferById(offerId);
+            if (!o || o.status !== 'accepted') {
+                showToast('Só ofertas aceites podem ser concluídas.', 'Oferta', 'warn');
+                return;
+            }
+            // Abrir detalhe do produto do vendedor se existir
+            const idx = (currentProducts || []).findIndex(p => String(p.id) === String(o.product_id));
+            if (idx >= 0) {
+                openProductDetail(idx);
+                setTimeout(() => openTransferModal(), 300);
+            }
+            o.status = 'completed';
+            o.completed_at = new Date().toISOString();
+            const offers = getOffersStore();
+            const i = offers.findIndex(x => x.id === offerId);
+            if (i >= 0) offers[i] = o;
+            setOffersStore(offers);
+            // remover listing
+            setListingsStore(getListingsStore().filter(l => l.id !== o.listing_id));
+            appendOfferSystemMessage(offerId, 'Negócio marcado como concluído. Passaporte/transferência deve ser gerado para o comprador.');
+            showToast('Concluído. Gera o código de transferência para o comprador.', 'Passaporte', 'success');
+            renderVantyMarket();
+            renderOfferChat();
+        }
+
+        function appendOfferSystemMessage(offerId, text) {
+            const map = getOfferChatsStore();
+            if (!map[offerId]) map[offerId] = [];
+            map[offerId].push({
+                id: 'm_' + Date.now() + '_' + Math.random().toString(36).slice(2, 5),
+                role: 'system',
+                text,
+                at: new Date().toISOString()
+            });
+            setOfferChatsStore(map);
+        }
+
+        function sendOfferChatMessage() {
+            if (!activeOfferChatId) return;
+            const inp = document.getElementById('offerChatInput');
+            const text = (inp && inp.value || '').trim();
+            if (!text) return;
+            // filtro leve anti-dados sensíveis
+            if (/\b\d{5,}\b/.test(text) && /iban|mbway|paypal|password|pass\b/i.test(text)) {
+                showToast('Evita dados bancários ou passwords no chat.', 'Segurança', 'warn');
+            }
+            const map = getOfferChatsStore();
+            if (!map[activeOfferChatId]) map[activeOfferChatId] = [];
+            const listing = getListingById((getOfferById(activeOfferChatId) || {}).listing_id);
+            const asSeller = isMyListing(listing);
+            map[activeOfferChatId].push({
+                id: 'm_' + Date.now(),
+                role: asSeller ? 'seller' : 'buyer',
+                name: userProfile.name || (asSeller ? 'Vendedor' : 'Comprador'),
+                text: text.slice(0, 500),
+                at: new Date().toISOString()
+            });
+            setOfferChatsStore(map);
+            if (inp) inp.value = '';
+            renderOfferChat();
+        }
+
+        function openOfferChat(offerId) {
+            activeOfferChatId = offerId;
+            document.getElementById('offerChatModal').classList.remove('hidden');
+            renderOfferChat();
+        }
+        function closeOfferChat() {
+            document.getElementById('offerChatModal').classList.add('hidden');
+            activeOfferChatId = null;
+        }
+
+        function renderOfferChat() {
+            const o = getOfferById(activeOfferChatId);
+            if (!o) return;
+            const listing = getListingById(o.listing_id);
+            const mine = isMyListing(listing);
+            document.getElementById('offerChatTitle').innerText = o.product_name || 'Negócio';
+            document.getElementById('offerChatStatus').innerText =
+                (OFFER_STATUS_LABEL[o.status] || o.status) + ' · ' + formatMoney(o.amount) +
+                (o.delivery === 'pickup' ? ' · levantamento' : o.delivery === 'shipping_later' ? ' · envio (futuro)' : '');
+
+            const log = document.getElementById('offerChatLog');
+            const msgs = (getOfferChatsStore()[o.id] || []);
+            log.innerHTML = msgs.map(m => {
+                if (m.role === 'system') {
+                    return `<div class="text-center text-[10px] text-slate-500 py-1 px-2">${escapeHtml(m.text)}</div>`;
+                }
+                const mineMsg = (m.role === 'seller' && mine) || (m.role === 'buyer' && !mine);
+                return `<div class="max-w-[85%] ${mineMsg ? 'ml-auto' : ''} p-2 rounded-xl ${mineMsg ? 'bg-orange-500/15 border border-orange-500/20' : 'bg-white/[0.04] border border-white/[0.06]'}">
+                    <p class="text-[9px] text-slate-500 mb-0.5">${escapeHtml(m.name || m.role)}</p>
+                    <p class="text-slate-200 leading-snug">${escapeHtml(m.text)}</p>
+                </div>`;
+            }).join('') || '<p class="text-center text-slate-600 text-[11px] py-6">Ainda sem mensagens.</p>';
+            log.scrollTop = log.scrollHeight;
+
+            const actions = document.getElementById('offerChatActions');
+            let act = '';
+            if (o.status === 'pending' && mine) {
+                act += `<button type="button" onclick="respondOffer('${o.id}', true)" class="px-2.5 py-1 rounded-lg bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">Aceitar</button>`;
+                act += `<button type="button" onclick="respondOffer('${o.id}', false)" class="px-2.5 py-1 rounded-lg bg-surface-800 text-slate-400 text-[10px] font-bold">Recusar</button>`;
+            }
+            if (o.status === 'accepted') {
+                act += `<button type="button" onclick="markOfferDelivery('${o.id}', 'pickup')" class="px-2.5 py-1 rounded-lg bg-surface-800 border border-white/[0.08] text-[10px] font-bold text-slate-300">Levantamento</button>`;
+                act += `<button type="button" onclick="markOfferDelivery('${o.id}', 'shipping_later')" class="px-2.5 py-1 rounded-lg bg-surface-800 border border-white/[0.08] text-[10px] font-bold text-slate-300">Envio (em breve)</button>`;
+                if (mine) {
+                    act += `<button type="button" onclick="completeOfferWithPassport('${o.id}')" class="px-2.5 py-1 rounded-lg bg-violet-500/20 border border-violet-500/30 text-[10px] font-bold text-violet-300">Concluir + Passaporte</button>`;
+                }
+            }
+            actions.innerHTML = act;
+        }
+
+        function expireStaleOffers() {
+            const offers = getOffersStore();
+            let changed = false;
+            const now = Date.now();
+            offers.forEach(o => {
+                if (o.status === 'pending' && o.expires_at && new Date(o.expires_at).getTime() < now) {
+                    o.status = 'expired';
+                    changed = true;
+                }
+            });
+            if (changed) setOffersStore(offers);
         }
 
         function renderVantyMarket() {
             const feed = document.getElementById('vantyMarketFeed');
             if (!feed) return;
+            expireStaleOffers();
             const listings = getListingsStore();
             const offers = getOffersStore();
-            const myIds = new Set((currentProducts || []).map(p => String(p.id)));
             let html = '';
-            if (!listings.length) {
-                html = '<div class="text-center text-slate-500 text-sm py-8">Nada à venda no Vanty.<p class="text-xs mt-2">No detalhe do produto → <strong>Vender no Vanty</strong>.</p></div>';
+            if (!listings.length && !offers.length) {
+                html = '<div class="text-center text-slate-500 text-sm py-8">Nada à venda / sem ofertas.<p class="text-xs mt-2">Produto → <strong>Vender no Vanty</strong>.</p></div>';
             } else {
                 html = listings.map(L => {
-                    const mine = myIds.has(String(L.product_id));
+                    const mine = isMyListing(L);
                     const related = offers.filter(o => o.listing_id === L.id);
-                    const offersHtml = related.slice(0, 5).map(o =>
-                        `<div class="flex items-center justify-between gap-2 py-1 border-t border-white/[0.04]">
-                            <span>${escapeHtml(o.buyer_name)} · <strong class="text-emerald-400">${formatMoney(o.amount)}</strong> · <span class="text-slate-500">${escapeHtml(o.status)}</span></span>
-                            ${mine && o.status === 'pending' ? `<span class="flex gap-1">
+                    const offersHtml = related.slice(0, 8).map(o =>
+                        `<div class="flex flex-wrap items-center justify-between gap-2 py-1.5 border-t border-white/[0.04]">
+                            <span class="text-[11px]">${escapeHtml(o.buyer_name)} · <strong class="text-emerald-400">${formatMoney(o.amount)}</strong>
+                            <span class="text-slate-500">· ${escapeHtml(OFFER_STATUS_LABEL[o.status] || o.status)}</span></span>
+                            <span class="flex gap-1">
+                                <button type="button" onclick="openOfferChat('${o.id}')" class="px-2 py-0.5 rounded bg-orange-500/15 text-orange-300 text-[10px] font-bold">Chat</button>
+                                ${mine && o.status === 'pending' ? `
                                 <button type="button" onclick="respondOffer('${o.id}', true)" class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">Aceitar</button>
-                                <button type="button" onclick="respondOffer('${o.id}', false)" class="px-2 py-0.5 rounded bg-surface-800 text-slate-400 text-[10px] font-bold">Recusar</button>
-                            </span>` : ''}
+                                <button type="button" onclick="respondOffer('${o.id}', false)" class="px-2 py-0.5 rounded bg-surface-800 text-slate-400 text-[10px] font-bold">Recusar</button>` : ''}
+                            </span>
                         </div>`
                     ).join('');
                     return `<div class="card p-4 space-y-2">
@@ -5311,10 +5625,11 @@
                             <p class="text-emerald-400 font-black tabular-nums shrink-0">${formatMoney(L.price)}</p>
                         </div>
                         <p class="text-[10px] text-slate-500">Vendedor: ${escapeHtml(L.seller_name)}${mine ? ' (tu)' : ''}</p>
-                        ${!mine ? `<button type="button" onclick="submitOfferForListing('${L.id}')" class="w-full py-2 rounded-xl bg-orange-500/15 border border-orange-500/25 text-orange-300 text-xs font-bold">Fazer oferta</button>` : '<p class="text-[10px] text-slate-600">As tuas ofertas recebidas:</p>'}
+                        ${!mine ? `<button type="button" onclick="submitOfferForListing('${L.id}')" class="w-full py-2 rounded-xl bg-orange-500/15 border border-orange-500/25 text-orange-300 text-xs font-bold">Fazer oferta</button>` : '<p class="text-[10px] text-slate-600">Ofertas recebidas:</p>'}
                         ${offersHtml || (mine ? '<p class="text-[10px] text-slate-600">Ainda sem ofertas.</p>' : '')}
                     </div>`;
                 }).join('');
+                // ofertas do user como comprador em listings que já não estão? skip for simplicity
             }
             feed.innerHTML = html;
         }
@@ -5635,7 +5950,7 @@
             if (!prod) return;
             const yrs = yearsOwned(prod);
             const yrsLabel = yrs != null ? yrs.toFixed(1) + ' anos' : 'tempo desconhecido';
-            if (!confirm('Dar baixa a este produto?\n\n' + (prod.nome_produto || '') + '\nTempo de uso ≈ ' + yrsLabel + '\n\nSai das garantias ativas e entra no Arquivo de vida.')) return;
+            if (!(await vantyConfirm('Dar baixa a este produto?\n\n' + (prod.nome_produto || '') + '\nTempo de uso ≈ ' + yrsLabel + '\n\nSai das garantias ativas e entra no Arquivo de vida.', 'Dar baixa'))) return;
             const entry = {
                 id: prod.id,
                 nome_produto: prod.nome_produto,
@@ -5754,7 +6069,7 @@
             if (detailProductIndex == null) return;
             const prod = currentProducts[detailProductIndex];
             if (!prod) return;
-            if (!confirm('Apagar esta garantia?')) return;
+            if (!(await vantyConfirm('Apagar esta garantia?', 'Apagar'))) return;
             if (prod._local || String(prod.id).startsWith('local_')) {
                 localStorage.setItem('vanty_products_local', JSON.stringify(getLocalProducts().filter(p => String(p.id) !== String(prod.id))));
             } else {
