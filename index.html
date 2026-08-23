@@ -990,7 +990,7 @@
                     <div class="live-dot"></div>
                     <div>
                         <div class="text-[11px] font-semibold text-emerald-400">Supabase Live</div>
-                        <div class="text-[10px] text-slate-500">v3.6 · PWA + Assistente AI</div>
+                        <div class="text-[10px] text-slate-500">v3.8 · Aniversários + visão mercado</div>
                     </div>
                 </div>
             </div>
@@ -2273,16 +2273,56 @@
             allProductReviews = mergeReviews(remote, getLocalReviews());
         }
 
-        function reviewsForProduct(prod) {
+        /** Compra verificada = fatura associada ao produto no sistema */
+        function productHasInvoice(prod) {
+            if (!prod) return false;
+            if (prod.fatura_url || prod.fatura_path) return true;
+            try {
+                if (typeof getInvoice === 'function' && getInvoice(prod.id)) return true;
+            } catch (_) {}
+            return false;
+        }
+        function productHasSerial(prod) {
+            return !!(prod && String(prod.numero_serie || '').trim());
+        }
+        /** Nível de verificação da compra (para reviews e ranking) */
+        function purchaseTrustLevel(prod) {
+            if (!productHasInvoice(prod)) return 0;
+            if (productHasSerial(prod)) return 2; // fatura + SN
+            return 1; // só fatura
+        }
+        function isReviewVerified(r) {
+            if (!r) return false;
+            if (r.verified === true || r.verified === 1) return true;
+            if (Number(r.trust_level) >= 1) return true;
+            return false;
+        }
+        function reviewsForProduct(prod, opts) {
             const key = normalizeProductKey(prod && prod.nome_produto);
-            return allProductReviews.filter(r => r.product_key === key);
+            let list = allProductReviews.filter(r => r.product_key === key);
+            if (opts && opts.verifiedOnly) list = list.filter(isReviewVerified);
+            return list;
         }
-
-        function ratingStats(prod) {
-            const reviews = reviewsForProduct(prod);
-            if (!reviews.length) return { count: 0, average: 0 };
-            return { count: reviews.length, average: reviews.reduce((sum, r) => sum + Number(r.rating || 0), 0) / reviews.length };
+        function ratingStats(prod, opts) {
+            const verifiedOnly = !opts || opts.verifiedOnly !== false;
+            const reviews = reviewsForProduct(prod, { verifiedOnly });
+            if (!reviews.length) return { count: 0, average: 0, verifiedOnly };
+            return {
+                count: reviews.length,
+                average: reviews.reduce((sum, r) => sum + Number(r.rating || 0), 0) / reviews.length,
+                verifiedOnly
+            };
         }
+        function countReviewsToday(reviewerId) {
+            const start = new Date();
+            start.setHours(0, 0, 0, 0);
+            return allProductReviews.filter(r => {
+                if (r.reviewer_id !== reviewerId) return false;
+                const t = new Date(r.updated_at || r.created_at || 0);
+                return t >= start;
+            }).length;
+        }
+        const MAX_REVIEWS_PER_DAY = 8;
 
         function visualStars(value) {
             const rounded = Math.round(Number(value) || 0);
@@ -2302,21 +2342,52 @@
         }
 
         function renderProductReviews(prod) {
-            const reviews = reviewsForProduct(prod);
-            const stats = ratingStats(prod);
+            const trust = purchaseTrustLevel(prod);
+            const canReview = trust >= 1;
+            const reviewsAll = reviewsForProduct(prod, { verifiedOnly: false });
+            const reviews = reviewsForProduct(prod, { verifiedOnly: true });
+            const stats = ratingStats(prod, { verifiedOnly: true });
             const stars = document.getElementById('communityRatingStars');
             stars.innerText = visualStars(stats.average);
-            stars.setAttribute('aria-label', stats.count ? `${stats.average.toFixed(1)} em 5, ${stats.count} avaliações` : 'Sem avaliações');
+            stars.setAttribute('aria-label', stats.count ? `${stats.average.toFixed(1)} em 5, ${stats.count} verificadas` : 'Sem avaliações verificadas');
             document.getElementById('communityRatingSummary').innerText = stats.count
-                ? `${stats.average.toFixed(1)}/5 · ${stats.count} avaliação${stats.count === 1 ? '' : 'ões'}`
-                : 'Ainda sem avaliações';
+                ? `${stats.average.toFixed(1)}/5 · ${stats.count} verificada${stats.count === 1 ? '' : 's'}`
+                : 'Sem avaliações verificadas';
 
-            const own = reviews.find(r => r.reviewer_id === reviewAuthorId);
+            // Aviso / bloqueio de publicação
+            let gate = document.getElementById('reviewVerifyGate');
+            if (!gate) {
+                const formBox = document.getElementById('productReviewDescription')?.closest('.border-t') || document.getElementById('saveProductReviewBtn')?.parentElement;
+                if (formBox) {
+                    gate = document.createElement('div');
+                    gate.id = 'reviewVerifyGate';
+                    formBox.parentElement.insertBefore(gate, formBox);
+                }
+            }
+            if (gate) {
+                if (!canReview) {
+                    gate.className = 'p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 text-[11px] text-amber-100/90 leading-relaxed mb-2';
+                    gate.innerHTML = '<i class="fa-solid fa-shield-halved text-amber-400 mr-1"></i> <strong>Só compras verificadas</strong> podem avaliar este produto no ranking público.<br>É preciso <strong>fatura no sistema</strong> (prova de compra). O nº de série reforça a confiança, mas a fatura é obrigatória.';
+                } else {
+                    gate.className = 'p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-[11px] text-emerald-200/90 mb-2';
+                    gate.innerHTML = '<i class="fa-solid fa-badge-check text-emerald-400 mr-1"></i> Compra verificada' +
+                        (trust >= 2 ? ' · fatura + nº de série' : ' · fatura no sistema') +
+                        ' — a tua opinião conta no ranking.';
+                }
+            }
+            const btn = document.getElementById('saveProductReviewBtn');
+            const desc = document.getElementById('productReviewDescription');
+            const starBox = document.getElementById('ratingStarsInput');
+            if (btn) btn.disabled = !canReview;
+            if (desc) desc.disabled = !canReview;
+            if (starBox) starBox.style.opacity = canReview ? '1' : '0.45';
+
+            const own = reviewsAll.find(r => r.reviewer_id === reviewAuthorId);
             selectedProductRating = 0;
             document.getElementById('productReviewDescription').value = own ? (own.description || '') : '';
             document.getElementById('reviewCharCount').innerText = `${own ? String(own.description || '').length : 0}/1000`;
             setProductRating(own ? Number(own.rating) : 0);
-            document.getElementById('saveProductReviewBtn').innerHTML = own
+            if (btn) btn.innerHTML = own
                 ? '<i class="fa-solid fa-floppy-disk"></i> Atualizar avaliação'
                 : '<i class="fa-solid fa-paper-plane"></i> Publicar avaliação';
 
@@ -2326,10 +2397,16 @@
             wrap.classList.remove('hidden');
             list.innerHTML = reviews.slice(0, 30).map(r => {
                 const date = new Date(r.updated_at || r.created_at || Date.now()).toLocaleDateString('pt-PT');
+                const badge = isReviewVerified(r)
+                    ? '<span class="text-[9px] font-bold text-emerald-400 border border-emerald-500/25 bg-emerald-500/10 px-1.5 py-0.5 rounded-md">Verificado</span>'
+                    : '';
                 return `<article class="p-2.5 rounded-lg bg-[#0a0a0b]/60 border border-white/[0.05]">
-                    <div class="flex justify-between gap-2"><span class="text-[11px] font-semibold text-slate-300">${escapeHtml(r.reviewer_name || 'Utilizador Vanty')}</span><span class="text-amber-400 text-[10px] tracking-wide">${visualStars(r.rating)}</span></div>
+                    <div class="flex justify-between gap-2 items-start">
+                        <span class="text-[11px] font-semibold text-slate-300">${escapeHtml(r.reviewer_name || 'Utilizador Vanty')}</span>
+                        <span class="flex items-center gap-1.5"><span class="text-amber-400 text-[10px] tracking-wide">${visualStars(r.rating)}</span>${badge}</span>
+                    </div>
                     <p class="text-[11px] text-slate-400 leading-relaxed mt-1 whitespace-pre-line">${escapeHtml(r.description || '')}</p>
-                    <p class="text-[9px] text-slate-600 mt-1.5">${date}${r._local ? ' · apenas neste dispositivo' : ''}</p>
+                    <p class="text-[9px] text-slate-600 mt-1.5">${date}${r._local ? ' · neste dispositivo' : ''}${Number(r.trust_level) >= 2 ? ' · SN' : ''}</p>
                 </article>`;
             }).join('');
         }
@@ -2337,6 +2414,16 @@
         async function saveProductReview() {
             if (detailProductIndex == null) return;
             const prod = currentProducts[detailProductIndex];
+            if (!prod) return;
+            const trust = purchaseTrustLevel(prod);
+            if (trust < 1) {
+                showToast('Só podes avaliar produtos com fatura no sistema.\nIsto evita reviews falsos sem prova de compra.', 'Compra não verificada', 'warn');
+                return;
+            }
+            if (countReviewsToday(reviewAuthorId) >= MAX_REVIEWS_PER_DAY) {
+                showToast('Limite diário de avaliações atingido (' + MAX_REVIEWS_PER_DAY + ').\nTenta amanhã — protege a comunidade de spam.', 'Anti-fraude', 'warn');
+                return;
+            }
             const description = document.getElementById('productReviewDescription').value.trim();
             if (!selectedProductRating) { showToast('Escolha uma avaliação de 1 a 5 estrelas.', 'Avaliação', 'warn'); return; }
             if (description.length < 10) { showToast('Escreva uma descrição com pelo menos 10 caracteres.', 'Avaliação', 'warn'); return; }
@@ -2356,6 +2443,11 @@
                 locality: userProfile.locality || null,
                 postal_code: userProfile.postal_code || null,
                 category: detectCategory(prod.nome_produto),
+                verified: true,
+                trust_level: trust,
+                has_invoice: true,
+                has_serial: productHasSerial(prod),
+                product_id: prod.id || null,
                 updated_at: new Date().toISOString()
             };
             let shared = false;
@@ -2389,9 +2481,9 @@
             renderProductLists();
             btn.disabled = false;
             showToast(shared
-                ? 'A sua avaliação foi publicada e já pode ser vista por todos.'
-                : 'A avaliação ficou guardada neste dispositivo. Execute o ficheiro supabase_product_reviews.sql para ativar a partilha.',
-                shared ? 'Avaliação publicada' : 'Guardada localmente', shared ? 'success' : 'warn');
+                ? 'Avaliação verificada publicada.\nConta no ranking (fatura confirmada).'
+                : 'Avaliação verificada guardada neste dispositivo.',
+                shared ? 'Verificada' : 'Local', shared ? 'success' : 'warn');
         }
 
         let userProfile = JSON.parse(localStorage.getItem('vanty_profile')) || {
@@ -3755,6 +3847,8 @@
 
             const map = new Map();
             allProductReviews.forEach(r => {
+                // Ranking público: só reviews com compra verificada (fatura)
+                if (!isReviewVerified(r)) return;
                 if (countryF && r.country && r.country !== countryF) return;
                 if (countryF && !r.country) return;
                 if (zoneF && r.zone && r.zone !== zoneF) return;
@@ -4704,38 +4798,81 @@
             renderArchiveFeed();
         }
 
+        function anniversaryLine(years, isToday) {
+            const y = years;
+            const when = isToday ? 'hoje' : 'por estes dias';
+            const lines = [
+                `Faz ${when} ${y} ano${y > 1 ? 's' : ''} ao teu lado. Avarias? Preferíamos que não… mas e aí — ainda conta para a equipa?`,
+                `${y} ano${y > 1 ? 's' : ''} de companhia. Zero fanfarra, só a pergunta certa: ainda usas isto a sério?`,
+                `Aniversário nº ${y}. O produto não pediu bolo — só quer saber se ainda faz parte da tua vida.`,
+                `${y} volta${y > 1 ? 's' : ''} ao sol desde a compra. Se já só ocupa espaço, dá baixa. Se ainda serve — força.`,
+                `Parabéns ao equipamento (${y}a). Se continua em combate, diz que sim. Se foi para a arrecadação… nós arquivamos com dignidade.`
+            ];
+            return lines[y % lines.length];
+        }
         function updateAnniversaryAlerts() {
             const box = document.getElementById('anniversaryAlert');
             const list = document.getElementById('anniversaryAlertList');
             if (!box || !list) return;
             const now = new Date();
-            const md = (d) => (d.getMonth() + 1) + '-' + d.getDate();
-            const todayKey = md(now);
+            now.setHours(12, 0, 0, 0);
             const hits = [];
             currentProducts.forEach((prod, idx) => {
                 if (!prod.data_compra) return;
                 const buy = new Date(prod.data_compra);
-                if (md(buy) !== todayKey) return;
-                const years = now.getFullYear() - buy.getFullYear();
-                if (years < 1) return;
-                const dismissKey = 'vanty_anniv_ok_' + prod.id + '_' + now.toISOString().slice(0, 10);
+                if (isNaN(buy.getTime())) return;
+                // próximo aniversário neste ano civil
+                let ann = new Date(now.getFullYear(), buy.getMonth(), buy.getDate());
+                ann.setHours(12, 0, 0, 0);
+                // se o aniversário deste ano já passou há >7 dias, olhar para o próximo ano (não mostrar)
+                let years = now.getFullYear() - buy.getFullYear();
+                if (ann > now) {
+                    // ainda não chegou este ano — se falta ≤7 dias, mostrar como "a caminho"
+                    const daysUntil = Math.round((ann - now) / 86400000);
+                    if (daysUntil > 7 || daysUntil < 0) return;
+                    // years still current year - buy year (same calendar anniversary upcoming)
+                    if (years < 1) return;
+                } else {
+                    const daysSince = Math.round((now - ann) / 86400000);
+                    if (daysSince > 7) return; // janela de 7 dias após o dia
+                    if (years < 1) return;
+                }
+                const isToday = (ann.getMonth() === now.getMonth() && ann.getDate() === now.getDate());
+                const dismissKey = 'vanty_anniv_ok_' + prod.id + '_' + ann.toISOString().slice(0, 10);
                 if (localStorage.getItem(dismissKey)) return;
-                hits.push({ prod, years, idx });
+                hits.push({ prod, years, idx, isToday, ann });
             });
+            hits.sort((a, b) => (b.isToday - a.isToday) || b.years - a.years);
             if (!hits.length) { box.classList.add('hidden'); list.innerHTML = ''; return; }
             box.classList.remove('hidden');
-            list.innerHTML = hits.map(h => `
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2 rounded-lg bg-[#0a0a0b]/40 border border-white/[0.04]">
+            const title = document.querySelector('#anniversaryAlert > p');
+            if (title) title.innerHTML = '<i class="fa-solid fa-cake-candles mr-1"></i> Aniversário de produto · ainda em uso?';
+            list.innerHTML = hits.map(h => {
+                const idSafe = String(h.prod.id).replace(/\\\\/g, '\\\\\\\\').replace(/'/g, "\\\\'");
+                return `
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2.5 rounded-lg bg-[#0a0a0b]/50 border border-orange-500/15">
                     <div class="min-w-0">
-                        <p class="text-slate-200 font-semibold truncate">${escapeHtml(h.prod.nome_produto || 'Produto')}</p>
-                        <p class="text-[10px] text-orange-300/90">Faz hoje ${h.years} ano${h.years > 1 ? 's' : ''} · ainda faz parte da tua vida?</p>
+                        <p class="text-slate-100 font-semibold truncate">${escapeHtml(h.prod.nome_produto || 'Produto')}</p>
+                        <p class="text-[10px] text-orange-300/95 leading-snug mt-0.5">${escapeHtml(anniversaryLine(h.years, h.isToday))}</p>
                     </div>
                     <div class="flex gap-1.5 shrink-0">
-                        <button type="button" onclick="confirmProductStillUsed('${String(h.prod.id).replace(/'/g, "\\'")}')" class="px-2.5 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/25 text-emerald-400 text-[10px] font-bold">Sim, uso</button>
+                        <button type="button" onclick="confirmProductStillUsed('${idSafe}')" class="px-2.5 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/25 text-emerald-400 text-[10px] font-bold">Ainda uso</button>
                         <button type="button" onclick="(function(){ const i=${h.idx}; openProductDetail(i); setTimeout(function(){ retireCurrentProduct(); }, 400); })()" class="px-2.5 py-1 rounded-lg bg-surface-800 border border-white/[0.08] text-slate-300 text-[10px] font-bold">Dar baixa</button>
                     </div>
-                </div>
-            `).join('');
+                </div>`;
+            }).join('');
+            // Toast suave uma vez por sessão no 1.º aniversário do dia
+            try {
+                if (!sessionStorage.getItem('vanty_anniv_toast') && hits.some(x => x.isToday)) {
+                    sessionStorage.setItem('vanty_anniv_toast', '1');
+                    const first = hits.find(x => x.isToday) || hits[0];
+                    showToast(
+                        (first.prod.nome_produto || 'Produto') + ' faz ' + first.years + ' ano' + (first.years > 1 ? 's' : '') + '.\\nAvarias? Oxalá que não — mas confirma se ainda usas.',
+                        'Aniversário Vanty',
+                        'info'
+                    );
+                }
+            } catch (_) {}
         }
         function confirmProductStillUsed(id) {
             const key = 'vanty_anniv_ok_' + id + '_' + new Date().toISOString().slice(0, 10);
