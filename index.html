@@ -972,6 +972,9 @@
                 <div class="nav-item" data-panel="assistente" onclick="switchPanel('assistente')">
                     <span class="nav-icon-chip"><i class="fa-solid fa-robot"></i></span><span>Assistente AI</span>
                 </div>
+                <div class="nav-item" data-panel="mercado" onclick="switchPanel('mercado')">
+                    <span class="nav-icon-chip"><i class="fa-solid fa-store"></i></span><span>Mercado Vanty</span>
+                </div>
                 <div class="nav-item" data-panel="cartoes" onclick="switchPanel('cartoes')">
                     <span class="nav-icon-chip"><i class="fa-solid fa-wallet"></i></span><span>Cartões</span>
                     <span id="navBadgeCards" class="ml-auto text-[10px] font-bold bg-violet-500/15 text-violet-300 px-1.5 py-0.5 rounded-md border border-violet-500/10">0</span>
@@ -993,7 +996,7 @@
                     <div class="live-dot"></div>
                     <div>
                         <div class="text-[11px] font-semibold text-emerald-400">Supabase Live</div>
-                        <div class="text-[10px] text-slate-500">v4.1 · Transferências Supabase</div>
+                        <div class="text-[10px] text-slate-500">v4.2 · Mercado + marketplaces</div>
                     </div>
                 </div>
             </div>
@@ -1527,7 +1530,15 @@
                 </div>
 
 <!-- CARTÕES DE FIDELIZAÇÃO (mini vault) -->
-                <div id="panel-cartoes" class="panel-hidden space-y-4">
+                
+                <div id="panel-mercado" class="panel-hidden space-y-4">
+                    <div>
+                        <h2 class="text-base font-bold text-white flex items-center gap-2"><i class="fa-solid fa-store text-orange-400"></i> Mercado Vanty</h2>
+                        <p class="text-[11px] text-slate-500 mt-1">Ofertas diretas entre users · passaporte (fatura + garantia) na transferência. Marketplaces externos: botão anúncio no produto.</p>
+                    </div>
+                    <div id="vantyMarketFeed" class="space-y-3"></div>
+                </div>
+<div id="panel-cartoes" class="panel-hidden space-y-4">
                     <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
                         <div>
                             <h2 class="text-base font-bold text-white flex items-center gap-2">
@@ -1841,10 +1852,12 @@
                     <p class="text-[10px] text-slate-500 uppercase font-bold tracking-wider"><i class="fa-solid fa-chart-line text-orange-400/80 mr-1"></i> Ativo · ciclo de vida</p>
                     <div id="detailValuation" class="text-xs text-slate-400 leading-relaxed">—</div>
                     <div class="flex flex-wrap gap-1.5">
-                        <button type="button" onclick="copySaleListing()" class="px-2.5 py-1.5 rounded-lg bg-surface-800 border border-white/[0.08] text-[10px] font-bold text-slate-300 hover:border-orange-500/30 hover:text-orange-300"><i class="fa-solid fa-copy mr-1"></i> Texto anúncio</button>
+                        <button type="button" onclick="copySaleListing(true)" class="px-2.5 py-1.5 rounded-lg bg-surface-800 border border-white/[0.08] text-[10px] font-bold text-slate-300 hover:border-orange-500/30 hover:text-orange-300"><i class="fa-solid fa-copy mr-1"></i> Anúncio + marketplace</button>
+                        <button type="button" onclick="toggleProductForSale()" class="px-2.5 py-1.5 rounded-lg bg-orange-500/15 border border-orange-500/25 text-[10px] font-bold text-orange-300 hover:bg-orange-500/25" id="btnForSale"><i class="fa-solid fa-tags mr-1"></i> Vender no Vanty</button>
                         <button type="button" onclick="openTransferModal()" class="px-2.5 py-1.5 rounded-lg bg-violet-500/15 border border-violet-500/25 text-[10px] font-bold text-violet-300 hover:bg-violet-500/25"><i class="fa-solid fa-right-left mr-1"></i> Transferir</button>
                         <button type="button" onclick="showEwasteOptions()" class="px-2.5 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-bold text-emerald-300 hover:bg-emerald-500/20"><i class="fa-solid fa-recycle mr-1"></i> Retoma / e-waste</button>
                     </div>
+                    <div id="detailOffersBox" class="hidden text-[10px] text-slate-400 space-y-1"></div>
                     <p id="transferQuotaHint" class="text-[9px] text-slate-600"></p>
                 </div>
                 <button type="button" onclick="retireCurrentProduct()" class="flex-1 px-3 py-2.5 bg-surface-800 hover:bg-surface-700 border border-white/[0.08] text-slate-300 rounded-xl text-xs font-semibold transition-all"><i class="fa-solid fa-box-archive mr-1"></i> Dar baixa</button>
@@ -3751,7 +3764,7 @@
         }
 
         function switchPanel(id) {
-            ['dashboard', 'garantias', 'registar', 'rma', 'arquivo', 'perfil', 'stats', 'assistente', 'cartoes'].forEach(p => {
+            ['dashboard', 'garantias', 'registar', 'rma', 'arquivo', 'perfil', 'stats', 'assistente', 'mercado', 'cartoes'].forEach(p => {
                 const el = document.getElementById('panel-' + p);
                 if (el) el.classList.toggle('panel-hidden', p !== id);
             });
@@ -3764,6 +3777,7 @@
             if (id === 'arquivo') renderArchiveFeed();
             if (id === 'cartoes') renderLoyaltyCards();
             if (id === 'assistente') initAssistentePanel();
+            if (id === 'mercado') renderVantyMarket();
             if (id === 'registar') setTimeout(adjustSubmitNavSpacer, 50);
         }
 
@@ -5080,6 +5094,13 @@
                    <br><span class="text-[10px] text-slate-600">Uso ≈ ${(v.years || 0).toFixed(1)} anos · garantia rest. ≈ ${v.wLeft.toFixed(0)} mês(es). Estimativa interna, não cotação de marketplace.</span>`
                 : `<span class="text-slate-500">Sem preço de compra — valuation limitada.</span>`;
             if (quota) quota.innerText = 'Transferências grátis este ano: ' + transferQuotaLeft() + ' / ' + FREE_TRANSFERS_PER_YEAR;
+            const btnSale = document.getElementById('btnForSale');
+            if (btnSale && prod) {
+                const onSale = getListingsStore().some(x => String(x.product_id) === String(prod.id));
+                btnSale.innerHTML = onSale
+                    ? '<i class="fa-solid fa-tags mr-1"></i> Tirar do Vanty'
+                    : '<i class="fa-solid fa-tags mr-1"></i> Vender no Vanty';
+            }
         }
 
         function buildSaleListing(prod) {
@@ -5110,6 +5131,192 @@
             }).catch(() => {
                 showToast(text, 'Copia manualmente', 'info');
             });
+        }
+
+        /** Marketplaces por país (abrir site; publicação continua manual) */
+        const MARKETPLACES = {
+            PT: [
+                { id: 'olx', name: 'OLX', url: 'https://www.olx.pt/criar-anuncio/' },
+                { id: 'fb', name: 'Facebook Marketplace', url: 'https://www.facebook.com/marketplace/create' }
+            ],
+            ES: [
+                { id: 'milanuncios', name: 'Milanuncios', url: 'https://www.milanuncios.com/publicar.htm' },
+                { id: 'wallapop', name: 'Wallapop', url: 'https://es.wallapop.com/' },
+                { id: 'fb', name: 'Facebook Marketplace', url: 'https://www.facebook.com/marketplace/create' }
+            ],
+            FR: [
+                { id: 'leboncoin', name: 'Leboncoin', url: 'https://www.leboncoin.fr/deposer-une-annonce' },
+                { id: 'fb', name: 'Facebook Marketplace', url: 'https://www.facebook.com/marketplace/create' }
+            ],
+            DE: [
+                { id: 'ebayk', name: 'eBay Kleinanzeigen', url: 'https://www.kleinanzeigen.de/p-anzeige-aufgeben-schritt2.html' },
+                { id: 'fb', name: 'Facebook Marketplace', url: 'https://www.facebook.com/marketplace/create' }
+            ],
+            US: [
+                { id: 'fb', name: 'Facebook Marketplace', url: 'https://www.facebook.com/marketplace/create' },
+                { id: 'craigslist', name: 'Craigslist', url: 'https://www.craigslist.org/' }
+            ]
+        };
+
+        function getMarketplacesForCountry(cc) {
+            return MARKETPLACES[cc] || MARKETPLACES.PT;
+        }
+
+        function openMarketplaceChooser(prod) {
+            const cc = (userProfile && userProfile.country) || 'PT';
+            const list = getMarketplacesForCountry(cc);
+            const names = list.map((m, i) => (i + 1) + ') ' + m.name).join('\n');
+            const pick = prompt('País: ' + cc + '\nEscolhe marketplace (número):\n' + names + '\n\n(O texto já está na área de transferência.)', '1');
+            const idx = Math.max(0, (parseInt(pick, 10) || 1) - 1);
+            const m = list[idx] || list[0];
+            if (m) window.open(m.url, '_blank', 'noopener');
+        }
+
+        function copySaleListing(openMarket) {
+            if (detailProductIndex == null) return;
+            const prod = currentProducts[detailProductIndex];
+            if (!prod) return;
+            const text = buildSaleListing(prod);
+            const cc = (userProfile && userProfile.country) || 'PT';
+            const primary = (getMarketplacesForCountry(cc)[0] || {}).name || 'marketplace';
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('Texto copiado.\nCola em ' + primary + ' (ou outro).', 'Anúncio', 'success');
+                if (openMarket) setTimeout(() => openMarketplaceChooser(prod), 400);
+            }).catch(() => {
+                showToast(text, 'Copia manualmente', 'info');
+                if (openMarket) openMarketplaceChooser(prod);
+            });
+        }
+
+        // ----- Ofertas diretas no Vanty -----
+        function getListingsStore() {
+            try { return JSON.parse(localStorage.getItem('vanty_for_sale') || '[]'); } catch { return []; }
+        }
+        function setListingsStore(list) {
+            localStorage.setItem('vanty_for_sale', JSON.stringify(list));
+        }
+        function getOffersStore() {
+            try { return JSON.parse(localStorage.getItem('vanty_offers') || '[]'); } catch { return []; }
+        }
+        function setOffersStore(list) {
+            localStorage.setItem('vanty_offers', JSON.stringify(list));
+        }
+
+        function toggleProductForSale() {
+            if (detailProductIndex == null) return;
+            const prod = currentProducts[detailProductIndex];
+            if (!prod) return;
+            const list = getListingsStore();
+            const i = list.findIndex(x => String(x.product_id) === String(prod.id));
+            if (i >= 0) {
+                list.splice(i, 1);
+                setListingsStore(list);
+                showToast('Anúncio Vanty removido.', 'Venda', 'info');
+            } else {
+                const v = estimateResaleValue(prod);
+                const priceStr = prompt('Preço pedido (€) no Vanty Care:', String(v.mid || v.paid || ''));
+                if (priceStr == null) return;
+                const price = parseFloat(String(priceStr).replace(',', '.'));
+                if (!(price > 0)) {
+                    showToast('Preço inválido.', 'Venda', 'warn');
+                    return;
+                }
+                list.unshift({
+                    id: 'listing_' + Date.now(),
+                    product_id: prod.id,
+                    product_name: prod.nome_produto,
+                    price,
+                    country: userProfile.country || 'PT',
+                    zone: userProfile.zone || '',
+                    locality: userProfile.locality || '',
+                    seller_name: userProfile.name || 'Vendedor Vanty',
+                    has_invoice: !!(typeof productHasInvoice === 'function' && productHasInvoice(prod)),
+                    warranty_left_months: Math.round(warrantyMonthsLeft(prod)),
+                    created_at: new Date().toISOString()
+                });
+                setListingsStore(list);
+                showToast('À venda no Vanty por ' + formatMoney(price) + '.\nOutros users (neste dispositivo / sync futura) podem fazer oferta.', 'Venda', 'success');
+            }
+            refreshAssetLifecycleUI(prod);
+            renderVantyMarket();
+        }
+
+        function submitOfferForListing(listingId) {
+            const listing = getListingsStore().find(x => x.id === listingId);
+            if (!listing) return;
+            const amountStr = prompt('A tua oferta (€) por:\n' + listing.product_name, String(listing.price));
+            if (amountStr == null) return;
+            const amount = parseFloat(String(amountStr).replace(',', '.'));
+            if (!(amount > 0)) {
+                showToast('Oferta inválida.', 'Oferta', 'warn');
+                return;
+            }
+            const offers = getOffersStore();
+            offers.unshift({
+                id: 'offer_' + Date.now(),
+                listing_id: listingId,
+                product_name: listing.product_name,
+                amount,
+                buyer_name: userProfile.name || 'Comprador',
+                status: 'pending',
+                created_at: new Date().toISOString()
+            });
+            setOffersStore(offers);
+            showToast('Oferta de ' + formatMoney(amount) + ' enviada.\nO vendedor vê em Ofertas.', 'Oferta', 'success');
+            renderVantyMarket();
+        }
+
+        function respondOffer(offerId, accept) {
+            const offers = getOffersStore();
+            const o = offers.find(x => x.id === offerId);
+            if (!o) return;
+            o.status = accept ? 'accepted' : 'rejected';
+            setOffersStore(offers);
+            if (accept) {
+                showToast('Oferta aceite.\nUsa «Transferir» / passaporte para entregar o produto com fatura.', 'Negócio', 'success');
+            } else {
+                showToast('Oferta recusada.', 'Oferta', 'info');
+            }
+            renderVantyMarket();
+        }
+
+        function renderVantyMarket() {
+            const feed = document.getElementById('vantyMarketFeed');
+            if (!feed) return;
+            const listings = getListingsStore();
+            const offers = getOffersStore();
+            const myIds = new Set((currentProducts || []).map(p => String(p.id)));
+            let html = '';
+            if (!listings.length) {
+                html = '<div class="text-center text-slate-500 text-sm py-8">Nada à venda no Vanty.<p class="text-xs mt-2">No detalhe do produto → <strong>Vender no Vanty</strong>.</p></div>';
+            } else {
+                html = listings.map(L => {
+                    const mine = myIds.has(String(L.product_id));
+                    const related = offers.filter(o => o.listing_id === L.id);
+                    const offersHtml = related.slice(0, 5).map(o =>
+                        `<div class="flex items-center justify-between gap-2 py-1 border-t border-white/[0.04]">
+                            <span>${escapeHtml(o.buyer_name)} · <strong class="text-emerald-400">${formatMoney(o.amount)}</strong> · <span class="text-slate-500">${escapeHtml(o.status)}</span></span>
+                            ${mine && o.status === 'pending' ? `<span class="flex gap-1">
+                                <button type="button" onclick="respondOffer('${o.id}', true)" class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">Aceitar</button>
+                                <button type="button" onclick="respondOffer('${o.id}', false)" class="px-2 py-0.5 rounded bg-surface-800 text-slate-400 text-[10px] font-bold">Recusar</button>
+                            </span>` : ''}
+                        </div>`
+                    ).join('');
+                    return `<div class="card p-4 space-y-2">
+                        <div class="flex justify-between gap-2">
+                            <div class="min-w-0">
+                                <p class="text-sm font-bold text-white truncate">${escapeHtml(L.product_name)}</p>
+                                <p class="text-[10px] text-slate-500">${escapeHtml([L.locality, L.zone, L.country].filter(Boolean).join(' · '))}${L.has_invoice ? ' · fatura ✓' : ''}${L.warranty_left_months > 0 ? ' · ~' + L.warranty_left_months + 'm garantia' : ''}</p>
+                            </div>
+                            <p class="text-emerald-400 font-black tabular-nums shrink-0">${formatMoney(L.price)}</p>
+                        </div>
+                        <p class="text-[10px] text-slate-500">Vendedor: ${escapeHtml(L.seller_name)}${mine ? ' (tu)' : ''}</p>
+                        ${!mine ? `<button type="button" onclick="submitOfferForListing('${L.id}')" class="w-full py-2 rounded-xl bg-orange-500/15 border border-orange-500/25 text-orange-300 text-xs font-bold">Fazer oferta</button>` : '<p class="text-[10px] text-slate-600">As tuas ofertas recebidas:</p>'}
+                        ${offersHtml || (mine ? '<p class="text-[10px] text-slate-600">Ainda sem ofertas.</p>' : '')}
+                    </div>`;
+                }).join('');
+            }
+            feed.innerHTML = html;
         }
 
         function openTransferModal() {
