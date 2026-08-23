@@ -601,6 +601,25 @@
         .kpi-icon-hex, .panel-title .hex-bullet { animation: emberPulse 3s ease-in-out infinite; }
         .btn-vanty span, .btn-vanty i { position: relative; z-index: 1; }
 
+
+        .intel-tag { font-size:9px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; padding:4px 7px; border-radius:7px; background:rgba(255,90,0,.08); border:1px solid rgba(255,90,0,.16); color:#FFB347; }
+        .intel-score { display:flex; align-items:center; justify-content:center; border-radius:12px; background:linear-gradient(160deg, rgba(255,90,0,.12), rgba(0,0,0,.2)); border:1px solid rgba(255,90,0,.2); color:#FFB347; font-weight:900; }
+        .intel-meter { height:4px; border-radius:99px; background:rgba(255,255,255,.05); overflow:hidden; }
+
+        .dna-row { display:flex; align-items:center; gap:8px; margin:3px 0; }
+        .dna-row span { width:78px; flex-shrink:0; font-size:9px; color:#8B949D; font-weight:700; text-transform:uppercase; letter-spacing:.04em; }
+        .dna-track { flex:1; height:6px; border-radius:99px; background:rgba(255,255,255,.05); overflow:hidden; }
+        .dna-track i { display:block; height:100%; border-radius:99px; background:linear-gradient(90deg,#C93400,#FF5A00,#FFB347); font-style:normal; }
+        .dna-row em { font-style:normal; width:28px; text-align:right; font-size:10px; font-weight:800; color:#FFB347; }
+        .life-curve { position:relative; height:28px; margin:8px 0 4px; }
+        .life-curve .track { position:absolute; left:0; right:0; top:12px; height:3px; border-radius:99px; background:linear-gradient(90deg,#2A3138,#FF5A00 70%,#3A424A); }
+        .life-curve .dot { position:absolute; top:6px; width:14px; height:14px; margin-left:-7px; border-radius:50%; border:2px solid #FF5A00; background:#0a0a0b; box-shadow:0 0 10px rgba(255,90,0,.45); }
+        .life-curve .label { position:absolute; top:22px; font-size:8px; color:#6b7683; transform:translateX(-50%); white-space:nowrap; }
+        .vanty-verified { display:inline-flex; align-items:center; gap:4px; font-size:9px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:#34d399; background:rgba(52,211,153,.08); border:1px solid rgba(52,211,153,.25); padding:3px 7px; border-radius:7px; }
+        .decision-chip { font-size:10px; font-weight:800; letter-spacing:.04em; padding:5px 9px; border-radius:8px; display:inline-flex; align-items:center; gap:5px; }
+
+        .intel-meter > i { display:block; height:100%; border-radius:99px; background:linear-gradient(90deg, #C93400, #FF5A00, #FFB347); font-style:normal; }
+
         /* ===== EMBERS + MOTION LAYER (v2.8) ===== */
         #emberCanvas {
             position: fixed; inset: 0; width: 100%; height: 100%;
@@ -996,7 +1015,7 @@
                     <div class="live-dot"></div>
                     <div>
                         <div class="text-[11px] font-semibold text-emerald-400">Supabase Live</div>
-                        <div class="text-[10px] text-slate-500">v4.4 · UI sem prompt nativo</div>
+                        <div class="text-[10px] text-slate-500">v4.7 · Intelligence A · DNA · Decision</div>
                     </div>
                 </div>
             </div>
@@ -1341,7 +1360,107 @@
                 </div>
 
                 <!-- ESTATÍSTICAS / RANKING DE PRODUTOS -->
-                <div id="panel-stats" class="panel-hidden space-y-4">
+                
+                <!-- FINANÇAS / ROI -->
+                
+                <div id="panel-inteligencia" class="panel-hidden space-y-5">
+                    <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-3">
+                        <div>
+                            <h2 class="text-base font-bold text-white flex items-center gap-2"><i class="fa-solid fa-brain text-orange-400"></i> Vanty Intelligence</h2>
+                            <p class="text-[11px] text-slate-500 mt-1">Saúde, longevidade, valor e fiabilidade — a partir dos dados que já tens no Vanty Care.</p>
+                        </div>
+                        <span class="intel-tag"><i class="fa-solid fa-shield-halved mr-1"></i> dados verificáveis primeiro</span>
+                    </div>
+                    <div id="intelligenceOverview" class="grid grid-cols-1 xl:grid-cols-3 gap-4"></div>
+                    <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                        <section class="card p-5">
+                            <div class="flex items-center justify-between mb-3">
+                                <h3 class="text-sm font-bold text-white"><i class="fa-solid fa-heart-pulse text-orange-400/80 mr-1.5"></i> Saúde dos produtos</h3>
+                                <span id="intelProductCount" class="text-[10px] text-slate-600"></span>
+                            </div>
+                            <div id="intelProducts" class="space-y-2"></div>
+                        </section>
+                        <section class="card p-5">
+                            <div class="flex items-center justify-between mb-3">
+                                <h3 class="text-sm font-bold text-white"><i class="fa-solid fa-building-shield text-orange-400/80 mr-1.5"></i> Brand Reliability</h3>
+                                <span class="text-[10px] text-slate-600">local + reviews</span>
+                            </div>
+                            <div id="intelBrands" class="space-y-2"></div>
+                        </section>
+                    </div>
+                    <section class="card p-5">
+                        <div class="flex items-center justify-between mb-3">
+                            <h3 class="text-sm font-bold text-white"><i class="fa-solid fa-triangle-exclamation text-amber-400/80 mr-1.5"></i> Alertas inteligentes</h3>
+                            <span class="text-[10px] text-slate-600">preventivo</span>
+                        </div>
+                        <div id="intelAlerts" class="grid grid-cols-1 md:grid-cols-2 gap-2"></div>
+                    </section>
+                </div>
+<div id="panel-financas" class="panel-hidden space-y-4">
+                    <div>
+                        <h2 class="text-base font-bold text-white flex items-center gap-2"><i class="fa-solid fa-coins text-orange-400"></i> Finanças & ROI</h2>
+                        <p class="text-[11px] text-slate-500 mt-1">Património registado, gastos por categoria e custo por ano de uso (barato sai caro?).</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="kpi p-4">
+                            <p class="text-[10px] text-slate-500 uppercase font-bold">Património ativo</p>
+                            <p class="text-xl font-black text-emerald-400 tabular-nums mt-1" id="finActiveValue">0 €</p>
+                        </div>
+                        <div class="kpi p-4">
+                            <p class="text-[10px] text-slate-500 uppercase font-bold">Arquivo (histórico)</p>
+                            <p class="text-xl font-black text-slate-300 tabular-nums mt-1" id="finArchiveValue">0 €</p>
+                        </div>
+                        <div class="kpi p-4 col-span-2">
+                            <p class="text-[10px] text-slate-500 uppercase font-bold">Custo médio / ano de uso (ativos)</p>
+                            <p class="text-lg font-black text-orange-300 tabular-nums mt-1" id="finCostPerYear">—</p>
+                        </div>
+                    </div>
+                    <div class="card p-4">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3">Distribuição por categoria</p>
+                        <div id="finCategoryBars" class="space-y-2"></div>
+                    </div>
+                    <div class="card p-4">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3">ROI / custo por ano (produtos)</p>
+                        <div id="finRoiList" class="space-y-2 text-xs"></div>
+                    </div>
+                </div>
+
+                <!-- CONSUMÍVEIS -->
+                <div id="panel-consumiveis" class="panel-hidden space-y-4">
+                    <div>
+                        <h2 class="text-base font-bold text-white flex items-center gap-2"><i class="fa-solid fa-link text-orange-400"></i> Consumíveis & guias</h2>
+                        <p class="text-[11px] text-slate-500 mt-1">Sugestões por produto registado · pesquisa rápida · manuais/tutoriais (links externos).</p>
+                    </div>
+                    <div id="consumablesFeed" class="space-y-3"></div>
+                </div>
+
+                <!-- B2B -->
+                <div id="panel-b2b" class="panel-hidden space-y-4">
+                    <div>
+                        <h2 class="text-base font-bold text-white flex items-center gap-2"><i class="fa-solid fa-building text-orange-400"></i> Portal marcas (B2B)</h2>
+                        <p class="text-[11px] text-slate-500 mt-1">Pré-visualização com dados <strong class="text-slate-400">anonimizados</strong> da comunidade neste dispositivo. Acesso comercial = futuro.</p>
+                    </div>
+                    <div id="b2bFeed" class="space-y-3"></div>
+                    <div class="card p-4 border border-amber-500/20 bg-amber-500/5">
+                        <p class="text-xs text-amber-200/90 font-semibold mb-1"><i class="fa-solid fa-bullhorn mr-1"></i> Recalls seguros</p>
+                        <p class="text-[11px] text-slate-400 leading-relaxed">Marcas poderão avisar só quem tem o modelo/lote registado, sem exportar listas de contactos. Canal em desenho (opt-in do user).</p>
+                    </div>
+                </div>
+
+                <!-- IoT -->
+                <div id="panel-iot" class="panel-hidden space-y-4">
+                    <div>
+                        <h2 class="text-base font-bold text-white flex items-center gap-2"><i class="fa-solid fa-wifi text-orange-400"></i> Casa / dispositivos</h2>
+                        <p class="text-[11px] text-slate-500 mt-1">Scan Wi‑Fi real não está disponível de forma fiável em PWA/browser. Usa registo manual rápido.</p>
+                    </div>
+                    <div class="card p-4 space-y-3">
+                        <p class="text-xs text-slate-400">Detetaste um aparelho novo em casa? Regista já para não perder a garantia.</p>
+                        <button type="button" onclick="switchPanel('registar')" class="w-full btn-vanty py-2.5 rounded-xl text-xs font-bold"><i class="fa-solid fa-plus mr-1"></i> Digitalizar fatura agora</button>
+                        <button type="button" onclick="addManualIotHint()" class="w-full py-2.5 rounded-xl bg-surface-800 border border-white/[0.08] text-slate-300 text-xs font-bold">Lembrete: dispositivo novo na rede</button>
+                    </div>
+                    <div id="iotHintsFeed" class="space-y-2"></div>
+                </div>
+<div id="panel-stats" class="panel-hidden space-y-4">
                     <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
                         <div>
                             <h2 class="text-base font-bold text-white flex items-center gap-2">
@@ -1869,6 +1988,7 @@
                 <button id="detailInvoiceBtn" class="flex-1 px-3 py-2.5 bg-surface-800 hover:bg-surface-700 border border-white/[0.06] text-slate-300 rounded-xl text-xs font-semibold transition-all"><i class="fa-solid fa-file-invoice mr-1"></i> Ver Fatura</button>
                 <button id="detailRmaBtn" class="flex-1 px-3 py-2.5 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/25 text-orange-300 rounded-xl text-xs font-bold transition-all"><i class="fa-solid fa-screwdriver-wrench mr-1"></i> Assistência</button>
 
+                <div id="detailIntelligenceBox" class="p-3.5 rounded-xl bg-orange-500/[0.04] border border-orange-500/12 space-y-3"></div>
                 <!-- Ciclo de vida / ativo -->
                 <div id="assetLifecycleBox" class="p-3 rounded-xl bg-[#0a0a0b]/60 border border-white/[0.06] space-y-2.5">
                     <p class="text-[10px] text-slate-500 uppercase font-bold tracking-wider"><i class="fa-solid fa-chart-line text-orange-400/80 mr-1"></i> Ativo · ciclo de vida</p>
@@ -3876,7 +3996,7 @@
         }
 
         function switchPanel(id) {
-            ['dashboard', 'garantias', 'registar', 'rma', 'arquivo', 'perfil', 'stats', 'assistente', 'mercado', 'cartoes'].forEach(p => {
+            ['dashboard', 'garantias', 'registar', 'rma', 'arquivo', 'perfil', 'stats', 'inteligencia', 'financas', 'consumiveis', 'b2b', 'iot', 'assistente', 'mercado', 'cartoes'].forEach(p => {
                 const el = document.getElementById('panel-' + p);
                 if (el) el.classList.toggle('panel-hidden', p !== id);
             });
@@ -3890,6 +4010,11 @@
             if (id === 'cartoes') renderLoyaltyCards();
             if (id === 'assistente') initAssistentePanel();
             if (id === 'mercado') renderVantyMarket();
+            if (id === 'inteligencia') renderVantyIntelligence();
+            if (id === 'financas') renderFinancePanel();
+            if (id === 'consumiveis') renderConsumablesPanel();
+            if (id === 'b2b') renderB2BPanel();
+            if (id === 'iot') renderIotPanel();
             if (id === 'registar') setTimeout(adjustSubmitNavSpacer, 50);
         }
 
@@ -5885,6 +6010,459 @@
         })();
 
 
+
+        // ========== FINANÇAS / CONSUMÍVEIS / B2B / IoT ==========
+        function sumPrices(list) {
+            return (list || []).reduce((s, p) => s + (parseFloat(p.preco_com_iva || p.preco || 0) || 0), 0);
+        }
+
+        function renderFinancePanel() {
+            const active = currentProducts || [];
+            const arch = (typeof getRetiredStore === 'function' ? getRetiredStore() : []);
+            const av = sumPrices(active);
+            const arv = sumPrices(arch.map(a => ({ preco_com_iva: a.preco_com_iva })));
+            document.getElementById('finActiveValue').innerText = formatMoney(av);
+            document.getElementById('finArchiveValue').innerText = formatMoney(arv);
+
+            // cost per year active
+            let totalCostYears = 0, n = 0;
+            active.forEach(p => {
+                const price = parseFloat(p.preco_com_iva || p.preco || 0) || 0;
+                const y = yearsOwnedFloat(p) || 0.08;
+                if (price > 0) { totalCostYears += price / Math.max(y, 0.08); n++; }
+            });
+            document.getElementById('finCostPerYear').innerText = n
+                ? formatMoney(totalCostYears / n) + ' / ano (média)'
+                : '—';
+
+            // category bars
+            const byCat = {};
+            active.forEach(p => {
+                const c = p.categoria || (typeof detectCategory === 'function' ? detectCategory(p.nome_produto) : 'outros') || 'outros';
+                byCat[c] = (byCat[c] || 0) + (parseFloat(p.preco_com_iva || p.preco || 0) || 0);
+            });
+            const max = Math.max(1, ...Object.values(byCat), 1);
+            const bars = document.getElementById('finCategoryBars');
+            const entries = Object.entries(byCat).sort((a, b) => b[1] - a[1]);
+            bars.innerHTML = entries.length ? entries.map(([c, v]) => {
+                const pct = Math.round((v / max) * 100);
+                return `<div>
+                    <div class="flex justify-between text-[10px] mb-0.5"><span class="text-slate-400">${escapeHtml(typeof categoryLabel === 'function' ? categoryLabel(c) : c)}</span><span class="text-slate-300 tabular-nums">${formatMoney(v)}</span></div>
+                    <div class="h-2 rounded-full bg-white/[0.04] overflow-hidden"><div class="h-full rounded-full bg-gradient-to-r from-orange-600 to-orange-400" style="width:${pct}%"></div></div>
+                </div>`;
+            }).join('') : '<p class="text-slate-600 text-xs">Sem produtos ativos.</p>';
+
+            // ROI list
+            const roiBox = document.getElementById('finRoiList');
+            const rows = active.map(p => {
+                const price = parseFloat(p.preco_com_iva || p.preco || 0) || 0;
+                const y = yearsOwnedFloat(p);
+                const cpy = price > 0 && y != null ? price / Math.max(y, 0.08) : null;
+                return { p, price, y, cpy };
+            }).filter(r => r.price > 0).sort((a, b) => (a.cpy || 0) - (b.cpy || 0));
+            roiBox.innerHTML = rows.length ? rows.slice(0, 12).map(r => {
+                const tip = r.cpy != null && r.y >= 1
+                    ? (r.cpy < 50 ? 'Bom custo/ano' : r.cpy < 150 ? 'Razoável' : 'Caro por ano de uso')
+                    : 'Ainda cedo para julgar';
+                return `<div class="flex justify-between gap-2 py-1.5 border-b border-white/[0.04]">
+                    <div class="min-w-0"><p class="text-slate-200 truncate font-medium">${escapeHtml(r.p.nome_produto || '')}</p>
+                    <p class="text-[10px] text-slate-500">${r.y != null ? r.y.toFixed(1) + ' anos' : '—'} · ${escapeHtml(tip)}</p></div>
+                    <div class="text-right shrink-0"><p class="text-slate-300 tabular-nums">${formatMoney(r.price)}</p>
+                    <p class="text-[10px] text-orange-300/90">${r.cpy != null ? formatMoney(r.cpy) + '/ano' : '—'}</p></div>
+                </div>`;
+            }).join('') : '<p class="text-slate-600">Regista produtos com preço para ver ROI.</p>';
+        }
+
+        function consumableSuggestions(prod) {
+            const name = (prod.nome_produto || '').toLowerCase();
+            const cat = prod.categoria || detectCategory(prod.nome_produto);
+            const q = encodeURIComponent(prod.nome_produto || '');
+            const items = [];
+            if (/impressora|printer|epson|hp laser|canon pixma|brother/i.test(name) || cat === 'informatica') {
+                items.push({ label: 'Tinteiros / toner compatíveis', url: 'https://www.google.com/search?q=' + q + '+tinteiros' });
+            }
+            if (/aspirador|roomba|dyson|hoover/i.test(name)) {
+                items.push({ label: 'Sacos / filtros', url: 'https://www.google.com/search?q=' + q + '+filtros+sacos' });
+            }
+            if (/tv|televis|oled|qled/i.test(name) || cat === 'tvs') {
+                items.push({ label: 'Suporte de parede / furação VESA', url: 'https://www.google.com/search?q=' + q + '+VESA+suporte' });
+            }
+            if (/maquina de cafe|nespresso|delt q|cafeteira/i.test(name)) {
+                items.push({ label: 'Descalcificante / cápsulas', url: 'https://www.google.com/search?q=' + q + '+descalcificante' });
+            }
+            if (/lavar|maquina de roupa|dishwasher|lava-loi/i.test(name) || cat === 'grandes_eletro') {
+                items.push({ label: 'Filtros / sal / pastilhas', url: 'https://www.google.com/search?q=' + q + '+consumiveis' });
+            }
+            items.push({ label: 'Manual PDF (pesquisa)', url: 'https://www.google.com/search?q=' + q + '+manual+pdf' });
+            items.push({ label: 'Tutoriais YouTube', url: 'https://www.youtube.com/results?search_query=' + q + '+tutorial' });
+            return items;
+        }
+
+        function renderConsumablesPanel() {
+            const feed = document.getElementById('consumablesFeed');
+            if (!feed) return;
+            const list = currentProducts || [];
+            if (!list.length) {
+                feed.innerHTML = '<div class="card p-6 text-center text-slate-500 text-sm">Sem produtos — regista garantias para ver sugestões.</div>';
+                return;
+            }
+            feed.innerHTML = list.slice(0, 20).map(p => {
+                const sug = consumableSuggestions(p);
+                return `<div class="card p-4 space-y-2">
+                    <p class="text-sm font-bold text-white truncate">${escapeHtml(p.nome_produto || '')}</p>
+                    <div class="flex flex-wrap gap-1.5">
+                        ${sug.map(s => `<a href="${s.url}" target="_blank" rel="noopener" class="px-2.5 py-1 rounded-lg bg-surface-800 border border-white/[0.08] text-[10px] text-orange-300/90 hover:border-orange-500/30 font-semibold">${escapeHtml(s.label)} ↗</a>`).join('')}
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        function renderB2BPanel() {
+            const feed = document.getElementById('b2bFeed');
+            if (!feed) return;
+            const all = [...(currentProducts || []), ...(typeof getRetiredStore === 'function' ? getRetiredStore() : [])];
+            const byBrand = {};
+            all.forEach(p => {
+                const b = (typeof detectBrand === 'function' ? detectBrand(p.nome_produto || '') : null) || 'Outros';
+                if (!byBrand[b]) byBrand[b] = { n: 0, assist: 0, years: [] };
+                byBrand[b].n++;
+                const aids = (typeof getRmaStore === 'function' ? getRmaStore() : []).filter(r => String(r.produto_id) === String(p.id)).length;
+                byBrand[b].assist += aids || (p.assist_count || 0);
+                const y = p.years_used != null ? p.years_used : yearsOwnedFloat(p);
+                if (y != null) byBrand[b].years.push(y);
+            });
+            const rows = Object.entries(byBrand).map(([b, s]) => {
+                const avgY = s.years.length ? s.years.reduce((a, c) => a + c, 0) / s.years.length : null;
+                const rate = s.n ? (s.assist / s.n) : 0;
+                return { b, ...s, avgY, rate };
+            }).sort((a, b) => b.n - a.n);
+            feed.innerHTML = rows.length ? `
+                <div class="card p-4 overflow-x-auto">
+                    <table class="w-full text-[11px] text-left">
+                        <thead><tr class="text-slate-500 border-b border-white/[0.06]">
+                            <th class="py-2 pr-2">Marca</th><th class="py-2 pr-2">N</th><th class="py-2 pr-2">Assist./unid.</th><th class="py-2">Anos médios</th>
+                        </tr></thead>
+                        <tbody>
+                        ${rows.map(r => `<tr class="border-b border-white/[0.04] text-slate-300">
+                            <td class="py-2 pr-2 font-semibold">${escapeHtml(r.b)}</td>
+                            <td class="py-2 pr-2">${r.n}</td>
+                            <td class="py-2 pr-2">${(r.rate * 100).toFixed(0)}%</td>
+                            <td class="py-2">${r.avgY != null ? r.avgY.toFixed(1) : '—'}</td>
+                        </tr>`).join('')}
+                        </tbody>
+                    </table>
+                    <p class="text-[10px] text-slate-600 mt-2">Amostra local/anonimizada · não é ranking oficial de mercado.</p>
+                </div>` : '<div class="card p-6 text-slate-500 text-sm text-center">Sem dados suficientes neste dispositivo.</div>';
+        }
+
+        function getIotHints() {
+            try { return JSON.parse(localStorage.getItem('vanty_iot_hints') || '[]'); } catch { return []; }
+        }
+        function addManualIotHint() {
+            vantyPrompt('Nome do dispositivo detetado (ex.: PlayStation 5)', '', 'Novo na rede').then(name => {
+                if (!name) return;
+                const list = getIotHints();
+                list.unshift({ id: 'iot_' + Date.now(), name, at: new Date().toISOString() });
+                localStorage.setItem('vanty_iot_hints', JSON.stringify(list.slice(0, 30)));
+                showToast('Lembrete guardado.\nDigitaliza a fatura quando puderes.', 'IoT', 'success');
+                renderIotPanel();
+            });
+        }
+        function renderIotPanel() {
+            const feed = document.getElementById('iotHintsFeed');
+            if (!feed) return;
+            const list = getIotHints();
+            feed.innerHTML = list.length ? list.map(h =>
+                `<div class="card p-3 flex justify-between items-center gap-2">
+                    <div><p class="text-sm text-slate-200 font-medium">${escapeHtml(h.name)}</p>
+                    <p class="text-[10px] text-slate-500">${new Date(h.at).toLocaleString('pt-PT')}</p></div>
+                    <button type="button" onclick="switchPanel('registar')" class="px-2.5 py-1 rounded-lg bg-orange-500/15 text-orange-300 text-[10px] font-bold">Registar</button>
+                </div>`
+            ).join('') : '<p class="text-xs text-slate-600 text-center">Sem lembretes ainda.</p>';
+        }
+
+
+
+        function productBrand(prod) {
+            if (!prod) return null;
+            if (prod.marca) return prod.marca;
+            try { return detectBrand(prod.nome_produto || '') || null; } catch (_) { return null; }
+        }
+        function productBrand(prod) {
+            if (!prod) return null;
+            if (prod.marca) return prod.marca;
+            try { return detectBrand(prod.nome_produto || '') || null; } catch (_) { return null; }
+        }
+        function productLongevity(prod) {
+            const cat = prod?.categoria || (typeof detectCategory === 'function' ? detectCategory(prod?.nome_produto || '') : 'outros');
+            const base = { telemoveis: 4.5, portateis: 6, tvs: 7, grandes_eletro: 10, climatizacao: 10, audio: 7, gaming: 6, redes: 6, outros: 7 };
+            return base[cat] || 7;
+        }
+        function productHealthScore(prod) {
+            return computeVantyScores(prod).health;
+        }
+        /** Sub-scores 0–100 — complementam as estrelas, não as substituem */
+        function computeVantyScores(prod) {
+            if (!prod) {
+                return { total: 0, reliability: 0, health: 0, longevity: 0, repairability: 0, resale: 0, satisfaction: 0, brand: 0, stars: 0, starCount: 0 };
+            }
+            const years = (typeof yearsOwnedFloat === 'function' ? yearsOwnedFloat(prod) : 0) || 0;
+            const w = (typeof warrantyMonthsLeft === 'function' ? warrantyMonthsLeft(prod) : 0) || 0;
+            const life = productLongevity(prod);
+            let rs = { count: 0, average: 0 };
+            try { rs = ratingStats(prod, { verifiedOnly: true }) || rs; } catch (_) {}
+            const hasInv = (() => { try { return !!productHasInvoice(prod); } catch (_) { return false; } })();
+            const hasSn = !!(prod.numero_serie && String(prod.numero_serie).trim());
+            const assistN = (() => {
+                try { return (getRmaStore() || []).filter(r => String(r.produto_id) === String(prod.id)).length; } catch (_) { return 0; }
+            })();
+
+            // Fiabilidade: idade + assistências + reviews
+            let reliability = 90;
+            reliability -= Math.min(25, years * 3.5);
+            reliability -= Math.min(20, assistN * 12);
+            if (rs.count) reliability += (rs.average - 3.2) * 6;
+            reliability = Math.max(0, Math.min(100, Math.round(reliability)));
+
+            // Saúde atual
+            let health = 88;
+            health -= Math.min(28, years * 4.5);
+            if (w > 0) health += Math.min(10, w / 12 * 5);
+            health -= Math.min(15, assistN * 10);
+            if (hasSn) health += 2;
+            if (hasInv) health += 3;
+            if (rs.count) health += (rs.average - 3) * 4;
+            health = Math.max(0, Math.min(100, Math.round(health)));
+
+            // Longevidade (quanto da vida útil ainda faz sentido)
+            const lifeLeftRatio = Math.max(0, Math.min(1, (life - years) / life));
+            let longevity = Math.round(55 + lifeLeftRatio * 40);
+            if (w > 6) longevity = Math.min(100, longevity + 5);
+
+            // Reparabilidade (heurística por categoria)
+            const cat = prod.categoria || (typeof detectCategory === 'function' ? detectCategory(prod.nome_produto || '') : 'outros');
+            const repairBase = { telemoveis: 55, portateis: 62, tvs: 58, grandes_eletro: 78, climatizacao: 72, audio: 60, gaming: 50, redes: 65, outros: 65 };
+            let repairability = repairBase[cat] || 65;
+            if (years > life * 0.7) repairability -= 8;
+            repairability = Math.max(20, Math.min(95, repairability));
+
+            // Retenção de valor
+            let resale = 70;
+            try {
+                const v = estimateResaleValue(prod);
+                if (v.paid > 0) resale = Math.round(Math.min(98, Math.max(15, (v.mid / v.paid) * 100)));
+            } catch (_) {}
+            if (w > 3) resale = Math.min(100, resale + 6);
+
+            // Satisfação (estrelas verificadas → escala 0–100)
+            const stars = rs.count ? rs.average : 0;
+            const satisfaction = rs.count ? Math.round((rs.average / 5) * 100) : 0;
+
+            // Marca
+            let brand = 70;
+            try {
+                const b = productBrand(prod);
+                const br = brandReliabilityScores().find(x => x.name === b);
+                if (br) brand = br.score;
+            } catch (_) {}
+
+            const total = Math.round(
+                reliability * 0.18 +
+                health * 0.20 +
+                longevity * 0.14 +
+                repairability * 0.10 +
+                resale * 0.14 +
+                (satisfaction || 70) * 0.12 +
+                brand * 0.12
+            );
+
+            return {
+                total: Math.max(0, Math.min(100, total)),
+                reliability, health, longevity, repairability, resale,
+                satisfaction, brand, stars, starCount: rs.count || 0,
+                years, w, life, hasInv, hasSn, assistN
+            };
+        }
+        function isVantyVerified(prod) {
+            const s = computeVantyScores(prod);
+            return !!(s.hasInv && (s.hasSn || s.starCount > 0 || s.w > 0));
+        }
+        function healthLabel(score) {
+            if (score >= 85) return 'Excelente';
+            if (score >= 70) return 'Boa';
+            if (score >= 55) return 'Aceitável';
+            if (score >= 40) return 'Atenção';
+            return 'Crítica';
+        }
+        function vantyDecision(prod) {
+            const s = computeVantyScores(prod);
+            const v = (typeof estimateResaleValue === 'function' ? estimateResaleValue(prod) : { mid: 0, paid: 0 });
+            const years = s.years || 0;
+            const life = s.life || 7;
+            const price = v.paid || 0;
+            const repairEst = price > 0 ? Math.round(Math.min(price * 0.35, price * 0.15 + 40 + years * 15)) : 80;
+            const postRepair = Math.max(0, (v.mid || 0) * 0.95);
+            // REPLACE if old + low value + high repair relative
+            if (years >= life * 0.9 || (years >= life * 0.75 && (v.mid || 0) < repairEst * 1.2)) {
+                return { key: 'replace', label: 'REPLACE', color: 'text-red-300', bg: 'bg-red-500/15 border-red-500/25', tip: 'Idade e valor já não justificam investir mais neste equipamento.' };
+            }
+            if (s.w > 0 && s.assistN === 0 && s.health >= 70) {
+                return { key: 'keep', label: 'KEEP', color: 'text-emerald-300', bg: 'bg-emerald-500/15 border-emerald-500/25', tip: 'Ainda compensa manter — garantia e saúde favoráveis.' };
+            }
+            if ((v.mid || 0) > price * 0.45 && s.w < 2 && years >= 1.5) {
+                return { key: 'sell', label: 'SELL', color: 'text-amber-300', bg: 'bg-amber-500/15 border-amber-500/25', tip: 'Janela de revenda interessante (valor residual vs idade).' };
+            }
+            if (repairEst < (v.mid || 0) * 0.4) {
+                return { key: 'repair', label: 'REPAIR', color: 'text-sky-300', bg: 'bg-sky-500/15 border-sky-500/25', tip: 'Reparação pode ser economicamente interessante face ao valor residual.', repairEst, postRepair };
+            }
+            return { key: 'keep', label: 'KEEP', color: 'text-emerald-300', bg: 'bg-emerald-500/15 border-emerald-500/25', tip: 'Manter por agora; monitoriza health e garantia.' };
+        }
+        function brandReliabilityScores() {
+            const groups = new Map();
+            (currentProducts || []).forEach(p => {
+                const b = productBrand(p) || 'Marca não identificada';
+                if (!groups.has(b)) groups.set(b, { name: b, products: [], ratings: [] });
+                groups.get(b).products.push(p);
+            });
+            try {
+                (allProductReviews || []).filter(r => typeof isReviewVerified === 'function' ? isReviewVerified(r) : true).forEach(r => {
+                    const p = (currentProducts || []).find(x => String(x.id) === String(r.product_id) || (typeof normalizeProductKey === 'function' && normalizeProductKey(x.nome_produto) === r.product_key));
+                    const b = productBrand(p) || r.brand || '';
+                    if (b && groups.has(b) && r.rating) groups.get(b).ratings.push(Number(r.rating) || 0);
+                });
+            } catch (_) {}
+            return [...groups.values()].map(g => {
+                const productHealth = g.products.reduce((a, p) => a + computeVantyScores(p).health, 0) / Math.max(1, g.products.length);
+                const avg = g.ratings.length ? g.ratings.reduce((a, b) => a + b, 0) / g.ratings.length : 3.5;
+                const reviewConfidence = Math.min(8, g.ratings.length * 1.2);
+                const score = Math.max(0, Math.min(100, Math.round(productHealth * 0.72 + avg * 14 + reviewConfidence)));
+                return { ...g, score, avg, reviewCount: g.ratings.length };
+            }).sort((a, b) => b.score - a.score);
+        }
+        function renderVantyIntelligence() {
+            const products = currentProducts || [];
+            const scores = products.map(p => ({
+                p,
+                score: computeVantyScores(p).total,
+                value: (typeof estimateResaleValue === 'function' ? estimateResaleValue(p) : { mid: 0 })
+            })).sort((a, b) => b.score - a.score);
+            const avgHealth = scores.length ? Math.round(scores.reduce((a, x) => a + x.score, 0) / scores.length) : 0;
+            const totalValue = scores.reduce((a, x) => a + (x.value.mid || 0), 0);
+            const guaranteed = products.filter(p => (typeof warrantyMonthsLeft === 'function' ? warrantyMonthsLeft(p) : 0) > 0).length;
+            const ov = document.getElementById('intelligenceOverview');
+            if (ov) ov.innerHTML = [
+                `<div class="card p-5"><p class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Vanty Score médio</p><p class="text-2xl font-black text-orange-300 mt-2">${avgHealth}<span class="text-sm text-slate-600">/100</span></p><p class="text-[10px] text-slate-600 mt-1">carteira ativa</p></div>`,
+                `<div class="card p-5"><p class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Valor estimado</p><p class="text-2xl money-vanty mt-2">${typeof formatMoney === 'function' ? formatMoney(totalValue) : totalValue + ' €'}</p><p class="text-[10px] text-slate-600 mt-1">heurística interna</p></div>`,
+                `<div class="card p-5"><p class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Garantias ativas</p><p class="text-2xl font-black text-emerald-400 mt-2">${guaranteed}</p></div>`
+            ].join('');
+            const pc = document.getElementById('intelProductCount');
+            if (pc) pc.textContent = products.length + ' produto' + (products.length === 1 ? '' : 's');
+            const list = document.getElementById('intelProducts');
+            if (list) {
+                list.innerHTML = scores.slice(0, 10).map(x => {
+                    const s = computeVantyScores(x.p);
+                    const life = Math.max(0, s.life - s.years);
+                    const idx = products.indexOf(x.p);
+                    const ver = isVantyVerified(x.p) ? '<span class="vanty-verified ml-1">Verified</span>' : '';
+                    return `<div class="p-3 rounded-xl bg-[#0a0a0b]/60 border border-white/[0.05] cursor-pointer hover:border-orange-500/20" onclick="openProductDetail(${idx})">
+                        <div class="flex items-center gap-3">
+                            <div class="intel-score" style="min-width:48px;height:48px"><strong style="font-size:14px">${x.score}</strong></div>
+                            <div class="min-w-0 flex-1">
+                                <div class="flex justify-between gap-2 items-start">
+                                    <strong class="text-xs text-slate-200 truncate">${escapeHtml(x.p.nome_produto || 'Produto')}${ver}</strong>
+                                    <span class="text-[10px] text-emerald-400 shrink-0">${typeof formatMoney === 'function' ? formatMoney(x.value.mid || 0) : ''}</span>
+                                </div>
+                                <div class="intel-meter mt-2"><i style="width:${x.score}%"></i></div>
+                                <div class="text-[9px] text-slate-600 mt-1">${healthLabel(s.health)} · vida ~${life.toFixed(1)}a · ${s.w > 0 ? Math.ceil(s.w) + 'm garantia' : 'sem garantia'}</div>
+                            </div>
+                        </div>
+                    </div>`;
+                }).join('') || '<p class="text-xs text-slate-600 py-6 text-center">Regista produtos para o índice.</p>';
+            }
+            const brands = brandReliabilityScores();
+            const bEl = document.getElementById('intelBrands');
+            if (bEl) {
+                bEl.innerHTML = brands.slice(0, 8).map(b =>
+                    `<div class="p-3 rounded-xl bg-[#0a0a0b]/60 border border-white/[0.05]">
+                        <div class="flex justify-between"><strong class="text-xs text-slate-200">${escapeHtml(b.name)}</strong><span class="text-orange-300 font-black text-sm">${b.score}</span></div>
+                        <div class="intel-meter mt-2"><i style="width:${b.score}%"></i></div>
+                        <p class="text-[9px] text-slate-600 mt-1">${b.products.length} prod. · ${b.reviewCount} reviews</p>
+                    </div>`
+                ).join('') || '<p class="text-xs text-slate-600 py-6 text-center">Sem marcas ainda.</p>';
+            }
+            const alerts = [];
+            products.forEach(p => {
+                const s = computeVantyScores(p);
+                if (s.w > 0 && s.w < 3) alerts.push({ icon: 'fa-clock', title: 'Garantia a terminar', text: (p.nome_produto || '') + ' · < 3 meses.' });
+                if (s.years >= s.life * 0.75) alerts.push({ icon: 'fa-heart-pulse', title: 'Vida útil avançada', text: (p.nome_produto || '') + ' · zona de atenção.' });
+                if (s.total < 55) alerts.push({ icon: 'fa-triangle-exclamation', title: 'Score baixo', text: (p.nome_produto || '') + ' · ' + s.total + '/100.' });
+                if (s.assistN >= 2) alerts.push({ icon: 'fa-wrench', title: 'Padrão de assistência', text: (p.nome_produto || '') + ' · ' + s.assistN + ' pedidos registados (padrão observado).' });
+            });
+            const aEl = document.getElementById('intelAlerts');
+            if (aEl) {
+                aEl.innerHTML = alerts.slice(0, 8).map(a =>
+                    `<div class="p-3 rounded-xl bg-amber-500/[0.04] border border-amber-500/10"><div class="flex gap-2"><i class="fa-solid ${a.icon} text-amber-400 mt-0.5"></i><div><strong class="text-[11px] text-amber-100">${escapeHtml(a.title)}</strong><p class="text-[10px] text-slate-500 mt-1">${escapeHtml(a.text)}</p></div></div></div>`
+                ).join('') || '<div class="md:col-span-2 p-4 rounded-xl bg-emerald-500/[0.04] border border-emerald-500/10 text-xs text-emerald-200"><i class="fa-solid fa-check-circle mr-1"></i> Sem alertas críticos.</div>';
+            }
+        }
+        function renderDetailIntelligence(prod) {
+            const el = document.getElementById('detailIntelligenceBox');
+            if (!el || !prod) return;
+            const s = computeVantyScores(prod);
+            const v = (typeof estimateResaleValue === 'function' ? estimateResaleValue(prod) : { mid: 0, paid: 0 });
+            const d = vantyDecision(prod);
+            const lifeLeft = Math.max(0, s.life - s.years);
+            const pctLife = Math.min(100, Math.round((s.years / Math.max(s.life, 0.1)) * 100));
+            const in12 = Math.round((v.mid || 0) * 0.88 * 100) / 100;
+            const insight = s.assistN === 0
+                ? 'Saúde ' + healthLabel(s.health).toLowerCase() + ' para a idade · sem reparações registadas neste sistema.'
+                : 'Há ' + s.assistN + ' pedido(s) de assistência no histórico — padrão a monitorizar (não prova defeito de fabrico).';
+            const dna = [
+                ['Fiabilidade', s.reliability],
+                ['Saúde', s.health],
+                ['Longevidade', s.longevity],
+                ['Reparar', s.repairability],
+                ['Revenda', s.resale],
+                ['Marca', s.brand]
+            ];
+            el.innerHTML = `
+                <div class="flex items-start justify-between gap-3">
+                    <div>
+                        <p class="text-[9px] uppercase tracking-wider text-orange-300/90 font-bold flex items-center gap-2">Vanty Score
+                            ${isVantyVerified(prod) ? '<span class="vanty-verified">Verified</span>' : ''}
+                        </p>
+                        <p class="text-[11px] text-slate-500 mt-1 leading-snug">${escapeHtml(insight)}</p>
+                    </div>
+                    <div class="text-right shrink-0">
+                        <p class="text-3xl font-black text-orange-300 leading-none">${s.total}</p>
+                        <p class="text-[9px] text-slate-500 mt-0.5">${healthLabel(s.health)}</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-x-3 gap-y-0.5 mt-1">
+                    ${dna.map(([lab, val]) => `<div class="dna-row"><span>${lab}</span><div class="dna-track"><i style="width:${val}%"></i></div><em>${val}</em></div>`).join('')}
+                </div>
+                ${s.starCount ? `<p class="text-[10px] text-slate-500">Satisfação verificada: <strong class="text-amber-300">${s.stars.toFixed(1)}/5</strong> (${s.starCount} review${s.starCount > 1 ? 's' : ''}) — complementa o score, não o substitui.</p>` : '<p class="text-[10px] text-slate-600">Sem reviews verificadas ainda — score usa idade, garantia e histórico local.</p>'}
+                <div>
+                    <p class="text-[9px] uppercase tracking-wider text-slate-500 font-bold">Vida do produto</p>
+                    <div class="life-curve">
+                        <div class="track"></div>
+                        <div class="dot" style="left:0%"></div>
+                        <div class="label" style="left:0%">Compra</div>
+                        <div class="dot" style="left:${pctLife}%; border-color:#34d399; box-shadow:0 0 10px rgba(52,211,153,.4)"></div>
+                        <div class="label" style="left:${pctLife}%">Hoje</div>
+                        <div class="dot" style="left:100%; border-color:#6b7683; box-shadow:none"></div>
+                        <div class="label" style="left:100%">~${s.life.toFixed(0)}a</div>
+                    </div>
+                    <p class="text-[10px] text-slate-500 mt-3">Restante estimado ≈ <strong class="text-slate-300">${lifeLeft.toFixed(1)} anos</strong>
+                        · agora <strong class="text-emerald-400">${typeof formatMoney === 'function' ? formatMoney(v.mid || 0) : ''}</strong>
+                        · daqui a 12m ~ <strong class="text-slate-400">${typeof formatMoney === 'function' ? formatMoney(in12) : ''}</strong></p>
+                </div>
+                <div class="flex flex-wrap items-center gap-2 pt-1 border-t border-white/[0.05]">
+                    <span class="decision-chip border ${d.bg} ${d.color}"><i class="fa-solid fa-crosshairs"></i> ${d.label}</span>
+                    <span class="text-[10px] text-slate-500 flex-1 min-w-[120px] leading-snug">${escapeHtml(d.tip)}</span>
+                </div>`;
+        }
+
         function openProductDetail(index) {
             const prod = currentProducts[index];
             if (!prod) return;
@@ -5919,6 +6497,7 @@
             renderProductReviews(prod);
             document.getElementById('productDetailModal').classList.remove('hidden');
             try { refreshAssetLifecycleUI(prod); } catch (_) {}
+            try { renderDetailIntelligence(prod); } catch (_) {}
         }
         function closeProductDetail() {
             document.getElementById('productDetailModal').classList.add('hidden');
@@ -6869,6 +7448,9 @@ ${addr}`;
                 { id: 'rma', label: 'Assistência', icon: 'fa-screwdriver-wrench' },
                 { id: 'arquivo', label: 'Arquivo de vida', icon: 'fa-box-archive' },
                 { id: 'stats', label: 'Estatísticas / Reviews', icon: 'fa-star-half-stroke' },
+                { id: 'inteligencia', label: 'Vanty Intelligence', icon: 'fa-brain' },
+                { id: 'financas', label: 'Finanças / ROI', icon: 'fa-coins' },
+                { id: 'mercado', label: 'Mercado Vanty', icon: 'fa-store' },
                 { id: 'cartoes', label: 'Cartões de fidelização', icon: 'fa-wallet' },
                 { id: 'perfil', label: 'Perfil / Casa', icon: 'fa-user' },
                 { id: 'auth', label: 'Conta · Entrar / Sair', icon: 'fa-right-to-bracket', action: 'auth' }
