@@ -980,6 +980,9 @@
                 <div class="nav-item" data-panel="perfil" onclick="switchPanel('perfil')">
                     <span class="nav-icon-chip"><i class="fa-solid fa-user"></i></span><span>Perfil / Casa</span>
                 </div>
+                <div class="nav-item" onclick="openClaimTransferModal()">
+                    <span class="nav-icon-chip"><i class="fa-solid fa-qrcode"></i></span><span>Receber produto</span>
+                </div>
                 <div class="nav-item" onclick="loadProducts()">
                     <span class="nav-icon-chip"><i class="fa-solid fa-rotate"></i></span><span>Sincronizar</span>
                 </div>
@@ -990,7 +993,7 @@
                     <div class="live-dot"></div>
                     <div>
                         <div class="text-[11px] font-semibold text-emerald-400">Supabase Live</div>
-                        <div class="text-[10px] text-slate-500">v3.8 · Aniversários + visão mercado</div>
+                        <div class="text-[10px] text-slate-500">v4.1 · Transferências Supabase</div>
                     </div>
                 </div>
             </div>
@@ -1511,6 +1514,8 @@
                                 <button type="button" class="ai-chip" onclick="askAssistente('Melhor smartphone com bom rating')">Smartphone</button>
                                 <button type="button" class="ai-chip" onclick="askAssistente('TV com melhor reputação')">TV</button>
                                 <button type="button" class="ai-chip" onclick="askAssistente('O que compraram recentemente na minha zona')">Na minha zona</button>
+                                <button type="button" class="ai-chip" onclick="askAssistente('Quais os meus direitos de garantia neste país?')">Direitos / Garantia</button>
+                                <button type="button" class="ai-chip" onclick="askAssistente('Como reclamar avaria em garantia com a fatura')">Reclamação</button>
                             </div>
                             <form id="aiChatForm" class="flex gap-2" onsubmit="event.preventDefault(); submitAssistente();">
                                 <input type="text" id="aiChatInput" class="flex-1 input-field p-2.5 text-sm text-white" placeholder="O que queres saber antes de comprar?" autocomplete="off">
@@ -1678,6 +1683,50 @@
     </div>
 
     <!-- Product Detail Modal -->
+
+    <!-- Transferência de titularidade -->
+    <div id="transferModal" class="fixed inset-0 modal-backdrop z-[60] hidden flex items-center justify-center p-4">
+        <div class="card modal-panel w-full max-w-md p-5 space-y-4 border border-violet-500/20">
+            <div class="flex items-center justify-between">
+                <h3 class="text-sm font-bold text-white"><i class="fa-solid fa-right-left text-violet-400 mr-2"></i>Passaporte do produto</h3>
+                <button type="button" onclick="closeTransferModal()" class="text-slate-500 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <p class="text-[11px] text-slate-400 leading-relaxed">Gera um código temporário. O comprador introduz na app e recebe o produto + fatura + garantia restante.</p>
+            <div id="transferResult" class="hidden space-y-2">
+                <p class="text-[10px] text-slate-500 uppercase font-bold">Código (válido 48h)</p>
+                <p id="transferCodeDisplay" class="font-mono text-2xl tracking-widest text-violet-300 text-center py-3 rounded-xl bg-violet-500/10 border border-violet-500/20"></p>
+                <button type="button" onclick="copyTransferCode()" class="w-full btn-vanty py-2.5 rounded-xl text-xs font-bold">Copiar código</button>
+                <p class="text-[10px] text-slate-500 text-center">Ou partilha este link:</p>
+                <p id="transferLinkDisplay" class="text-[10px] text-orange-300/90 break-all text-center"></p>
+            </div>
+            <button type="button" id="btnGenerateTransfer" onclick="generateOwnershipTransfer()" class="w-full py-2.5 rounded-xl bg-violet-500/20 border border-violet-500/30 text-violet-200 text-xs font-bold hover:bg-violet-500/30">Gerar código de transferência</button>
+        </div>
+    </div>
+
+    <!-- Receber transferência -->
+    <div id="claimTransferModal" class="fixed inset-0 modal-backdrop z-[60] hidden flex items-center justify-center p-4">
+        <div class="card modal-panel w-full max-w-md p-5 space-y-4 border border-orange-500/20">
+            <div class="flex items-center justify-between">
+                <h3 class="text-sm font-bold text-white"><i class="fa-solid fa-qrcode text-orange-400 mr-2"></i>Receber produto</h3>
+                <button type="button" onclick="closeClaimTransferModal()" class="text-slate-500 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <p class="text-[11px] text-slate-400">Introduz o código que o vendedor partilhou.</p>
+            <input type="text" id="claimTransferInput" class="w-full input-field p-3 text-center font-mono text-lg tracking-widest text-white uppercase" placeholder="XXXX-XXXX" maxlength="20">
+            <button type="button" onclick="claimOwnershipTransfer()" class="w-full btn-vanty py-2.5 rounded-xl text-xs font-bold">Receber na minha casa</button>
+        </div>
+    </div>
+
+    <!-- E-waste / retoma -->
+    <div id="ewasteModal" class="fixed inset-0 modal-backdrop z-[60] hidden flex items-center justify-center p-4">
+        <div class="card modal-panel w-full max-w-md p-5 space-y-3 border border-emerald-500/20">
+            <div class="flex items-center justify-between">
+                <h3 class="text-sm font-bold text-white"><i class="fa-solid fa-recycle text-emerald-400 mr-2"></i>Retoma & e-waste</h3>
+                <button type="button" onclick="document.getElementById('ewasteModal').classList.add('hidden')" class="text-slate-500 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div id="ewasteBody" class="text-xs text-slate-400 space-y-2 leading-relaxed"></div>
+        </div>
+    </div>
+
     <div id="productDetailModal" class="fixed inset-0 modal-backdrop z-50 hidden flex items-center justify-center p-4">
         <div class="card modal-panel w-full max-w-lg p-6 relative border border-white/[0.08] space-y-4 max-h-[92vh] overflow-y-auto">
             <button onclick="closeProductDetail()" class="absolute top-4 right-4 text-slate-500 hover:text-white p-2 text-lg"><i class="fa-solid fa-xmark"></i></button>
@@ -1786,6 +1835,18 @@
             <div class="flex flex-wrap gap-2 pt-1">
                 <button id="detailInvoiceBtn" class="flex-1 px-3 py-2.5 bg-surface-800 hover:bg-surface-700 border border-white/[0.06] text-slate-300 rounded-xl text-xs font-semibold transition-all"><i class="fa-solid fa-file-invoice mr-1"></i> Ver Fatura</button>
                 <button id="detailRmaBtn" class="flex-1 px-3 py-2.5 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/25 text-orange-300 rounded-xl text-xs font-bold transition-all"><i class="fa-solid fa-screwdriver-wrench mr-1"></i> Assistência</button>
+
+                <!-- Ciclo de vida / ativo -->
+                <div id="assetLifecycleBox" class="p-3 rounded-xl bg-[#0a0a0b]/60 border border-white/[0.06] space-y-2.5">
+                    <p class="text-[10px] text-slate-500 uppercase font-bold tracking-wider"><i class="fa-solid fa-chart-line text-orange-400/80 mr-1"></i> Ativo · ciclo de vida</p>
+                    <div id="detailValuation" class="text-xs text-slate-400 leading-relaxed">—</div>
+                    <div class="flex flex-wrap gap-1.5">
+                        <button type="button" onclick="copySaleListing()" class="px-2.5 py-1.5 rounded-lg bg-surface-800 border border-white/[0.08] text-[10px] font-bold text-slate-300 hover:border-orange-500/30 hover:text-orange-300"><i class="fa-solid fa-copy mr-1"></i> Texto anúncio</button>
+                        <button type="button" onclick="openTransferModal()" class="px-2.5 py-1.5 rounded-lg bg-violet-500/15 border border-violet-500/25 text-[10px] font-bold text-violet-300 hover:bg-violet-500/25"><i class="fa-solid fa-right-left mr-1"></i> Transferir</button>
+                        <button type="button" onclick="showEwasteOptions()" class="px-2.5 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-bold text-emerald-300 hover:bg-emerald-500/20"><i class="fa-solid fa-recycle mr-1"></i> Retoma / e-waste</button>
+                    </div>
+                    <p id="transferQuotaHint" class="text-[9px] text-slate-600"></p>
+                </div>
                 <button type="button" onclick="retireCurrentProduct()" class="flex-1 px-3 py-2.5 bg-surface-800 hover:bg-surface-700 border border-white/[0.08] text-slate-300 rounded-xl text-xs font-semibold transition-all"><i class="fa-solid fa-box-archive mr-1"></i> Dar baixa</button>
                 <button type="button" onclick="deleteCurrentProduct()" class="w-full px-3 py-2 rounded-xl bg-surface-900 border border-red-500/20 text-red-400 text-xs font-semibold hover:bg-red-500/10"><i class="fa-solid fa-trash-can mr-1"></i> Apagar registo</button>
             </div>
@@ -2496,7 +2557,227 @@
         if (userProfile.zone === undefined) userProfile.zone = "";
         const countryLabels = { "PT": "🇵🇹 Portugal · 3 Anos", "ES": "🇪🇸 Espanha · 3 Anos", "FR": "🇫🇷 França · 2 Anos", "DE": "🇩🇪 Alemanha · 2 Anos", "US": "🇺🇸 EUA · 1 Ano" };
         const countryShort = { "PT": "🇵🇹 Portugal", "ES": "🇪🇸 Espanha", "FR": "🇫🇷 França", "DE": "🇩🇪 Alemanha", "US": "🇺🇸 EUA" };
+
         const warrantyYears = { PT: 3, ES: 3, FR: 2, DE: 2, US: 1 };
+
+        // ========== i18n + direitos do consumidor por país ==========
+        const COUNTRY_TO_LANG = { PT: 'pt', ES: 'es', FR: 'fr', DE: 'de', US: 'en' };
+        let appLang = 'pt';
+
+        const I18N = {
+            pt: {
+                nav_dashboard: 'Dashboard', nav_garantias: 'Garantias', nav_registar: 'Registar Nova',
+                nav_assistencia: 'Assistência', nav_arquivo: 'Arquivo', nav_stats: 'Estatísticas',
+                nav_ai: 'Assistente AI', nav_cartoes: 'Cartões', nav_perfil: 'Perfil / Casa',
+                nav_sync: 'Sincronizar',
+                ai_title: 'Assistente AI',
+                ai_sub: 'Compra, pós-venda, direitos do consumidor e contactos por país.',
+                ai_hello: 'Olá. Posso ajudar a escolher produtos (com dados da comunidade) ou em pós-venda: direitos, reclamações e linhas de apoio.',
+                rights_title: 'Direitos do consumidor',
+                btn_still_used: 'Ainda uso', btn_retire: 'Dar baixa',
+                verified_only: 'Só reviews verificadas (com fatura).',
+                warranty_label: 'Garantia legal',
+            },
+            es: {
+                nav_dashboard: 'Panel', nav_garantias: 'Garantías', nav_registar: 'Registrar nueva',
+                nav_assistencia: 'Asistencia', nav_arquivo: 'Archivo', nav_stats: 'Estadísticas',
+                nav_ai: 'Asistente AI', nav_cartoes: 'Tarjetas', nav_perfil: 'Perfil / Casa',
+                nav_sync: 'Sincronizar',
+                ai_title: 'Asistente AI',
+                ai_sub: 'Compra, posventa, derechos del consumidor y contactos por país.',
+                ai_hello: 'Hola. Puedo ayudar a elegir productos (con datos de la comunidad) o en posventa: derechos, reclamaciones y líneas de soporte.',
+                rights_title: 'Derechos del consumidor',
+                btn_still_used: 'Aún lo uso', btn_retire: 'Dar de baja',
+                verified_only: 'Solo reseñas verificadas (con factura).',
+                warranty_label: 'Garantía legal',
+            },
+            en: {
+                nav_dashboard: 'Dashboard', nav_garantias: 'Warranties', nav_registar: 'Register new',
+                nav_assistencia: 'Support', nav_arquivo: 'Archive', nav_stats: 'Statistics',
+                nav_ai: 'AI Assistant', nav_cartoes: 'Cards', nav_perfil: 'Profile / Home',
+                nav_sync: 'Sync',
+                ai_title: 'AI Assistant',
+                ai_sub: 'Buying advice, after-sales, consumer rights and support contacts by country.',
+                ai_hello: 'Hi. I can help you choose products (community data) or with after-sales: rights, complaints and support lines.',
+                rights_title: 'Consumer rights',
+                btn_still_used: 'Still using', btn_retire: 'Retire',
+                verified_only: 'Verified reviews only (with invoice).',
+                warranty_label: 'Legal warranty',
+            },
+            fr: {
+                nav_dashboard: 'Tableau', nav_garantias: 'Garanties', nav_registar: 'Enregistrer',
+                nav_assistencia: 'Assistance', nav_arquivo: 'Archive', nav_stats: 'Statistiques',
+                nav_ai: 'Assistant IA', nav_cartoes: 'Cartes', nav_perfil: 'Profil / Maison',
+                nav_sync: 'Synchroniser',
+                ai_title: 'Assistant IA',
+                ai_sub: 'Achat, SAV, droits des consommateurs et contacts par pays.',
+                ai_hello: 'Bonjour. Je peux aider pour les achats ou le SAV : droits, réclamations et lignes d’assistance.',
+                rights_title: 'Droits du consommateur',
+                btn_still_used: 'Toujours utilisé', btn_retire: 'Archiver',
+                verified_only: 'Avis vérifiés uniquement (avec facture).',
+                warranty_label: 'Garantie légale',
+            },
+            de: {
+                nav_dashboard: 'Übersicht', nav_garantias: 'Garantien', nav_registar: 'Neu erfassen',
+                nav_assistencia: 'Service', nav_arquivo: 'Archiv', nav_stats: 'Statistik',
+                nav_ai: 'KI-Assistent', nav_cartoes: 'Karten', nav_perfil: 'Profil / Zuhause',
+                nav_sync: 'Synchronisieren',
+                ai_title: 'KI-Assistent',
+                ai_sub: 'Kaufberatung, After-Sales, Verbraucherrechte und Support je Land.',
+                ai_hello: 'Hallo. Ich helfe bei Kaufentscheidungen oder After-Sales: Rechte, Reklamationen und Hotlines.',
+                rights_title: 'Verbraucherrechte',
+                btn_still_used: 'Noch in Nutzung', btn_retire: 'Ausmustern',
+                verified_only: 'Nur verifizierte Bewertungen (mit Rechnung).',
+                warranty_label: 'Gesetzliche Gewährleistung',
+            }
+        };
+
+        /** Regras orientativas — não são aconselhamento jurídico formal */
+        const CONSUMER_LAW = {
+            EU: {
+                legalYears: 2,
+                proofMonths: 12,
+                remedies: ['repair', 'replace', 'price_reduction', 'terminate'],
+                summary_pt: 'Mínimo UE (Dir. 2019/771): o vendedor responde por falta de conformidade que se manifeste em 2 anos após a entrega. No 1.º ano presume-se que o defeito existia na entrega. Garantia comercial nunca reduz a legal.',
+                summary_es: 'Mínimo UE (Dir. 2019/771): el vendedor responde por falta de conformidad durante 2 años desde la entrega. El primer año se presume el defecto en la entrega. La garantía comercial no reduce la legal.',
+                summary_en: 'EU minimum (Dir. 2019/771): seller liable for lack of conformity appearing within 2 years of delivery. First year: defect presumed at delivery. Commercial guarantee cannot reduce legal rights.',
+                summary_fr: 'Minimum UE (Dir. 2019/771) : le vendeur répond pendant 2 ans après livraison. 1re année : présomption d’existence du défaut à la livraison.',
+                summary_de: 'EU-Minimum (RL 2019/771): Händler haftet 2 Jahre ab Übergabe. Im 1. Jahr Vermutung, dass der Mangel bei Übergabe bestand.'
+            },
+            PT: {
+                legalYears: 3, proofMonths: 24, usedMinMonths: 18,
+                repairDays: 30, rejectDays: 30,
+                law: 'DL 84/2021',
+                summary_pt: 'Portugal (DL 84/2021): garantia legal de 3 anos em bens móveis novos. Nos 2 primeiros anos presume-se que o defeito existia na entrega; no 3.º ano o consumidor pode ter de provar a origem. Reparação/substituição gratuita; reparação de móveis em regra até 30 dias. Nos primeiros 30 dias há reforço de opções (substituição/resolução). Contactar primeiro o vendedor (loja) com fatura.',
+                summary_es: 'Portugal (DL 84/2021): garantía legal 3 años (bienes muebles nuevos). 2 primeros años: presunción a favor del consumidor.',
+                summary_en: 'Portugal (DL 84/2021): 3-year legal warranty for new movable goods. First 2 years: presumption in favour of the consumer.'
+            },
+            ES: {
+                legalYears: 3, proofMonths: 24,
+                law: 'TRLGDCU / transposición 2019/771',
+                summary_es: 'España: garantía legal de conformidad generalmente 3 años en bienes de consumo (normativa nacional reforzada). El vendedor responde; la garantía comercial es adicional. Reclamar primero al vendedor con factura. Organismos: OMIC, arbitraje de consumo, AECOSAN según el caso.',
+                summary_pt: 'Espanha: garantia legal tipicamente 3 anos (reforço nacional). Reclamar primeiro ao vendedor com fatura.',
+                summary_en: 'Spain: typically 3-year legal conformity guarantee under national rules. Claim first against the seller with invoice.'
+            },
+            FR: {
+                legalYears: 2, proofMonths: 24,
+                law: 'Code de la consommation',
+                summary_fr: 'France : garantie légale de conformité 2 ans. Pendant 2 ans, le défaut est présumé exister à la livraison (règles nationales favorables). Garantie des vices cachés distincte possible. SAV / vendeur en premier.',
+                summary_pt: 'França: garantia legal de conformidade 2 anos, com presunção favorável ao consumidor durante esse período (regras nacionais).',
+                summary_en: 'France: 2-year legal conformity guarantee with consumer-friendly proof rules; seller first.'
+            },
+            DE: {
+                legalYears: 2, proofMonths: 12,
+                law: 'BGB',
+                summary_de: 'Deutschland: gesetzliche Gewährleistung in der Regel 2 Jahre. Im ersten Jahr Beweiserleichterung zugunsten des Käufers. Zuerst Verkäufer kontaktieren.',
+                summary_pt: 'Alemanha: garantia legal em regra 2 anos; no 1.º ano facilidade de prova a favor do comprador.',
+                summary_en: 'Germany: typically 2-year statutory warranty; first-year proof advantage for the buyer.'
+            },
+            US: {
+                legalYears: 1, proofMonths: 0,
+                law: 'State + Magnuson-Moss (federal framework for written warranties)',
+                summary_en: 'US: no single federal 2-year rule like the EU. Rights depend on state law and any written warranty. Keep proof of purchase. This app uses a 1-year default indicator only.',
+                summary_pt: 'EUA: não há regra federal única como na UE; depende do estado e da garantia escrita. Indicador padrão na app: 1 ano.'
+            }
+        };
+
+        function t(key) {
+            const pack = I18N[appLang] || I18N.pt;
+            return (pack && pack[key]) || (I18N.pt[key]) || key;
+        }
+
+        function detectAppLang(country) {
+            const cc = country || (userProfile && userProfile.country) || 'PT';
+            return COUNTRY_TO_LANG[cc] || 'en';
+        }
+
+        function getConsumerLaw(country) {
+            const cc = country || (userProfile && userProfile.country) || 'PT';
+            return CONSUMER_LAW[cc] || CONSUMER_LAW.EU;
+        }
+
+        function consumerLawSummary(country) {
+            const law = getConsumerLaw(country);
+            const lang = appLang;
+            const k = 'summary_' + (lang === 'pt' || lang === 'es' || lang === 'en' || lang === 'fr' || lang === 'de' ? lang : 'en');
+            return law[k] || law.summary_en || law.summary_pt || '';
+        }
+
+        function isRightsQuestion(q) {
+            const s = String(q || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            return /direito|garantia legal|reclam|consumidor|defeito|avari|reparac|substitu|reembols|loja recus|asae|deco|omic|vendedor|conformidad|derecho|garantia legal|reclamacion|verbraucher|garantie legale|warranty rights|consumer rights|legal guarantee/.test(s);
+        }
+
+        function buildRightsAdvice(question) {
+            const country = (userProfile && userProfile.country) || 'PT';
+            const law = getConsumerLaw(country);
+            const years = law.legalYears || warrantyYears[country] || 2;
+            const summary = consumerLawSummary(country);
+            const q = String(question || '');
+            let html = `<p class="text-slate-300 leading-relaxed"><strong class="text-orange-300">${t('rights_title')} · ${escapeHtml(country)}</strong></p>`;
+            html += `<p class="text-xs text-slate-400 mt-2 leading-relaxed">${escapeHtml(summary)}</p>`;
+            html += `<ul class="mt-2 text-xs text-slate-400 space-y-1 list-disc list-inside">`;
+            html += `<li>${t('warranty_label')}: <strong class="text-slate-200">${years} ${appLang === 'en' ? 'years' : (appLang === 'es' ? 'años' : (appLang === 'de' ? 'Jahre' : (appLang === 'fr' ? 'ans' : 'anos')))}</strong></li>`;
+            if (law.proofMonths) html += `<li>${appLang === 'es' ? 'Presunción a favor del consumidor' : appLang === 'en' ? 'Proof presumption window' : 'Presunção a favor do consumidor'}: ~${law.proofMonths} ${appLang === 'en' ? 'months' : 'meses'}</li>`;
+            if (law.repairDays) html += `<li>${appLang === 'es' ? 'Plazo orientativo de reparación' : 'Prazo orientativo de reparação'}: ${law.repairDays} ${appLang === 'en' ? 'days' : 'dias'}</li>`;
+            if (law.law) html += `<li>${appLang === 'es' ? 'Referencia' : appLang === 'en' ? 'Reference' : 'Referência'}: ${escapeHtml(law.law)}</li>`;
+            html += `</ul>`;
+            html += `<p class="text-[11px] text-slate-500 mt-2">${appLang === 'es' ? 'Pasos típicos: 1) Factura 2) Reclamar al vendedor 3) Marca/SAT 4) Consumo/arbitraje si hace falta. Esto no sustituye asesoría legal.' : appLang === 'en' ? 'Typical steps: 1) Invoice 2) Claim against seller 3) Brand/SAT 4) Consumer body if needed. Not formal legal advice.' : 'Passos típicos: 1) Fatura 2) Reclamar ao vendedor 3) Marca/SAT 4) Entidade de consumo se preciso. Isto não substitui aconselhamento jurídico.'}</p>`;
+            // brand contact if question mentions a known brand
+            try {
+                const brand = typeof detectBrand === 'function' ? detectBrand(q) : null;
+                if (brand) {
+                    const sup = getBrandSupport(brand, country);
+                    if (sup) {
+                        html += `<div class="ai-rec text-xs text-slate-300 mt-2"><strong>${escapeHtml(brand)}</strong> (${escapeHtml(country)})<br>`;
+                        if (sup.contact) html += escapeHtml(sup.contact);
+                        if (sup.phone) html += ' · ' + escapeHtml(sup.phone);
+                        html += `</div>`;
+                    }
+                }
+            } catch (_) {}
+            return html;
+        }
+
+        function applyLocale() {
+            appLang = detectAppLang(userProfile && userProfile.country);
+            try { document.documentElement.lang = appLang === 'pt' ? 'pt' : appLang; } catch (_) {}
+            const navMap = [
+                ['dashboard', 'nav_dashboard'], ['garantias', 'nav_garantias'], ['registar', 'nav_registar'],
+                ['rma', 'nav_assistencia'], ['arquivo', 'nav_arquivo'], ['stats', 'nav_stats'],
+                ['assistente', 'nav_ai'], ['cartoes', 'nav_cartoes'], ['perfil', 'nav_perfil']
+            ];
+            navMap.forEach(([panel, key]) => {
+                const el = document.querySelector('.nav-item[data-panel="' + panel + '"] span:last-child');
+                // structure is icon chip + span text
+                const item = document.querySelector('.nav-item[data-panel="' + panel + '"]');
+                if (!item) return;
+                const spans = item.querySelectorAll('span');
+                // last text span that's not badge
+                for (let i = spans.length - 1; i >= 0; i--) {
+                    if (!spans[i].id && !spans[i].classList.contains('nav-icon-chip') && !spans[i].className.includes('ml-auto')) {
+                        // if has only text child or is text span
+                        if (!spans[i].querySelector('i')) {
+                            spans[i].textContent = t(key);
+                            break;
+                        }
+                    }
+                }
+            });
+            // version / AI panel titles if present
+            const aiH = document.querySelector('#panel-assistente h2');
+            if (aiH) {
+                aiH.innerHTML = '<i class="fa-solid fa-robot text-orange-400"></i> ' + t('ai_title');
+            }
+            const aiSub = document.querySelector('#panel-assistente h2 + p, #panel-assistente .text-\\[11px\\]');
+            // soft: update first description under assistente
+            const aiPanel = document.getElementById('panel-assistente');
+            if (aiPanel) {
+                const desc = aiPanel.querySelector('p.text-\\[11px\\], p[class*="text-[11px]"]');
+                if (desc && desc.closest('.flex')) desc.textContent = t('ai_sub');
+            }
+        }
+
 
         const REGION_MAP = {
             PT: ['Norte', 'Centro', 'Lisboa e Vale do Tejo', 'Alentejo', 'Algarve', 'Açores', 'Madeira'],
@@ -3070,11 +3351,16 @@
         }
 
         /** Contacto oficial da marca no país do user (ou fallback EU/PT) */
-        function getBrandSupport(brand, country) {
+                function getBrandSupport(brand, country) {
             if (!brand || !BRAND_DIRECTORY[brand]) return null;
             const map = BRAND_DIRECTORY[brand].support || {};
-            const cc = country || (userProfile && userProfile.country) || 'PT';
-            return map[cc] || map['PT'] || map['ES'] || map['US'] || Object.values(map)[0] || null;
+            const cc = (country || (userProfile && userProfile.country) || 'PT').toUpperCase();
+            // prioridade: país do user → ES/PT vizinho → qualquer disponível
+            if (map[cc]) return { ...map[cc], country: cc };
+            if (cc === 'ES' && map.PT) return { ...map.PT, country: 'PT', note: 'contacto PT (ES não listado)' };
+            if (cc === 'PT' && map.ES) return { ...map.ES, country: 'ES', note: 'contacto ES' };
+            const any = map.PT || map.ES || map.EU || map.FR || map.DE || Object.values(map)[0];
+            return any ? { ...any, country: cc } : null;
         }
 
         function detectCategory(name) {
@@ -3115,6 +3401,7 @@
         }
 
         function renderProfile() {
+            try { applyLocale(); } catch (_) {}
             document.getElementById('viewName').innerText = userProfile.name;
             document.getElementById('viewNif').innerText = userProfile.nif;
             document.getElementById('viewEmail').innerText = userProfile.email;
@@ -3448,11 +3735,17 @@
             const q = String(question || '').trim();
             if (!q) return;
             appendAiMsg('user', q);
-            appendAiMsg('bot', '<p class="text-slate-500 text-xs"><i class="fa-solid fa-spinner animate-spin mr-1"></i> A analisar dados da zona…</p>');
+            const thinking = appLang === 'es' ? 'Analizando…' : appLang === 'en' ? 'Analysing…' : appLang === 'fr' ? 'Analyse…' : appLang === 'de' ? 'Analyse…' : 'A analisar…';
+            appendAiMsg('bot', '<p class="text-slate-500 text-xs"><i class="fa-solid fa-spinner animate-spin mr-1"></i> ' + thinking + '</p>');
             setTimeout(() => {
                 const log = document.getElementById('aiChatLog');
                 if (log && log.lastChild) log.removeChild(log.lastChild);
-                const html = runLocalAdvisor(q);
+                let html;
+                if (typeof isRightsQuestion === 'function' && isRightsQuestion(q)) {
+                    html = buildRightsAdvice(q);
+                } else {
+                    html = runLocalAdvisor(q);
+                }
                 appendAiMsg('bot', html);
             }, 280);
         }
@@ -4702,6 +4995,374 @@
             if (mp) { mp.classList.add('hidden'); document.getElementById('multiItemsList').innerHTML = ''; }
         }
 
+
+        // ========== CICLO DE VIDA / TRANSFERÊNCIA / VALUATION ==========
+        const FREE_TRANSFERS_PER_YEAR = 3;
+        const TRANSFER_TTL_MS = 48 * 3600 * 1000;
+
+        function getTransferStore() {
+            try { return JSON.parse(localStorage.getItem('vanty_ownership_transfers') || '[]'); } catch { return []; }
+        }
+        function setTransferStore(list) {
+            localStorage.setItem('vanty_ownership_transfers', JSON.stringify(list));
+        }
+        function transfersUsedThisYear() {
+            const y = new Date().getFullYear();
+            return getTransferStore().filter(t => t.created_by_local && String(t.created_at || '').startsWith(String(y))).length;
+        }
+        function transferQuotaLeft() {
+            return Math.max(0, FREE_TRANSFERS_PER_YEAR - transfersUsedThisYear());
+        }
+        function genTransferCode() {
+            const a = Math.random().toString(36).slice(2, 6).toUpperCase();
+            const b = Math.random().toString(36).slice(2, 6).toUpperCase();
+            return a + '-' + b;
+        }
+
+        function yearsOwnedFloat(prod) {
+            if (!prod || !prod.data_compra) return null;
+            const buy = new Date(prod.data_compra);
+            if (isNaN(buy.getTime())) return null;
+            return (Date.now() - buy.getTime()) / (365.25 * 86400000);
+        }
+        function warrantyMonthsLeft(prod) {
+            if (!prod || !prod.fim_garantia) return 0;
+            const exp = new Date(prod.fim_garantia);
+            if (isNaN(exp.getTime())) return 0;
+            return Math.max(0, (exp - Date.now()) / (30.44 * 86400000));
+        }
+
+        /** Estimativa heurística (não é cotação de mercado real) */
+        function estimateResaleValue(prod) {
+            const paid = parseFloat(prod.preco_com_iva || prod.preco || 0) || 0;
+            const years = yearsOwnedFloat(prod) || 0;
+            const wLeft = warrantyMonthsLeft(prod);
+            // curva simples de depreciação por categoria
+            const cat = prod.categoria || detectCategory(prod.nome_produto || '');
+            let annual = 0.22;
+            if (cat === 'telemoveis') annual = 0.35;
+            else if (cat === 'portateis') annual = 0.28;
+            else if (cat === 'grandes_eletro') annual = 0.12;
+            else if (cat === 'tvs') annual = 0.20;
+            let factor = Math.pow(1 - annual, years);
+            factor = Math.max(0.08, Math.min(0.95, factor));
+            // bónus garantia restante
+            if (wLeft >= 3) factor *= 1.12;
+            else if (wLeft >= 1) factor *= 1.06;
+            const mid = paid * factor;
+            return {
+                paid,
+                mid: Math.round(mid * 100) / 100,
+                low: Math.round(mid * 0.85 * 100) / 100,
+                high: Math.round(mid * 1.15 * 100) / 100,
+                years,
+                wLeft,
+                factor,
+                tip: wLeft >= 2
+                    ? 'Ainda com garantia: no mercado de usados costuma valer mais do que sem cobertura.'
+                    : (years < 1.5 ? 'Ainda recente — janela razoável para vender.' : 'Depreciação avançada; considera retoma ou e-waste se avariado.')
+            };
+        }
+
+        function formatMoney(n) {
+            return (Number(n) || 0).toLocaleString('pt-PT', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+        }
+
+        function refreshAssetLifecycleUI(prod) {
+            const box = document.getElementById('detailValuation');
+            const quota = document.getElementById('transferQuotaHint');
+            if (!box || !prod) return;
+            const v = estimateResaleValue(prod);
+            box.innerHTML = v.paid > 0
+                ? `<span class="text-slate-300">Estimativa venda <strong class="text-emerald-400">${formatMoney(v.low)} – ${formatMoney(v.high)}</strong></span>
+                   <span class="text-slate-600"> · centro ~ ${formatMoney(v.mid)}</span>
+                   <br><span class="text-[10px] text-orange-300/80">${escapeHtml(v.tip)}</span>
+                   <br><span class="text-[10px] text-slate-600">Uso ≈ ${(v.years || 0).toFixed(1)} anos · garantia rest. ≈ ${v.wLeft.toFixed(0)} mês(es). Estimativa interna, não cotação de marketplace.</span>`
+                : `<span class="text-slate-500">Sem preço de compra — valuation limitada.</span>`;
+            if (quota) quota.innerText = 'Transferências grátis este ano: ' + transferQuotaLeft() + ' / ' + FREE_TRANSFERS_PER_YEAR;
+        }
+
+        function buildSaleListing(prod) {
+            const v = estimateResaleValue(prod);
+            const wLeft = warrantyMonthsLeft(prod);
+            const years = warrantyYears[userProfile.country] || 3;
+            let lines = [];
+            lines.push((prod.nome_produto || 'Produto') + (prod.loja ? ' · comprado em ' + prod.loja : ''));
+            lines.push('');
+            if (prod.data_compra) lines.push('Data de compra: ' + prod.data_compra);
+            if (wLeft > 0) lines.push('Garantia legal restante: ~' + Math.ceil(wLeft) + ' meses (ref. ' + (userProfile.country || 'PT') + ', até ' + years + ' anos desde a compra).');
+            else lines.push('Garantia legal: verificar data / possívelmente expirada.');
+            if (prod.numero_serie) lines.push('Nº série: ' + prod.numero_serie);
+            if (v.paid > 0) lines.push('Preço original: ' + formatMoney(v.paid) + ' · pedido sugerido: ' + formatMoney(v.mid));
+            lines.push('');
+            lines.push('Histórico e fatura disponíveis via Vanty Care (passaporte do produto).');
+            lines.push('Particular · tratamento preferencial a levantamento em mão.');
+            return lines.join('\n');
+        }
+
+        function copySaleListing() {
+            if (detailProductIndex == null) return;
+            const prod = currentProducts[detailProductIndex];
+            if (!prod) return;
+            const text = buildSaleListing(prod);
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('Texto do anúncio copiado.\\nCola no OLX / Facebook / etc.', 'Anúncio', 'success');
+            }).catch(() => {
+                showToast(text, 'Copia manualmente', 'info');
+            });
+        }
+
+        function openTransferModal() {
+            if (detailProductIndex == null) return;
+            document.getElementById('transferResult').classList.add('hidden');
+            document.getElementById('transferModal').classList.remove('hidden');
+        }
+        function closeTransferModal() {
+            document.getElementById('transferModal').classList.add('hidden');
+        }
+        function openClaimTransferModal() {
+            toggleSidebar(true);
+            document.getElementById('claimTransferInput').value = '';
+            document.getElementById('claimTransferModal').classList.remove('hidden');
+        }
+        function closeClaimTransferModal() {
+            document.getElementById('claimTransferModal').classList.add('hidden');
+        }
+
+        async function generateOwnershipTransfer() {
+            if (detailProductIndex == null) return;
+            const prod = currentProducts[detailProductIndex];
+            if (!prod) return;
+            if (transferQuotaLeft() <= 0) {
+                showToast('Atingiste o limite grátis (' + FREE_TRANSFERS_PER_YEAR + '/ano).\nPremium (em breve) = transferências ilimitadas.', 'Quota', 'warn');
+                return;
+            }
+            const btn = document.getElementById('btnGenerateTransfer');
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> A gerar…'; }
+            const code = genTransferCode();
+            const inv = (typeof getInvoice === 'function' ? getInvoice(prod.id) : null) || null;
+            // snapshot sem blobs enormes
+            const productSnap = { ...prod };
+            delete productSnap._raw;
+            let cloudOk = false;
+            try {
+                const { data: sess } = await supabaseClient.auth.getSession();
+                const uid = sess?.session?.user?.id;
+                if (uid) {
+                    const { data, error } = await supabaseClient.rpc('create_ownership_transfer', {
+                        p_code: code,
+                        p_product: productSnap,
+                        p_invoice: inv,
+                        p_ttl_hours: 48
+                    });
+                    if (error) throw error;
+                    cloudOk = true;
+                }
+            } catch (err) {
+                console.warn('Transfer cloud:', err.message || err);
+            }
+            const payload = {
+                code,
+                created_at: new Date().toISOString(),
+                expires_at: new Date(Date.now() + TRANSFER_TTL_MS).toISOString(),
+                created_by_local: true,
+                cloud: cloudOk,
+                product: productSnap,
+                invoice: inv
+            };
+            const list = getTransferStore().filter(t => t.code !== code);
+            list.unshift(payload);
+            setTransferStore(list);
+            try {
+                const global = JSON.parse(localStorage.getItem('vanty_transfer_pool') || '{}');
+                global[code] = payload;
+                localStorage.setItem('vanty_transfer_pool', JSON.stringify(global));
+            } catch (_) {}
+            document.getElementById('transferCodeDisplay').innerText = code;
+            const link = location.origin + location.pathname + '?claim=' + encodeURIComponent(code);
+            document.getElementById('transferLinkDisplay').innerText = link;
+            document.getElementById('transferResult').classList.remove('hidden');
+            refreshAssetLifecycleUI(prod);
+            if (btn) { btn.disabled = false; btn.innerHTML = 'Gerar código de transferência'; }
+            showToast(
+                'Código ' + code + '\nVálido 48h.' + (cloudOk ? '\nSync cloud ON — o comprador pode estar noutro telemóvel (com login).' : '\nModo local — mesmo browser/dispositivo, ou corre o SQL + login para cloud.'),
+                cloudOk ? 'Passaporte cloud' : 'Passaporte local',
+                cloudOk ? 'success' : 'warn'
+            );
+        }
+
+        function copyTransferCode() {
+            const c = document.getElementById('transferCodeDisplay').innerText;
+            if (!c) return;
+            navigator.clipboard.writeText(c).then(() => showToast('Código copiado.', 'OK', 'success'));
+        }
+
+        async function claimOwnershipTransfer() {
+            const code = (document.getElementById('claimTransferInput').value || '').trim().toUpperCase();
+            if (!code || code.length < 6) {
+                showToast('Introduz o código completo.', 'Código', 'warn');
+                return;
+            }
+            let payload = null;
+            let fromCloud = false;
+
+            // 1) Tentar Supabase (cross-device)
+            try {
+                const { data: sess } = await supabaseClient.auth.getSession();
+                if (sess?.session?.user?.id) {
+                    const { data, error } = await supabaseClient.rpc('claim_ownership_transfer', { p_code: code });
+                    if (error) {
+                        const msg = (error.message || '') + (error.details || '');
+                        if (/NOT_FOUND/i.test(msg)) { /* fallback local */ }
+                        else if (/ALREADY_CLAIMED/i.test(msg)) {
+                            showToast('Este código já foi usado.', 'Usado', 'warn');
+                            return;
+                        } else if (/EXPIRED/i.test(msg)) {
+                            showToast('Este código expirou (48h).', 'Expirado', 'warn');
+                            return;
+                        } else if (/SELF_CLAIM/i.test(msg)) {
+                            showToast('Não podes reclamar o teu próprio código.', 'Inválido', 'warn');
+                            return;
+                        } else if (/NOT_AUTHENTICATED/i.test(msg)) {
+                            showToast('Entra na conta para receber transferências cloud.', 'Login', 'warn');
+                            return;
+                        } else {
+                            console.warn(error);
+                        }
+                    } else if (data && data.ok) {
+                        payload = {
+                            product: data.product,
+                            invoice: data.invoice,
+                            code: data.code,
+                            cloud: true
+                        };
+                        fromCloud = true;
+                    }
+                }
+            } catch (err) {
+                console.warn('claim cloud', err);
+            }
+
+            // 2) Fallback local (mesmo dispositivo / pool)
+            if (!payload) {
+                try {
+                    const global = JSON.parse(localStorage.getItem('vanty_transfer_pool') || '{}');
+                    payload = global[code];
+                } catch (_) {}
+                if (!payload) {
+                    payload = getTransferStore().find(t => t.code === code);
+                }
+                if (payload && payload.claimed) {
+                    showToast('Este código já foi usado.', 'Usado', 'warn');
+                    return;
+                }
+                if (payload && payload.expires_at && new Date(payload.expires_at) < new Date()) {
+                    showToast('Este código expirou (48h).', 'Expirado', 'warn');
+                    return;
+                }
+            }
+
+            if (!payload || !payload.product) {
+                showToast('Código inválido ou expirado.\nVendedor e comprador precisam ambos de login + SQL de transferências no Supabase (cross-device).', 'Não encontrado', 'error');
+                return;
+            }
+
+            const prod = { ...(payload.product || {}) };
+            prod.id = 'local_tx_' + Date.now();
+            prod._local = true;
+            prod.notas = ((prod.notas || '') + '\n[Transferido via Vanty Care ' + new Date().toLocaleDateString('pt-PT') + (fromCloud ? ' · cloud' : ' · local') + ']').trim();
+
+            // Inserir na cloud do comprador se autenticado
+            try {
+                const { data: sess } = await supabaseClient.auth.getSession();
+                const uid = sess?.session?.user?.id;
+                if (uid) {
+                    const record = {
+                        user_id: uid,
+                        nome_produto: prod.nome_produto,
+                        loja: prod.loja || null,
+                        data_compra: prod.data_compra || null,
+                        fim_garantia: prod.fim_garantia || null,
+                        preco_com_iva: prod.preco_com_iva || prod.preco || null,
+                        taxa_iva: prod.taxa_iva || null,
+                        numero_serie: prod.numero_serie || null,
+                        categoria: prod.categoria || null,
+                        notas: prod.notas || null
+                    };
+                    const { data: inserted, error } = await supabaseClient.from('produtos_garantias').insert([record]).select();
+                    if (!error && inserted && inserted[0]) {
+                        prod.id = inserted[0].id;
+                        prod._local = false;
+                    }
+                }
+            } catch (err) {
+                console.warn('insert claimed product', err);
+            }
+
+            if (prod._local) {
+                const list = getLocalProducts();
+                list.unshift(prod);
+                localStorage.setItem('vanty_products_local', JSON.stringify(list));
+            }
+
+            if (payload.invoice) {
+                try {
+                    const inv = JSON.parse(localStorage.getItem('vanty_invoices_v2') || '{}');
+                    inv[prod.id] = payload.invoice;
+                    localStorage.setItem('vanty_invoices_v2', JSON.stringify(inv));
+                } catch (_) {}
+            }
+
+            if (!fromCloud) {
+                payload.claimed = true;
+                payload.claimed_at = new Date().toISOString();
+                try {
+                    const global = JSON.parse(localStorage.getItem('vanty_transfer_pool') || '{}');
+                    global[code] = payload;
+                    localStorage.setItem('vanty_transfer_pool', JSON.stringify(global));
+                } catch (_) {}
+            }
+
+            closeClaimTransferModal();
+            showToast((prod.nome_produto || 'Produto') + ' adicionado à tua casa.\nFatura e garantia vieram no passaporte' + (fromCloud ? ' (cloud).' : '.'), 'Transferência OK', 'success');
+            await loadProducts();
+        }
+
+        function showEwasteOptions() {
+            if (detailProductIndex == null) return;
+            const prod = currentProducts[detailProductIndex];
+            const zone = (userProfile && userProfile.zone) || '';
+            const loc = (userProfile && userProfile.locality) || '';
+            const body = document.getElementById('ewasteBody');
+            body.innerHTML = `
+                <p>Se a reparação já não compensa, opções responsáveis:</p>
+                <ul class="list-disc list-inside space-y-1.5">
+                    <li><strong class="text-slate-300">Retoma em loja</strong> — Continente, Worten, MediaMarkt e outras fazem campanhas periódicas (desconto em produto novo ao entregar o antigo).</li>
+                    <li><strong class="text-slate-300">Ponto Eletrão / ERP</strong> — rede nacional de recolha de REEE. Consulta: <a class="text-orange-400 underline" href="https://www.pcsua.pt/" target="_blank" rel="noopener">pcsua.pt</a> ou pesquisa “eletrão perto de mim”.</li>
+                    <li><strong class="text-slate-300">Ecocentro municipal</strong>${loc || zone ? ' · zona: ' + escapeHtml([loc, zone].filter(Boolean).join(', ')) : ''} — contacta a câmara / empresa de resíduos da tua área.</li>
+                    <li><strong class="text-slate-300">Dar baixa no Vanty</strong> — regista o fim de vida no Arquivo (ajuda estatísticas de durabilidade).</li>
+                </ul>
+                <button type="button" onclick="document.getElementById('ewasteModal').classList.add('hidden'); retireCurrentProduct();" class="mt-2 w-full py-2 rounded-xl bg-emerald-500/15 border border-emerald-500/25 text-emerald-300 text-xs font-bold">Dar baixa e arquivar</button>
+            `;
+            document.getElementById('ewasteModal').classList.remove('hidden');
+        }
+
+        // Auto-claim via URL ?claim=CODE
+        (function bootClaimFromUrl() {
+            try {
+                const u = new URL(location.href);
+                const c = u.searchParams.get('claim');
+                if (c) {
+                    setTimeout(() => {
+                        openClaimTransferModal();
+                        const inp = document.getElementById('claimTransferInput');
+                        if (inp) inp.value = c.toUpperCase();
+                    }, 600);
+                }
+            } catch (_) {}
+        })();
+
+
         function openProductDetail(index) {
             const prod = currentProducts[index];
             if (!prod) return;
@@ -4735,6 +5396,7 @@
             document.getElementById('detailRmaBtn').onclick = () => { closeProductDetail(); openRmaModal(index); };
             renderProductReviews(prod);
             document.getElementById('productDetailModal').classList.remove('hidden');
+            try { refreshAssetLifecycleUI(prod); } catch (_) {}
         }
         function closeProductDetail() {
             document.getElementById('productDetailModal').classList.add('hidden');
@@ -5588,6 +6250,7 @@ ${addr}`;
         }
 
         renderProfile();
+        try { applyLocale(); } catch (_) {}
         initAuth().then(() => loadProducts());
         (function initCardsBadge() {
             const n = getLoyaltyCards().length;
