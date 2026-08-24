@@ -616,6 +616,12 @@
         .life-curve .dot { position:absolute; top:6px; width:14px; height:14px; margin-left:-7px; border-radius:50%; border:2px solid #FF5A00; background:#0a0a0b; box-shadow:0 0 10px rgba(255,90,0,.45); }
         .life-curve .label { position:absolute; top:22px; font-size:8px; color:#6b7683; transform:translateX(-50%); white-space:nowrap; }
         .vanty-verified { display:inline-flex; align-items:center; gap:4px; font-size:9px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:#34d399; background:rgba(52,211,153,.08); border:1px solid rgba(52,211,153,.25); padding:3px 7px; border-radius:7px; }
+        
+        .passport-step { display:flex; gap:10px; padding:6px 0; border-left:2px solid rgba(255,90,0,.25); margin-left:6px; padding-left:12px; position:relative; }
+        .passport-step::before { content:''; position:absolute; left:-5px; top:10px; width:8px; height:8px; border-radius:50%; background:#FF5A00; box-shadow:0 0 8px rgba(255,90,0,.5); }
+        .passport-step.muted::before { background:#3A424A; box-shadow:none; }
+        .trust-badge { font-size:9px; font-weight:800; letter-spacing:.05em; padding:3px 7px; border-radius:7px; border:1px solid rgba(139,92,246,.3); background:rgba(139,92,246,.1); color:#c4b5fd; }
+
         .decision-chip { font-size:10px; font-weight:800; letter-spacing:.04em; padding:5px 9px; border-radius:8px; display:inline-flex; align-items:center; gap:5px; }
 
         .intel-meter > i { display:block; height:100%; border-radius:99px; background:linear-gradient(90deg, #C93400, #FF5A00, #FFB347); font-style:normal; }
@@ -1015,7 +1021,7 @@
                     <div class="live-dot"></div>
                     <div>
                         <div class="text-[11px] font-semibold text-emerald-400">Supabase Live</div>
-                        <div class="text-[10px] text-slate-500">v4.7 · Intelligence A · DNA · Decision</div>
+                        <div class="text-[10px] text-slate-500">v4.8 · Trust B · Passport · Verified</div>
                     </div>
                 </div>
             </div>
@@ -1395,6 +1401,17 @@
                         </div>
                         <div id="intelAlerts" class="grid grid-cols-1 md:grid-cols-2 gap-2"></div>
                     </section>
+                    <div class="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                        <section class="card p-5">
+                            <h3 class="text-sm font-bold text-white mb-3"><i class="fa-solid fa-building text-orange-400/80 mr-1.5"></i> Brand Score</h3>
+                            <div id="intelBrandDeep" class="space-y-2 text-xs"></div>
+                        </section>
+                        <section class="card p-5">
+                            <h3 class="text-sm font-bold text-white mb-3"><i class="fa-solid fa-wave-square text-amber-400/80 mr-1.5"></i> Problem patterns</h3>
+                            <p class="text-[10px] text-slate-600 mb-2">Padrões observados nos teus pedidos — não são diagnóstico de defeito.</p>
+                            <div id="intelPatterns" class="space-y-2 text-xs"></div>
+                        </section>
+                    </div>
                 </div>
 <div id="panel-financas" class="panel-hidden space-y-4">
                     <div>
@@ -5496,6 +5513,8 @@
                     locality: userProfile.locality || '',
                     seller_name: userProfile.name || 'Vendedor Vanty',
                     has_invoice: !!(typeof productHasInvoice === 'function' && productHasInvoice(prod)),
+                    vanty_verified: !!(typeof isVantyVerified === 'function' && isVantyVerified(prod)),
+                    health_score: (typeof computeVantyScores === 'function' ? computeVantyScores(prod).total : null),
                     warranty_left_months: Math.round(warrantyMonthsLeft(prod)),
                     created_at: new Date().toISOString()
                 });
@@ -5749,7 +5768,10 @@
                             </div>
                             <p class="text-emerald-400 font-black tabular-nums shrink-0">${formatMoney(L.price)}</p>
                         </div>
-                        <p class="text-[10px] text-slate-500">Vendedor: ${escapeHtml(L.seller_name)}${mine ? ' (tu)' : ''}</p>
+                        <p class="text-[10px] text-slate-500 flex flex-wrap items-center gap-1.5">Vendedor: ${escapeHtml(L.seller_name)}${mine ? ' (tu)' : ''}
+                            ${(() => { const t = sellerTrustScore(L.seller_name); return '<span class="trust-badge">Trust ' + t.score + '</span>'; })()}
+                            ${(() => { const p = (currentProducts||[]).find(x => String(x.id)===String(L.product_id)); return p && isVantyVerified(p) ? '<span class="vanty-verified">Verified product</span>' : (L.has_invoice ? '<span class="vanty-verified">Fatura</span>' : ''); })()}
+                        </p>
                         ${!mine ? `<button type="button" onclick="submitOfferForListing('${L.id}')" class="w-full py-2 rounded-xl bg-orange-500/15 border border-orange-500/25 text-orange-300 text-xs font-bold">Fazer oferta</button>` : '<p class="text-[10px] text-slate-600">Ofertas recebidas:</p>'}
                         ${offersHtml || (mine ? '<p class="text-[10px] text-slate-600">Ainda sem ofertas.</p>' : '')}
                     </div>`;
@@ -6188,11 +6210,6 @@
             if (prod.marca) return prod.marca;
             try { return detectBrand(prod.nome_produto || '') || null; } catch (_) { return null; }
         }
-        function productBrand(prod) {
-            if (!prod) return null;
-            if (prod.marca) return prod.marca;
-            try { return detectBrand(prod.nome_produto || '') || null; } catch (_) { return null; }
-        }
         function productLongevity(prod) {
             const cat = prod?.categoria || (typeof detectCategory === 'function' ? detectCategory(prod?.nome_produto || '') : 'outros');
             const base = { telemoveis: 4.5, portateis: 6, tvs: 7, grandes_eletro: 10, climatizacao: 10, audio: 7, gaming: 6, redes: 6, outros: 7 };
@@ -6404,6 +6421,31 @@
                     `<div class="p-3 rounded-xl bg-amber-500/[0.04] border border-amber-500/10"><div class="flex gap-2"><i class="fa-solid ${a.icon} text-amber-400 mt-0.5"></i><div><strong class="text-[11px] text-amber-100">${escapeHtml(a.title)}</strong><p class="text-[10px] text-slate-500 mt-1">${escapeHtml(a.text)}</p></div></div></div>`
                 ).join('') || '<div class="md:col-span-2 p-4 rounded-xl bg-emerald-500/[0.04] border border-emerald-500/10 text-xs text-emerald-200"><i class="fa-solid fa-check-circle mr-1"></i> Sem alertas críticos.</div>';
             }
+            const bd = document.getElementById('intelBrandDeep');
+            if (bd) {
+                const top = brandReliabilityScores().slice(0, 5);
+                bd.innerHTML = top.length ? top.map(b => {
+                    const s = computeVantyScores(b.products[0] || {});
+                    return `<div class="p-2.5 rounded-lg bg-[#0a0a0b]/50 border border-white/[0.05]">
+                        <div class="flex justify-between"><strong class="text-slate-200">${escapeHtml(b.name)}</strong><span class="text-orange-300 font-black">${b.score}</span></div>
+                        <div class="grid grid-cols-3 gap-1 mt-1.5 text-[9px] text-slate-500">
+                            <span>Fiab. ${s.reliability}</span><span>Long. ${s.longevity}</span><span>Rev. ${s.resale}</span>
+                        </div>
+                        <div class="intel-meter mt-1.5"><i style="width:${b.score}%"></i></div>
+                    </div>`;
+                }).join('') : '<p class="text-slate-600">Sem dados de marca.</p>';
+            }
+            const pat = document.getElementById('intelPatterns');
+            if (pat) {
+                const ps = problemPatterns().slice(0, 6);
+                pat.innerHTML = ps.length ? ps.map(x =>
+                    `<div class="p-2 rounded-lg border border-amber-500/10 bg-amber-500/[0.03]">
+                        <strong class="text-slate-300">${escapeHtml(x.name)}</strong>
+                        <span class="text-amber-400/90 font-bold ml-1">${x.n}×</span>
+                        <p class="text-[9px] text-slate-600 mt-0.5">Padrão observado${x.samples[0] ? ': ' + escapeHtml(x.samples[0]) : ''}</p>
+                    </div>`
+                ).join('') : '<p class="text-slate-600">Sem padrões ainda (precisas de pedidos de assistência).</p>';
+            }
         }
         function renderDetailIntelligence(prod) {
             const el = document.getElementById('detailIntelligenceBox');
@@ -6425,6 +6467,8 @@
                 ['Revenda', s.resale],
                 ['Marca', s.brand]
             ];
+            const passport = buildProductPassport(prod);
+            const lt = longTermReviewStatus(prod);
             el.innerHTML = `
                 <div class="flex items-start justify-between gap-3">
                     <div>
@@ -6441,7 +6485,7 @@
                 <div class="grid grid-cols-2 gap-x-3 gap-y-0.5 mt-1">
                     ${dna.map(([lab, val]) => `<div class="dna-row"><span>${lab}</span><div class="dna-track"><i style="width:${val}%"></i></div><em>${val}</em></div>`).join('')}
                 </div>
-                ${s.starCount ? `<p class="text-[10px] text-slate-500">Satisfação verificada: <strong class="text-amber-300">${s.stars.toFixed(1)}/5</strong> (${s.starCount} review${s.starCount > 1 ? 's' : ''}) — complementa o score, não o substitui.</p>` : '<p class="text-[10px] text-slate-600">Sem reviews verificadas ainda — score usa idade, garantia e histórico local.</p>'}
+                ${s.starCount ? `<p class="text-[10px] text-slate-500">Satisfação verificada: <strong class="text-amber-300">${s.stars.toFixed(1)}/5</strong> (${s.starCount}) — complementa o score.</p>` : '<p class="text-[10px] text-slate-600">Sem reviews verificadas ainda.</p>'}
                 <div>
                     <p class="text-[9px] uppercase tracking-wider text-slate-500 font-bold">Vida do produto</p>
                     <div class="life-curve">
@@ -6453,14 +6497,131 @@
                         <div class="dot" style="left:100%; border-color:#6b7683; box-shadow:none"></div>
                         <div class="label" style="left:100%">~${s.life.toFixed(0)}a</div>
                     </div>
-                    <p class="text-[10px] text-slate-500 mt-3">Restante estimado ≈ <strong class="text-slate-300">${lifeLeft.toFixed(1)} anos</strong>
+                    <p class="text-[10px] text-slate-500 mt-3">Restante ≈ <strong class="text-slate-300">${lifeLeft.toFixed(1)} anos</strong>
                         · agora <strong class="text-emerald-400">${typeof formatMoney === 'function' ? formatMoney(v.mid || 0) : ''}</strong>
-                        · daqui a 12m ~ <strong class="text-slate-400">${typeof formatMoney === 'function' ? formatMoney(in12) : ''}</strong></p>
+                        · 12m ~ <strong class="text-slate-400">${typeof formatMoney === 'function' ? formatMoney(in12) : ''}</strong></p>
                 </div>
                 <div class="flex flex-wrap items-center gap-2 pt-1 border-t border-white/[0.05]">
                     <span class="decision-chip border ${d.bg} ${d.color}"><i class="fa-solid fa-crosshairs"></i> ${d.label}</span>
                     <span class="text-[10px] text-slate-500 flex-1 min-w-[120px] leading-snug">${escapeHtml(d.tip)}</span>
-                </div>`;
+                </div>
+                <div class="pt-2 border-t border-white/[0.05]">
+                    <p class="text-[9px] uppercase tracking-wider text-violet-300/90 font-bold mb-1"><i class="fa-solid fa-passport mr-1"></i> Product Passport</p>
+                    ${passport}
+                </div>
+                ${lt.html}
+            `;
+        }
+
+        /** Histórico do produto (acompanha o bem, não só a pessoa) */
+        function buildProductPassport(prod) {
+            const steps = [];
+            if (prod.data_compra) {
+                steps.push({ t: 'Compra', d: prod.data_compra + (prod.loja ? ' · ' + prod.loja : ''), ok: true });
+            }
+            const hasInv = (() => { try { return productHasInvoice(prod); } catch (_) { return false; } })();
+            steps.push({ t: 'Prova de compra', d: hasInv ? 'Fatura no sistema' : 'Sem fatura digital', ok: hasInv });
+            if (prod.numero_serie) steps.push({ t: 'Identificação', d: 'SN ' + prod.numero_serie, ok: true });
+            if (prod.fim_garantia) steps.push({ t: 'Garantia registada', d: 'Até ' + prod.fim_garantia, ok: true });
+            try {
+                (getRmaStore() || []).filter(r => String(r.produto_id) === String(prod.id)).forEach(r => {
+                    steps.push({ t: 'Assistência', d: (r.created_at || '').slice(0, 10) + ' · ' + (r.estado || 'aberto'), ok: true });
+                });
+            } catch (_) {}
+            if ((prod.notas || '').includes('Transferido')) {
+                steps.push({ t: 'Transferência', d: 'Mudança de titular (passaporte)', ok: true });
+            }
+            const onSale = (() => { try { return getListingsStore().some(x => String(x.product_id) === String(prod.id)); } catch (_) { return false; } })();
+            if (onSale) steps.push({ t: 'Mercado Vanty', d: 'À venda neste momento', ok: true });
+            steps.push({ t: 'Titular atual', d: (userProfile && userProfile.name) || 'Tu', ok: true });
+            if (!steps.length) return '<p class="text-[10px] text-slate-600">Sem eventos ainda.</p>';
+            return steps.map(s =>
+                `<div class="passport-step ${s.ok ? '' : 'muted'}"><div><p class="text-[10px] font-bold text-slate-200">${escapeHtml(s.t)}</p><p class="text-[9px] text-slate-500">${escapeHtml(s.d)}</p></div></div>`
+            ).join('');
+        }
+
+        /** Reviews ao longo do tempo: 30d / 1a / 3a / 5a */
+        function longTermReviewStatus(prod) {
+            if (!prod || !prod.data_compra) return { html: '', due: null };
+            const buy = new Date(prod.data_compra);
+            if (isNaN(buy.getTime())) return { html: '', due: null };
+            const days = (Date.now() - buy.getTime()) / 86400000;
+            const milestones = [
+                { id: '30d', days: 30, label: '30 dias' },
+                { id: '1y', days: 365, label: '1 ano' },
+                { id: '3y', days: 365 * 3, label: '3 anos' },
+                { id: '5y', days: 365 * 5, label: '5 anos' }
+            ];
+            let due = null;
+            for (const m of milestones) {
+                if (days >= m.days) {
+                    const key = 'vanty_lt_review_' + prod.id + '_' + m.id;
+                    if (!localStorage.getItem(key)) { due = m; break; }
+                }
+            }
+            if (!due) {
+                return {
+                    html: `<p class="text-[9px] text-slate-600 pt-1 border-t border-white/[0.04] mt-1">Long-term: próximos marcos 30d · 1a · 3a · 5a (quando aplicável).</p>`,
+                    due: null
+                };
+            }
+            return {
+                due,
+                html: `<div class="mt-2 p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                    <p class="text-[10px] text-amber-200 font-bold">Long-term review · ${escapeHtml(due.label)}</p>
+                    <p class="text-[9px] text-slate-400 mt-0.5">Como está o produto depois de ${escapeHtml(due.label)} de uso real?</p>
+                    <button type="button" onclick="markLongTermReviewDone('${String(prod.id).replace(/'/g, "\\'")}', '${due.id}')" class="mt-1.5 px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-200 text-[10px] font-bold">Já avaliei / dispensar</button>
+                </div>`
+            };
+        }
+        function markLongTermReviewDone(prodId, milestoneId) {
+            localStorage.setItem('vanty_lt_review_' + prodId + '_' + milestoneId, new Date().toISOString());
+            showToast('Marco long-term registado.\nPodes publicar review na zona de estrelas.', 'Long-term', 'success');
+            if (detailProductIndex != null && currentProducts[detailProductIndex]) {
+                renderDetailIntelligence(currentProducts[detailProductIndex]);
+            }
+        }
+
+        /** Padrões de problemas (RMA) — “padrão observado”, não diagnóstico */
+        function problemPatterns() {
+            const map = {};
+            try {
+                (getRmaStore() || []).forEach(r => {
+                    const key = (r.produto_nome || r.marca || 'produto').toLowerCase().slice(0, 40);
+                    if (!map[key]) map[key] = { name: r.produto_nome || key, n: 0, samples: [] };
+                    map[key].n++;
+                    if (r.descricao && map[key].samples.length < 2) map[key].samples.push(String(r.descricao).slice(0, 80));
+                });
+            } catch (_) {}
+            return Object.values(map).filter(x => x.n >= 1).sort((a, b) => b.n - a.n);
+        }
+
+        /** Trust do vendedor (separado do health do produto) */
+        function sellerTrustScore(sellerName) {
+            const name = sellerName || (userProfile && userProfile.name) || 'Vendedor';
+            const listings = (typeof getListingsStore === 'function' ? getListingsStore() : []).filter(l => (l.seller_name || '') === name);
+            const offers = (typeof getOffersStore === 'function' ? getOffersStore() : []);
+            const completed = offers.filter(o => o.status === 'completed' && listings.some(l => l.id === o.listing_id)).length;
+            const transfers = (typeof getTransferStore === 'function' ? getTransferStore() : []).filter(t => t.claimed || t.cloud).length;
+            let verifiedListings = 0;
+            listings.forEach(l => {
+                const p = (currentProducts || []).find(x => String(x.id) === String(l.product_id));
+                if (p && isVantyVerified(p)) verifiedListings++;
+            });
+            // base + completed + verified products
+            let score = 60;
+            score += Math.min(20, verifiedListings * 5);
+            score += Math.min(15, completed * 4);
+            score += Math.min(10, transfers * 2);
+            score = Math.max(0, Math.min(99, Math.round(score)));
+            return {
+                name,
+                score,
+                verifiedListings,
+                completed,
+                transfers,
+                incidents: 0
+            };
         }
 
         function openProductDetail(index) {
