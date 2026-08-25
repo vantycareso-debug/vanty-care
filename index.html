@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Vanty Care — Gestão Global de Garantias</title>
+    <title>VANTY — Verified Asset Network</title>
     <link rel="icon" type="image/png" href="vanty-favicon.png">
     <link rel="apple-touch-icon" href="vanty-logo-icon.png">
     <link rel="manifest" href="manifest.webmanifest">
@@ -11,7 +11,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="Vanty Care">
+    <meta name="apple-mobile-web-app-title" content="VANTY">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
@@ -36,7 +36,9 @@
                             DEFAULT: '#FF5A00',
                             light: '#FF7A00',
                             deep: '#C93400',
-                            glow: 'rgba(255,90,0,0.22)'
+                            glow: 'rgba(255,90,0,0.22)',
+                            blue: '#2F6BFF',
+                            'blue-dim': 'rgba(47,107,255,0.2)'
                         }
                     }
                 }
@@ -418,6 +420,60 @@
             object-position: left center;
             filter: drop-shadow(0 2px 6px rgba(0,0,0,0.5)) drop-shadow(0 0 14px rgba(255,90,0,0.18));
         }
+
+        .brand-tagline {
+            font-size: 8px;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: #6b7683;
+            margin-top: 3px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 140px;
+        }
+        .brand-logo-wrap {
+            border-radius: 50% !important;
+            overflow: visible;
+        }
+        .brand-logo-static {
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .brand-logo-hex-ring {
+            border-radius: 50% !important;
+            border-color: rgba(47,107,255,0.35) !important;
+            box-shadow: 0 0 0 1px rgba(255,90,0,0.25), 0 0 16px rgba(47,107,255,0.15) !important;
+        }
+        .nav-section-label {
+            letter-spacing: 0.12em;
+        }
+        .home-action {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            gap: 8px; padding: 14px 10px; border-radius: 12px;
+            background: rgba(10,12,16,0.7); border: 1px solid rgba(255,255,255,0.06);
+            transition: border-color .2s, box-shadow .2s, transform .15s;
+            cursor: pointer; text-align: center;
+        }
+        .home-action:hover {
+            border-color: rgba(255,90,0,0.35);
+            box-shadow: 0 0 20px rgba(255,90,0,0.08);
+            transform: translateY(-1px);
+        }
+        .home-action i { font-size: 16px; color: #FF7A00; }
+        .home-action span { font-size: 10px; font-weight: 700; color: #c8d0d8; letter-spacing: 0.04em; text-transform: uppercase; }
+        .home-kpi {
+            padding: 14px 16px; border-radius: 12px;
+            background: linear-gradient(165deg, rgba(18,23,29,0.95), rgba(8,10,13,0.98));
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+        .intel-chip {
+            padding: 10px 12px; border-radius: 10px;
+            background: rgba(10,12,16,0.65); border: 1px solid rgba(255,255,255,0.05);
+            font-size: 11px;
+        }
+
         .brand-sub {
             font-size: 9px;
             font-weight: 700;
@@ -927,8 +983,8 @@
     <!-- Splash marca -->
     <div id="vantySplash" aria-hidden="true">
         <img class="splash-shield" src="vanty-logo-icon.png" alt="">
-        <img class="splash-word" src="vanty-wordmark-sm.png" alt="VANTY CARE">
-        <div class="splash-tag">Warranty OS</div>
+        <img class="splash-word" src="vanty-wordmark-sm.png" alt="VANTY">
+        <div class="splash-tag">Verified · Asset · Network · Trust · Yield</div>
         <div class="splash-bar"><i></i></div>
     </div>
 
@@ -966,27 +1022,44 @@
         <!-- SIDEBAR (TerraFlux structure) -->
         <aside id="sidebar" class="sidebar flex flex-col shrink-0 h-full">
             <div class="brand-header-row px-4 py-5 flex items-center gap-3.5">
-                <div class="brand-logo-wrap" title="Vanty Care">
+                <div class="brand-logo-wrap" title="VANTY — Verified · Asset · Network · Trust · Yield">
                     <div class="brand-logo-hex-ring"></div>
-                    <img src="vanty-logo-icon.png" alt="Vanty Care" class="brand-logo-static" width="48" height="48">
+                    <img src="vanty-logo-icon.png" alt="VANTY" class="brand-logo-static" width="48" height="48">
                 </div>
                 <div class="min-w-0">
-                    <img src="vanty-wordmark-sm.png" alt="VANTY CARE" class="brand-wordmark-img">
-                    <div class="brand-sub">Warranty OS</div>
+                    <div class="text-[15px] font-black tracking-[0.2em] text-white leading-none">VANTY</div>
+                    <div class="brand-tagline">Verified · Asset · Network</div>
+                    <div class="brand-sub">Trust · Yield</div>
                 </div>
             </div>
             
-            <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-                <div class="nav-section-label">Principal</div>
+                        <nav class="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
+                <div class="nav-section-label">V.A.N.T.Y.</div>
                 <div class="nav-item active" data-panel="dashboard" onclick="switchPanel('dashboard')">
-                    <span class="nav-icon-chip"><i class="fa-solid fa-chart-pie"></i></span><span>Overview</span>
+                    <span class="nav-icon-chip"><i class="fa-solid fa-house"></i></span><span>Home</span>
                 </div>
+                <div class="nav-item" data-panel="stats" onclick="switchPanel('stats')">
+                    <span class="nav-icon-chip"><i class="fa-solid fa-globe"></i></span><span>My World</span>
+                </div>
+                <div class="nav-item" data-panel="inteligencia" onclick="switchPanel('inteligencia')">
+                    <span class="nav-icon-chip"><i class="fa-solid fa-brain"></i></span><span>Intelligence</span>
+                </div>
+
+                <div class="nav-section-label mt-3">Market</div>
+                <div class="nav-item" data-panel="mercado" onclick="switchPanel('mercado')">
+                    <span class="nav-icon-chip"><i class="fa-solid fa-store"></i></span><span>Marketplace</span>
+                </div>
+                <div class="nav-item" data-panel="assistente" onclick="switchPanel('assistente')">
+                    <span class="nav-icon-chip"><i class="fa-solid fa-robot"></i></span><span>Ask VANTY</span>
+                </div>
+
+                <div class="nav-section-label mt-3">Care</div>
                 <div class="nav-item" data-panel="garantias" onclick="switchPanel('garantias')">
-                    <span class="nav-icon-chip"><i class="fa-solid fa-shield-halved"></i></span><span>Garantias</span>
+                    <span class="nav-icon-chip"><i class="fa-solid fa-shield-halved"></i></span><span>Produtos</span>
                     <span id="navBadgeCount" class="ml-auto text-[10px] font-bold bg-orange-500/15 text-orange-400 px-1.5 py-0.5 rounded-md border border-orange-500/10">0</span>
                 </div>
                 <div class="nav-item" data-panel="registar" onclick="switchPanel('registar')">
-                    <span class="nav-icon-chip"><i class="fa-solid fa-plus-circle"></i></span><span>Registar Nova</span>
+                    <span class="nav-icon-chip"><i class="fa-solid fa-plus"></i></span><span>Adicionar</span>
                 </div>
                 <div class="nav-item" data-panel="rma" onclick="switchPanel('rma')">
                     <span class="nav-icon-chip"><i class="fa-solid fa-screwdriver-wrench"></i></span><span>Assistência</span>
@@ -996,22 +1069,16 @@
                     <span class="nav-icon-chip"><i class="fa-solid fa-box-archive"></i></span><span>Arquivo</span>
                     <span id="navBadgeArchive" class="ml-auto text-[10px] font-bold bg-slate-500/15 text-slate-400 px-1.5 py-0.5 rounded-md">0</span>
                 </div>
-                <div class="nav-item" data-panel="stats" onclick="switchPanel('stats')">
-                    <span class="nav-icon-chip"><i class="fa-solid fa-star-half-stroke"></i></span><span>Estatísticas</span>
-                </div>
-                <div class="nav-item" data-panel="assistente" onclick="switchPanel('assistente')">
-                    <span class="nav-icon-chip"><i class="fa-solid fa-robot"></i></span><span>Assistente AI</span>
-                </div>
-                <div class="nav-item" data-panel="mercado" onclick="switchPanel('mercado')">
-                    <span class="nav-icon-chip"><i class="fa-solid fa-store"></i></span><span>Mercado Vanty</span>
-                </div>
+
+                <div class="nav-section-label mt-3">Mais</div>
                 <div class="nav-item" data-panel="cartoes" onclick="switchPanel('cartoes')">
-                    <span class="nav-icon-chip"><i class="fa-solid fa-wallet"></i></span><span>Cartões</span>
-                    <span id="navBadgeCards" class="ml-auto text-[10px] font-bold bg-violet-500/15 text-violet-300 px-1.5 py-0.5 rounded-md border border-violet-500/10">0</span>
+                    <span class="nav-icon-chip"><i class="fa-solid fa-credit-card"></i></span><span>Cartões</span>
                 </div>
-                <div class="nav-section-label mt-5">Conta</div>
+                <div class="nav-item" data-panel="financas" onclick="switchPanel('financas')">
+                    <span class="nav-icon-chip"><i class="fa-solid fa-coins"></i></span><span>Finanças</span>
+                </div>
                 <div class="nav-item" data-panel="perfil" onclick="switchPanel('perfil')">
-                    <span class="nav-icon-chip"><i class="fa-solid fa-user"></i></span><span>Perfil / Casa</span>
+                    <span class="nav-icon-chip"><i class="fa-solid fa-user"></i></span><span>Perfil</span>
                 </div>
                 <div class="nav-item" onclick="openClaimTransferModal()">
                     <span class="nav-icon-chip"><i class="fa-solid fa-qrcode"></i></span><span>Receber produto</span>
@@ -1026,7 +1093,7 @@
                     <div class="live-dot"></div>
                     <div>
                         <div class="text-[11px] font-semibold text-emerald-400">Supabase Live</div>
-                        <div class="text-[10px] text-slate-500">v4.9 · Care Engine · Watch · Confidence</div>
+                        <div class="text-[10px] text-slate-500">v5.0 · VANTY · Home IA</div>
                     </div>
                 </div>
             </div>
@@ -1042,7 +1109,7 @@
                     </button>
                     <div class="search-bar hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg w-64">
                         <i class="fa-solid fa-magnifying-glass text-slate-500 text-xs"></i>
-                        <input type="text" id="searchInput" placeholder="Pesquisar garantias…  ·  Ctrl+K" class="bg-transparent text-sm text-slate-300 placeholder-slate-600 w-full focus:outline-none" oninput="filterProducts()">
+                        <input type="text" id="searchInput" placeholder="Pesquisar produtos, marcas…  ·  Ctrl+K" class="bg-transparent text-sm text-slate-300 placeholder-slate-600 w-full focus:outline-none" oninput="filterProducts()">
                     </div>
                 </div>
                 <div class="flex items-center gap-1.5 sm:gap-2.5">
@@ -1073,6 +1140,12 @@
                 
                 <!-- DASHBOARD -->
                 <div id="panel-dashboard" class="space-y-5">
+                    <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-2">
+                        <div>
+                            <h1 class="text-lg font-bold text-white">Olá<span id="homeHelloName"></span></h1>
+                            <p class="text-[11px] text-slate-500 mt-0.5">Resumo da tua casa e ativos · <span class="text-orange-400/90 font-semibold tracking-wide">V.A.N.T.Y.</span></p>
+                        </div>
+                    </div>
                     <div id="authBanner" class="hidden card p-3.5 border border-amber-500/20 bg-amber-500/5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <p class="text-xs text-amber-200/90"><i class="fa-solid fa-cloud text-amber-400 mr-1.5"></i><strong>Modo local.</strong> Entra na conta para sincronizar garantias e faturas na cloud.</p>
                         <button type="button" onclick="openAuthModal()" class="shrink-0 px-3 py-1.5 rounded-lg bg-amber-500 text-slate-950 text-xs font-bold hover:bg-amber-400">Criar conta / Entrar</button>
@@ -1089,21 +1162,21 @@
                         <div class="kpi p-4 flex items-center gap-3.5">
                             <div class="kpi-icon-hex bg-orange-500/10 text-orange-400"><i class="fa-solid fa-shield-halved"></i></div>
                             <div>
-                                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Garantias Ativas</p>
+                                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Garantias ativas</p>
                                 <p class="text-2xl font-black text-white tabular-nums leading-tight" id="stat-active">0</p>
                             </div>
                         </div>
                         <div class="kpi p-4 flex items-center gap-3.5">
                             <div class="kpi-icon-hex bg-indigo-500/10 text-indigo-400"><i class="fa-solid fa-coins"></i></div>
                             <div>
-                                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Total Investido</p>
+                                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Valor registado</p>
                                 <p class="text-2xl leading-tight money-vanty" id="stat-value">0,00 €</p>
                             </div>
                         </div>
                         <div class="kpi p-4 flex items-center gap-3.5">
                             <div class="kpi-icon-hex bg-amber-500/10 text-amber-400"><i class="fa-solid fa-file-invoice"></i></div>
                             <div>
-                                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Faturas Guardadas</p>
+                                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Faturas</p>
                                 <p class="text-2xl font-black text-white tabular-nums leading-tight" id="stat-invoices">0</p>
                             </div>
                         </div>
@@ -1130,15 +1203,24 @@
                         </div>
                         <div class="space-y-4">
                             <div class="card p-5">
-                                <h2 class="panel-title text-sm mb-3"><span class="hex-bullet"><i class="fa-solid fa-bolt"></i></span> Ações Rápidas</h2>
-                                <div class="space-y-2">
-                                    <button onclick="switchPanel('registar')" class="btn-ghost-vanty w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm">
-                                        <i class="fa-solid fa-plus"></i> Registar Nova Garantia
-                                    </button>
-                                    <button onclick="switchPanel('perfil')" class="w-full flex items-center gap-3 px-3.5 py-3 rounded-xl bg-surface-800 hover:bg-surface-700 border border-white/[0.05] text-slate-300 text-sm font-medium transition-all">
-                                        <i class="fa-solid fa-user-pen"></i> Editar Perfil
-                                    </button>
+                                <h2 class="panel-title text-sm mb-3"><span class="hex-bullet"><i class="fa-solid fa-bolt"></i></span> O que queres fazer?</h2>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <button type="button" onclick="switchPanel('assistente')" class="home-action"><i class="fa-solid fa-bag-shopping"></i><span>Comprar</span></button>
+                                    <button type="button" onclick="switchPanel('mercado')" class="home-action"><i class="fa-solid fa-tags"></i><span>Vender</span></button>
+                                    <button type="button" onclick="switchPanel('mercado')" class="home-action"><i class="fa-solid fa-right-left"></i><span>Trocar</span></button>
+                                    <button type="button" onclick="openProblemTriage()" class="home-action"><i class="fa-solid fa-triangle-exclamation"></i><span>Problema</span></button>
                                 </div>
+                                <button onclick="switchPanel('registar')" class="btn-ghost-vanty w-full flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl text-xs mt-2">
+                                    <i class="fa-solid fa-plus"></i> Adicionar produto
+                                </button>
+                            </div>
+                            <div class="card p-4">
+                                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Ask VANTY</p>
+                                <button type="button" onclick="switchPanel('assistente')" class="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl bg-surface-800 border border-white/[0.06] text-slate-300 text-xs hover:border-orange-500/30 transition-all">
+                                    <i class="fa-solid fa-robot text-orange-400"></i>
+                                    <span class="flex-1 text-left">Pergunta à AI…</span>
+                                    <i class="fa-solid fa-microphone text-slate-600"></i>
+                                </button>
                             </div>
                             <div class="card p-5">
                                 <h2 class="text-sm font-bold text-white mb-3 flex items-center gap-2"><i class="fa-solid fa-house-user text-orange-400 text-xs"></i> Titular</h2>
@@ -1297,6 +1379,22 @@
 
                 <!-- PERFIL -->
                 <div id="panel-perfil" class="panel-hidden">
+                    <div id="pushNotifCard" class="card p-4 mb-4 space-y-2 border border-orange-500/15">
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <h3 class="text-sm font-bold text-white flex items-center gap-2"><i class="fa-solid fa-bell text-orange-400"></i> Notificações push</h3>
+                                <p class="text-[11px] text-slate-500 mt-1">Alertas de garantia a acabar, Watch/matches e aniversários de produto. Funciona melhor com a app instalada (PWA).</p>
+                            </div>
+                            <span id="pushStatusBadge" class="text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded-lg bg-surface-800 text-slate-500">—</span>
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            <button type="button" id="btnEnablePush" onclick="enableVantyPush()" class="btn-vanty px-3 py-2 rounded-xl text-xs font-bold"><i class="fa-solid fa-bell mr-1"></i> Ativar alertas</button>
+                            <button type="button" id="btnTestPush" onclick="testVantyPush()" class="px-3 py-2 rounded-xl text-xs font-bold bg-surface-800 border border-white/[0.08] text-slate-300">Testar</button>
+                            <button type="button" id="btnDisablePush" onclick="disableVantyPush()" class="px-3 py-2 rounded-xl text-xs font-bold bg-surface-800 border border-white/[0.08] text-slate-500">Desativar</button>
+                        </div>
+                        <p id="pushHelpText" class="text-[10px] text-slate-600">Local: imediato no dispositivo. Remoto (servidor): configura VAPID + Edge Function (ver supabase_push_subscriptions.sql).</p>
+                    </div>
+
                     <div class="max-w-md mx-auto">
                         <div class="card p-6">
                             <div class="flex items-center justify-between mb-5">
@@ -1378,7 +1476,7 @@
                     <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-3">
                         <div>
                             <h2 class="text-base font-bold text-white flex items-center gap-2"><i class="fa-solid fa-brain text-orange-400"></i> Vanty Intelligence</h2>
-                            <p class="text-[11px] text-slate-500 mt-1">Saúde, longevidade, valor e fiabilidade — a partir dos dados que já tens no Vanty Care.</p>
+                            <p class="text-[11px] text-slate-500 mt-1">Saúde, longevidade, valor e fiabilidade — a partir dos dados que já tens no VANTY.</p>
                         </div>
                         <span class="intel-tag"><i class="fa-solid fa-shield-halved mr-1"></i> dados verificáveis primeiro</span>
                     </div>
@@ -1671,7 +1769,7 @@
                             </form>
                         </div>
                     </div>
-                    <p class="text-[10px] text-slate-600 text-center">Respostas baseadas em dados Vanty Care (não é opinião genérica da internet).</p>
+                    <p class="text-[10px] text-slate-600 text-center">Respostas baseadas em dados VANTY (não é opinião genérica da internet).</p>
                 </div>
 
 <!-- CARTÕES DE FIDELIZAÇÃO (mini vault) -->
@@ -1986,7 +2084,7 @@
                 <div class="flex items-start justify-between gap-3">
                     <div>
                         <h4 id="productRatingTitle" class="text-xs font-bold text-white flex items-center gap-1.5"><i class="fa-solid fa-star text-amber-400"></i> Avaliação da comunidade</h4>
-                        <p class="text-[10px] text-slate-500 mt-1">Partilhada com todos os utilizadores do Vanty Care</p>
+                        <p class="text-[10px] text-slate-500 mt-1">Partilhada com todos os utilizadores do VANTY</p>
                     </div>
                     <div class="text-right shrink-0">
                         <div id="communityRatingStars" class="text-amber-400 text-xs tracking-wide" aria-label="Sem avaliações">☆☆☆☆☆</div>
@@ -2049,7 +2147,7 @@
     <div id="authModal" class="fixed inset-0 modal-backdrop z-[70] hidden flex items-center justify-center p-4">
         <div class="card modal-panel w-full max-w-sm p-6 border border-white/[0.1] space-y-4">
             <div class="flex items-center justify-between">
-                <h3 class="text-base font-bold text-white" id="authModalTitle">Entrar no Vanty Care</h3>
+                <h3 class="text-base font-bold text-white" id="authModalTitle">Entrar no VANTY</h3>
                 <button type="button" onclick="closeAuthModal()" class="text-slate-500 hover:text-white p-1"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <p class="text-[11px] text-slate-500">Sincroniza garantias e faturas entre dispositivos.</p>
@@ -2237,7 +2335,7 @@
                 if (banner) banner.classList.remove('hidden');
                 if (label) label.innerText = 'Entrar';
                 if (outBtn) outBtn.classList.add('hidden');
-                if (title) title.innerText = 'Entrar no Vanty Care';
+                if (title) title.innerText = 'Entrar no VANTY';
             }
         }
         function openAuthModal() {
@@ -3740,6 +3838,13 @@
             if (vz) vz.innerText = userProfile.zone || '—';
             document.getElementById('viewCountry').innerText = countryLabels[userProfile.country] || userProfile.country;
             document.getElementById('dashName').innerText = userProfile.name;
+            try {
+                const hn = document.getElementById('homeHelloName');
+                if (hn) {
+                    const first = (userProfile.name || '').trim().split(/\s+/)[0];
+                    hn.textContent = first ? (', ' + first + '!') : '';
+                }
+            } catch (_) {}
             document.getElementById('dashNif').innerText = userProfile.nif;
             const dashAddr = document.getElementById('dashAddress');
             if (dashAddr) {
@@ -4014,7 +4119,7 @@
 
             const top = stats.slice(0, 5);
             const lines = [];
-            lines.push(`<p class="text-slate-300 leading-relaxed">Com base nos dados Vanty Care` +
+            lines.push(`<p class="text-slate-300 leading-relaxed">Com base nos dados VANTY` +
                 (zone || locality ? ` na tua zona (<strong class="text-orange-300">${escapeHtml([locality, zone].filter(Boolean).join(', '))}</strong>)` : '') +
                 `:</p>`);
 
@@ -4054,7 +4159,7 @@
                 </div>`);
             });
 
-            lines.push(`<p class="text-[11px] text-slate-500 mt-2">Isto reflete a comunidade Vanty Care, não marketing das marcas. Cruza sempre com a fatura e a tua garantia.</p>`);
+            lines.push(`<p class="text-[11px] text-slate-500 mt-2">Isto reflete a comunidade VANTY, não marketing das marcas. Cruza sempre com a fatura e a tua garantia.</p>`);
             return lines.join('');
         }
 
@@ -4127,6 +4232,7 @@
             scanTradeMatches();
             renderBuyIntents();
             renderTradeMatches();
+            try { scheduleWarrantyPushChecks(); } catch (_) {}
         }
         function removeBuyIntent(id) {
             setBuyIntents(getBuyIntents().filter(x => x.id !== id));
@@ -4214,6 +4320,7 @@
             setTradeMatches(list);
             if (m.status === 'open') {
                 showToast('Match aberto.\nPodem usar o chat de ofertas no Mercado.', 'Trade', 'success');
+                try { showVantyNotification('Match aceite', 'Podes continuar no Mercado Vanty.', { tag: 'match-open-' + m.id }); } catch (_) {}
             } else if (!accept) {
                 showToast('Match recusado. Identidades não foram partilhadas.', 'Trade', 'info');
             } else {
@@ -5747,7 +5854,7 @@
             if (prod.numero_serie) lines.push('Nº série: ' + prod.numero_serie);
             if (v.paid > 0) lines.push('Preço original: ' + formatMoney(v.paid) + ' · pedido sugerido: ' + formatMoney(v.mid));
             lines.push('');
-            lines.push('Histórico e fatura disponíveis via Vanty Care (passaporte do produto).');
+            lines.push('Histórico e fatura disponíveis via VANTY (passaporte do produto).');
             lines.push('Particular · tratamento preferencial a levantamento em mão.');
             return lines.join('\n');
         }
@@ -5873,7 +5980,7 @@
                 showToast('Anúncio Vanty removido.', 'Venda', 'info');
             } else {
                 const v = estimateResaleValue(prod);
-                const priceStr = await vantyPrompt('Preço pedido (€) no Vanty Care', String(v.mid || v.paid || ''), 'Vender no Vanty');
+                const priceStr = await vantyPrompt('Preço pedido (€) no VANTY', String(v.mid || v.paid || ''), 'Vender no Vanty');
                 if (priceStr == null || priceStr === '') return;
                 const price = parseFloat(String(priceStr).replace(',', '.'));
                 if (!(price > 0)) {
@@ -6317,7 +6424,7 @@
             const prod = { ...(payload.product || {}) };
             prod.id = 'local_tx_' + Date.now();
             prod._local = true;
-            prod.notas = ((prod.notas || '') + '\n[Transferido via Vanty Care ' + new Date().toLocaleDateString('pt-PT') + (fromCloud ? ' · cloud' : ' · local') + ']').trim();
+            prod.notas = ((prod.notas || '') + '\n[Transferido via VANTY ' + new Date().toLocaleDateString('pt-PT') + (fromCloud ? ' · cloud' : ' · local') + ']').trim();
 
             // Inserir na cloud do comprador se autenticado
             try {
@@ -7606,7 +7713,7 @@
 
             const subject =
                 (MODO_TESTE_EMAIL ? '[TESTE Vanty] ' : '') +
-                `[Assistência Vanty Care] ${activeRmaProduct.nome_produto || 'Produto'}` +
+                `[Assistência VANTY] ${activeRmaProduct.nome_produto || 'Produto'}` +
                 (brand ? ` · ${brand}` : '') +
                 ` — SN: ${activeRmaProduct.numero_serie || 'N/A'}` +
                 (inW ? ' · EM GARANTIA' : ' · FORA DE GARANTIA') +
@@ -7619,7 +7726,7 @@
             const text =
 `Exmos. Senhores (${destLabel}),
 
-Venho solicitar assistência técnica via Vanty Care:
+Venho solicitar assistência técnica via VANTY:
 
 • Produto: ${activeRmaProduct.nome_produto || '—'}
 • Marca: ${brand || 'A confirmar'}
@@ -7641,14 +7748,14 @@ ${hasInvoice
   : '[PROVA DE COMPRA]: não encontrada no sistema — cliente enviará em seguida'}
 
 —
-Enviado automaticamente pelo Vanty Care Warranty OS
+Enviado automaticamente pelo VANTY Warranty OS
 ${userProfile.name || ''}
 ${userProfile.email || ''}
 ${addr}`;
 
             const html = `<div style="font-family:system-ui,sans-serif;font-size:14px;line-height:1.5;color:#111">
 <p>Exmos. Senhores (<strong>${escapeHtml(destLabel)}</strong>),</p>
-<p>Venho solicitar assistência técnica via <strong>Vanty Care</strong>:</p>
+<p>Venho solicitar assistência técnica via <strong>VANTY</strong>:</p>
 <ul>
 <li><strong>Produto:</strong> ${escapeHtml(activeRmaProduct.nome_produto || '—')}</li>
 <li><strong>Marca:</strong> ${escapeHtml(brand || 'A confirmar')}</li>
@@ -7667,7 +7774,7 @@ ${addr}`;
   ? `<strong>Prova de compra:</strong> em anexo — ${escapeHtml(invoiceName)}`
   : '<em>Prova de compra não encontrada no sistema.</em>'}</p>
 <hr>
-<p style="color:#666;font-size:12px">Enviado automaticamente pelo Vanty Care Warranty OS</p>
+<p style="color:#666;font-size:12px">Enviado automaticamente pelo VANTY Warranty OS</p>
 </div>`;
 
             return {
@@ -7887,11 +7994,216 @@ ${addr}`;
 
 
         // PWA
+
+        // ========== Web Push / Notificações PWA ==========
+        const VANTY_PUSH_PREF = 'vanty_push_enabled';
+        const VANTY_PUSH_SUB = 'vanty_push_subscription';
+        /** Coloca aqui a chave pública VAPID quando tiveres servidor de push (opcional). */
+        const VANTY_VAPID_PUBLIC = localStorage.getItem('vanty_vapid_public') || '';
+
+        function urlBase64ToUint8Array(base64String) {
+            const padding = '='.repeat((4 - base64String.length % 4) % 4);
+            const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+            const raw = atob(base64);
+            const out = new Uint8Array(raw.length);
+            for (let i = 0; i < raw.length; ++i) out[i] = raw.charCodeAt(i);
+            return out;
+        }
+
+        function getPushPermissionState() {
+            if (!('Notification' in window)) return 'unsupported';
+            return Notification.permission; // granted | denied | default
+        }
+
+        function updatePushUI() {
+            const badge = document.getElementById('pushStatusBadge');
+            const help = document.getElementById('pushHelpText');
+            if (!badge) return;
+            const pref = localStorage.getItem(VANTY_PUSH_PREF) === '1';
+            const perm = getPushPermissionState();
+            if (perm === 'unsupported') {
+                badge.textContent = 'N/A';
+                badge.className = 'text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded-lg bg-surface-800 text-slate-500';
+                if (help) help.textContent = 'Este browser não suporta Notification API.';
+                return;
+            }
+            if (perm === 'granted' && pref) {
+                badge.textContent = 'Ativo';
+                badge.className = 'text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded-lg bg-emerald-500/15 text-emerald-300 border border-emerald-500/25';
+            } else if (perm === 'denied') {
+                badge.textContent = 'Bloqueado';
+                badge.className = 'text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded-lg bg-red-500/15 text-red-300 border border-red-500/25';
+                if (help) help.textContent = 'Permissão bloqueada nas definições do browser / site.';
+            } else {
+                badge.textContent = 'Inativo';
+                badge.className = 'text-[9px] font-bold uppercase tracking-wider px-2 py-1 rounded-lg bg-surface-800 text-slate-500';
+            }
+        }
+
+        async function enableVantyPush() {
+            if (!('Notification' in window)) {
+                showToast('Notificações não suportadas neste browser.', 'Push', 'warn');
+                return;
+            }
+            if (!('serviceWorker' in navigator)) {
+                showToast('Service Worker necessário (HTTPS ou localhost).', 'Push', 'warn');
+                return;
+            }
+            let perm = Notification.permission;
+            if (perm === 'default') perm = await Notification.requestPermission();
+            if (perm !== 'granted') {
+                showToast('Permissão recusada. Ativa nas definições do site.', 'Push', 'warn');
+                updatePushUI();
+                return;
+            }
+            localStorage.setItem(VANTY_PUSH_PREF, '1');
+            try {
+                const reg = await navigator.serviceWorker.ready;
+                if (VANTY_VAPID_PUBLIC && reg.pushManager) {
+                    let sub = await reg.pushManager.getSubscription();
+                    if (!sub) {
+                        sub = await reg.pushManager.subscribe({
+                            userVisibleOnly: true,
+                            applicationServerKey: urlBase64ToUint8Array(VANTY_VAPID_PUBLIC)
+                        });
+                    }
+                    localStorage.setItem(VANTY_PUSH_SUB, JSON.stringify(sub.toJSON()));
+                    // Guardar no Supabase se autenticado
+                    try {
+                        if (typeof supabaseClient !== 'undefined' && supabaseClient) {
+                            const { data: { user } } = await supabaseClient.auth.getUser();
+                            if (user) {
+                                const j = sub.toJSON();
+                                await supabaseClient.from('push_subscriptions').upsert({
+                                    user_id: user.id,
+                                    endpoint: j.endpoint,
+                                    p256dh: j.keys && j.keys.p256dh,
+                                    auth: j.keys && j.keys.auth,
+                                    user_agent: navigator.userAgent
+                                }, { onConflict: 'user_id,endpoint' });
+                            }
+                        }
+                    } catch (e) { console.warn('push supabase', e); }
+                }
+            } catch (e) {
+                console.warn('subscribe', e);
+            }
+            updatePushUI();
+            showToast('Alertas ativados neste dispositivo.', 'Push', 'success');
+            try { await scheduleWarrantyPushChecks(); } catch (_) {}
+        }
+
+        async function disableVantyPush() {
+            localStorage.setItem(VANTY_PUSH_PREF, '0');
+            try {
+                const reg = await navigator.serviceWorker.ready;
+                const sub = await reg.pushManager?.getSubscription();
+                if (sub) await sub.unsubscribe();
+            } catch (_) {}
+            localStorage.removeItem(VANTY_PUSH_SUB);
+            updatePushUI();
+            showToast('Alertas desativados.', 'Push', 'info');
+        }
+
+        async function showVantyNotification(title, body, opts = {}) {
+            if (localStorage.getItem(VANTY_PUSH_PREF) !== '1') return false;
+            if (!('Notification' in window) || Notification.permission !== 'granted') return false;
+            const tag = opts.tag || ('vanty-' + Date.now());
+            // Evitar spam do mesmo tag no mesmo dia
+            const dedupeKey = 'vanty_notif_' + tag;
+            if (opts.dedupeDay) {
+                const day = new Date().toISOString().slice(0, 10);
+                if (localStorage.getItem(dedupeKey) === day) return false;
+                localStorage.setItem(dedupeKey, day);
+            }
+            try {
+                const reg = await navigator.serviceWorker.ready;
+                if (reg.active) {
+                    reg.active.postMessage({
+                        type: 'SHOW_NOTIFICATION',
+                        title,
+                        body,
+                        tag,
+                        url: opts.url || './index.html',
+                        renotify: !!opts.renotify
+                    });
+                    return true;
+                }
+            } catch (_) {}
+            try {
+                new Notification(title, { body, tag, icon: './vanty-logo-icon.png' });
+                return true;
+            } catch (_) { return false; }
+        }
+
+        async function testVantyPush() {
+            if (Notification.permission !== 'granted') {
+                await enableVantyPush();
+            }
+            const ok = await showVantyNotification('VANTY', 'Teste de notificação — se viste isto, está a funcionar.', {
+                tag: 'vanty-test',
+                renotify: true
+            });
+            if (!ok) showToast('Não foi possível mostrar notificação. Ativa primeiro.', 'Push', 'warn');
+            else showToast('Notificação de teste enviada.', 'Push', 'success');
+        }
+
+        /** Alertas locais: garantias ≤ 30 dias, matches Watch */
+        async function scheduleWarrantyPushChecks() {
+            if (localStorage.getItem(VANTY_PUSH_PREF) !== '1') return;
+            if (Notification.permission !== 'granted') return;
+            const products = currentProducts || [];
+            for (const p of products) {
+                try {
+                    const w = typeof warrantyMonthsLeft === 'function' ? warrantyMonthsLeft(p) : 0;
+                    if (w > 0 && w <= 1) {
+                        await showVantyNotification(
+                            'Garantia a terminar',
+                            (p.nome_produto || 'Produto') + ' · menos de 1 mês de garantia.',
+                            { tag: 'warranty-' + p.id, dedupeDay: true, url: './index.html' }
+                        );
+                    } else if (w > 1 && w <= 3) {
+                        await showVantyNotification(
+                            'Garantia · atenção',
+                            (p.nome_produto || 'Produto') + ' · ~' + Math.ceil(w) + ' meses restantes.',
+                            { tag: 'warranty3-' + p.id, dedupeDay: true }
+                        );
+                    }
+                } catch (_) {}
+            }
+            try {
+                if (typeof getTradeMatches === 'function') {
+                    const matches = getTradeMatches().filter(m => m.status === 'proposed' || m.status === 'partial');
+                    if (matches.length) {
+                        await showVantyNotification(
+                            'Vanty Match',
+                            matches.length + ' possível(is) correspondência(s) no Mercado.',
+                            { tag: 'match-batch', dedupeDay: true }
+                        );
+                    }
+                }
+            } catch (_) {}
+        }
+
+        // Após load de produtos / mercado
+        const _origLoadProductsPush = typeof loadProducts === 'function' ? null : null;
+
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js').catch(err => console.warn('SW', err));
+                navigator.serviceWorker.register('./sw.js')
+                    .then(() => {
+                        try { updatePushUI(); } catch (_) {}
+                        setTimeout(() => { try { scheduleWarrantyPushChecks(); } catch (_) {} }, 4000);
+                    })
+                    .catch(err => console.warn('SW', err));
+                navigator.serviceWorker.addEventListener('message', (ev) => {
+                    if (ev.data && ev.data.type === 'VANTY_NOTIFICATION_CLICK') {
+                        /* app already focused */
+                    }
+                });
             });
         }
+        document.addEventListener('DOMContentLoaded', () => { try { updatePushUI(); } catch (_) {} });
 
         renderProfile();
         try { applyLocale(); } catch (_) {}
