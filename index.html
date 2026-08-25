@@ -439,8 +439,18 @@
         }
         .brand-logo-static {
             border-radius: 50%;
-            object-fit: cover;
+            object-fit: contain;
+            background: transparent !important;
+            mix-blend-mode: normal;
         }
+        .brand-logo-wrap {
+            background: transparent !important;
+        }
+        #vantySplash .splash-shield {
+            background: transparent !important;
+            object-fit: contain;
+        }
+
         .brand-logo-hex-ring {
             border-radius: 50% !important;
             border-color: rgba(47,107,255,0.35) !important;
@@ -456,6 +466,47 @@
             transition: border-color .2s, box-shadow .2s, transform .15s;
             cursor: pointer; text-align: center;
         }
+
+        /* VANTY dual-tone mockup */
+        .sidebar {
+            background: linear-gradient(180deg, #07090d 0%, #0a0c12 50%, #080a0e 100%) !important;
+            border-right: 1px solid rgba(47,107,255,0.12) !important;
+        }
+        .nav-item.active {
+            background: linear-gradient(90deg, rgba(255,90,0,0.14), rgba(47,107,255,0.08)) !important;
+            border: 1px solid rgba(255,90,0,0.22) !important;
+            box-shadow: 0 0 20px rgba(255,90,0,0.06);
+        }
+        .nav-item.active::before {
+            background: linear-gradient(180deg, #2F6BFF, #FF5A00) !important;
+        }
+        .kpi {
+            background: linear-gradient(155deg, rgba(16,20,28,0.95), rgba(8,10,14,0.98)) !important;
+            border: 1px solid rgba(255,255,255,0.06) !important;
+            box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+        }
+        .card {
+            background: linear-gradient(165deg, rgba(14,18,24,0.92), rgba(8,10,13,0.96)) !important;
+            border-color: rgba(255,255,255,0.06) !important;
+        }
+        header {
+            border-bottom-color: rgba(47,107,255,0.1) !important;
+        }
+        header .absolute.h-px {
+            background: linear-gradient(90deg, transparent, rgba(47,107,255,0.35), rgba(255,90,0,0.35), transparent) !important;
+        }
+        .brand-logo-hex-ring {
+            border-color: rgba(47,107,255,0.4) !important;
+            box-shadow: 0 0 0 1px rgba(255,90,0,0.3), 0 0 18px rgba(47,107,255,0.2), 0 0 12px rgba(255,90,0,0.12) !important;
+        }
+        body {
+            background: #050608 !important;
+        }
+        .home-action:hover {
+            border-color: rgba(47,107,255,0.35);
+            box-shadow: 0 0 18px rgba(47,107,255,0.1);
+        }
+
         .home-action:hover {
             border-color: rgba(255,90,0,0.35);
             box-shadow: 0 0 20px rgba(255,90,0,0.08);
@@ -982,8 +1033,8 @@
 
     <!-- Splash marca -->
     <div id="vantySplash" aria-hidden="true">
-        <img class="splash-shield" src="vanty-logo-icon.png" alt="">
-        <img class="splash-word" src="vanty-wordmark-sm.png" alt="VANTY">
+        <img class="splash-shield" src="vanty-logo-icon.png" alt="VANTY" style="background:transparent;width:96px;height:96px;object-fit:contain;">
+        <div class="splash-word text-2xl font-black tracking-[0.28em] text-white mt-3">VANTY</div>
         <div class="splash-tag">Verified · Asset · Network · Trust · Yield</div>
         <div class="splash-bar"><i></i></div>
     </div>
@@ -1093,7 +1144,7 @@
                     <div class="live-dot"></div>
                     <div>
                         <div class="text-[11px] font-semibold text-emerald-400">Supabase Live</div>
-                        <div class="text-[10px] text-slate-500">v5.0 · VANTY · Home IA</div>
+                        <div class="text-[10px] text-slate-500">v5.1 · VANTY · UI dual-tone</div>
                     </div>
                 </div>
             </div>
@@ -4172,8 +4223,12 @@
             return { level: 'insuf', label: 'Amostra insuficiente', cls: 'conf-insuf', n: N };
         }
         function confBadgeHtml(n) {
-            const c = dataConfidence(n);
-            return `<span class="conf-badge ${c.cls}" title="N=${c.n}">${c.label} · N=${c.n}</span>`;
+            try {
+                const c = dataConfidence(n);
+                return `<span class="conf-badge ${c.cls}" title="N=${c.n}">${c.label} · N=${c.n}</span>`;
+            } catch (_) {
+                return '';
+            }
         }
 
         const EOL_REASONS = [
@@ -4511,7 +4566,14 @@
             if (id === 'cartoes') renderLoyaltyCards();
             if (id === 'assistente') initAssistentePanel();
             if (id === 'mercado') renderVantyMarket();
-            if (id === 'inteligencia') renderVantyIntelligence();
+            if (id === 'inteligencia') {
+                try { renderVantyIntelligence(); }
+                catch (err) {
+                    console.error('Intelligence error', err);
+                    const ov = document.getElementById('intelligenceOverview');
+                    if (ov) ov.innerHTML = '<div class="card p-4 text-xs text-amber-200">Não foi possível calcular a inteligência neste momento. Tenta sincronizar produtos.<br><span class="text-slate-500">' + (err && err.message ? err.message : '') + '</span></div>';
+                }
+            }
             if (id === 'financas') renderFinancePanel();
             if (id === 'consumiveis') renderConsumablesPanel();
             if (id === 'b2b') renderB2BPanel();
@@ -6692,8 +6754,11 @@
 
         function productBrand(prod) {
             if (!prod) return null;
-            if (prod.marca) return prod.marca;
-            try { return detectBrand(prod.nome_produto || '') || null; } catch (_) { return null; }
+            try {
+                if (prod.marca) return prod.marca;
+                if (typeof detectBrand === 'function') return detectBrand(prod.nome_produto || '') || null;
+            } catch (_) {}
+            return null;
         }
         function productLongevity(prod) {
             const cat = prod?.categoria || (typeof detectCategory === 'function' ? detectCategory(prod?.nome_produto || '') : 'outros');
@@ -6705,14 +6770,14 @@
         }
         /** Sub-scores 0–100 — complementam as estrelas, não as substituem */
         function computeVantyScores(prod) {
-            if (!prod) {
-                return { total: 0, reliability: 0, health: 0, longevity: 0, repairability: 0, resale: 0, satisfaction: 0, brand: 0, stars: 0, starCount: 0 };
-            }
+            const empty = { total: 0, reliability: 0, health: 0, longevity: 0, repairability: 0, resale: 0, satisfaction: 0, brand: 0, stars: 0, starCount: 0, years: 0, w: 0, life: 7, hasInv: false, hasSn: false, assistN: 0 };
+            if (!prod || typeof prod !== 'object') return empty;
+
             const years = (typeof yearsOwnedFloat === 'function' ? yearsOwnedFloat(prod) : 0) || 0;
             const w = (typeof warrantyMonthsLeft === 'function' ? warrantyMonthsLeft(prod) : 0) || 0;
             const life = productLongevity(prod);
             let rs = { count: 0, average: 0 };
-            try { rs = ratingStats(prod, { verifiedOnly: true }) || rs; } catch (_) {}
+            try { if (typeof ratingStats === 'function') rs = ratingStats(prod, { verifiedOnly: true }) || rs; } catch (_) { rs = { count: 0, average: 0 }; }
             const hasInv = (() => { try { return !!productHasInvoice(prod); } catch (_) { return false; } })();
             const hasSn = !!(prod.numero_serie && String(prod.numero_serie).trim());
             const assistN = (() => {
@@ -6834,7 +6899,12 @@
                 });
             } catch (_) {}
             return [...groups.values()].map(g => {
-                const productHealth = g.products.reduce((a, p) => a + computeVantyScores(p).health, 0) / Math.max(1, g.products.length);
+                let productHealth = 70;
+                try {
+                    productHealth = g.products.reduce((a, p) => {
+                        try { return a + (computeVantyScores(p).health || 0); } catch (_) { return a + 70; }
+                    }, 0) / Math.max(1, g.products.length);
+                } catch (_) {}
                 const avg = g.ratings.length ? g.ratings.reduce((a, b) => a + b, 0) / g.ratings.length : 3.5;
                 const reviewConfidence = Math.min(8, g.ratings.length * 1.2);
                 const score = Math.max(0, Math.min(100, Math.round(productHealth * 0.72 + avg * 14 + reviewConfidence)));
@@ -6843,11 +6913,17 @@
         }
         function renderVantyIntelligence() {
             const products = currentProducts || [];
-            const scores = products.map(p => ({
-                p,
-                score: computeVantyScores(p).total,
-                value: (typeof estimateResaleValue === 'function' ? estimateResaleValue(p) : { mid: 0 })
-            })).sort((a, b) => b.score - a.score);
+            const scores = products.map(p => {
+                try {
+                    return {
+                        p,
+                        score: (typeof computeVantyScores === 'function' ? computeVantyScores(p).total : 0) || 0,
+                        value: (typeof estimateResaleValue === 'function' ? estimateResaleValue(p) : { mid: 0 })
+                    };
+                } catch (e) {
+                    return { p, score: 0, value: { mid: 0 } };
+                }
+            }).sort((a, b) => b.score - a.score);
             const avgHealth = scores.length ? Math.round(scores.reduce((a, x) => a + x.score, 0) / scores.length) : 0;
             const totalValue = scores.reduce((a, x) => a + (x.value.mid || 0), 0);
             const guaranteed = products.filter(p => (typeof warrantyMonthsLeft === 'function' ? warrantyMonthsLeft(p) : 0) > 0).length;
@@ -6881,7 +6957,8 @@
                     </div>`;
                 }).join('') || '<p class="text-xs text-slate-600 py-6 text-center">Regista produtos para o índice.</p>';
             }
-            const brands = brandReliabilityScores();
+            let brands = [];
+            try { brands = brandReliabilityScores() || []; } catch (e) { console.warn('brands', e); brands = []; }
             const bEl = document.getElementById('intelBrands');
             if (bEl) {
                 bEl.innerHTML = brands.slice(0, 8).map(b =>
@@ -6922,7 +6999,8 @@
             }
             const pat = document.getElementById('intelPatterns');
             if (pat) {
-                const ps = problemPatterns().slice(0, 6);
+                let ps = [];
+                try { ps = (problemPatterns() || []).slice(0, 6); } catch (_) { ps = []; }
                 pat.innerHTML = ps.length ? ps.map(x =>
                     `<div class="p-2 rounded-lg border border-amber-500/10 bg-amber-500/[0.03]">
                         <strong class="text-slate-300">${escapeHtml(x.name)}</strong>
