@@ -620,6 +620,11 @@
         .passport-step { display:flex; gap:10px; padding:6px 0; border-left:2px solid rgba(255,90,0,.25); margin-left:6px; padding-left:12px; position:relative; }
         .passport-step::before { content:''; position:absolute; left:-5px; top:10px; width:8px; height:8px; border-radius:50%; background:#FF5A00; box-shadow:0 0 8px rgba(255,90,0,.5); }
         .passport-step.muted::before { background:#3A424A; box-shadow:none; }
+        .conf-badge { font-size:8px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; padding:2px 6px; border-radius:6px; }
+        .conf-alta { color:#34d399; background:rgba(52,211,153,.1); border:1px solid rgba(52,211,153,.25); }
+        .conf-media { color:#fbbf24; background:rgba(251,191,36,.1); border:1px solid rgba(251,191,36,.25); }
+        .conf-baixa { color:#fb923c; background:rgba(251,146,60,.1); border:1px solid rgba(251,146,60,.25); }
+        .conf-insuf { color:#8B949D; background:rgba(139,148,157,.1); border:1px solid rgba(139,148,157,.2); }
         .trust-badge { font-size:9px; font-weight:800; letter-spacing:.05em; padding:3px 7px; border-radius:7px; border:1px solid rgba(139,92,246,.3); background:rgba(139,92,246,.1); color:#c4b5fd; }
 
         .decision-chip { font-size:10px; font-weight:800; letter-spacing:.04em; padding:5px 9px; border-radius:8px; display:inline-flex; align-items:center; gap:5px; }
@@ -1021,7 +1026,7 @@
                     <div class="live-dot"></div>
                     <div>
                         <div class="text-[11px] font-semibold text-emerald-400">Supabase Live</div>
-                        <div class="text-[10px] text-slate-500">v4.8 · Trust B · Passport · Verified</div>
+                        <div class="text-[10px] text-slate-500">v4.9 · Care Engine · Watch · Confidence</div>
                     </div>
                 </div>
             </div>
@@ -1655,6 +1660,10 @@
                                 <button type="button" class="ai-chip" onclick="askAssistente('O que compraram recentemente na minha zona')">Na minha zona</button>
                                 <button type="button" class="ai-chip" onclick="askAssistente('Quais os meus direitos de garantia neste país?')">Direitos / Garantia</button>
                                 <button type="button" class="ai-chip" onclick="askAssistente('Como reclamar avaria em garantia com a fatura')">Reclamação</button>
+                                <button type="button" class="ai-chip" onclick="askAssistente('Como está a minha casa?')">A minha casa</button>
+                                <button type="button" class="ai-chip" onclick="askAssistente('Quais garantias vão expirar?')">Garantias a acabar</button>
+                                <button type="button" class="ai-chip" onclick="openProblemTriage()">Tenho um problema</button>
+                                <button type="button" class="ai-chip" onclick="openBuyIntentModal()">Quero comprar…</button>
                             </div>
                             <form id="aiChatForm" class="flex gap-2" onsubmit="event.preventDefault(); submitAssistente();">
                                 <input type="text" id="aiChatInput" class="flex-1 input-field p-2.5 text-sm text-white" placeholder="O que queres saber antes de comprar?" autocomplete="off">
@@ -1671,6 +1680,17 @@
                     <div>
                         <h2 class="text-base font-bold text-white flex items-center gap-2"><i class="fa-solid fa-store text-orange-400"></i> Mercado Vanty</h2>
                         <p class="text-[11px] text-slate-500 mt-1">Ofertas com chat e estados (pendente → aceite → concluída + passaporte). Envio formal = em breve. Marketplaces externos no detalhe do produto.</p>
+                    </div>
+                    <div class="card p-4 space-y-2">
+                        <div class="flex items-center justify-between gap-2">
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Procura ativa (Watch)</p>
+                            <button type="button" onclick="openBuyIntentModal()" class="text-[10px] font-bold text-orange-300">+ Nova procura</button>
+                        </div>
+                        <div id="buyIntentsFeed" class="space-y-2 text-xs"></div>
+                    </div>
+                    <div class="card p-4 space-y-2">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Matches (consentimento)</p>
+                        <div id="tradeMatchesFeed" class="space-y-2 text-xs"></div>
                     </div>
                     <div id="vantyMarketFeed" class="space-y-3"></div>
                 </div>
@@ -2070,6 +2090,50 @@
     <!-- Toast / System Modal -->
     <div 
     <!-- Prompt / Confirm estilizados (substitui prompt/confirm nativos) -->
+    <div 
+    <div id="problemTriageModal" class="fixed inset-0 modal-backdrop z-[70] hidden flex items-center justify-center p-4">
+        <div class="card modal-panel w-full max-w-md p-5 space-y-3 border border-orange-500/20">
+            <div class="flex items-center justify-between">
+                <h3 class="text-sm font-bold text-white"><i class="fa-solid fa-screwdriver-wrench text-orange-400 mr-2"></i>Tenho um problema</h3>
+                <button type="button" onclick="closeProblemTriage()" class="text-slate-500 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <p class="text-[11px] text-slate-400">Escolhe o produto. A VANTY verifica garantia e prepara o caminho (não é diagnóstico técnico).</p>
+            <select id="problemProductSelect" class="w-full input-field p-2.5 text-sm text-white"></select>
+            <textarea id="problemDesc" rows="3" class="w-full input-field p-2.5 text-xs text-white" placeholder="O que aconteceu? (sintomas, quando começou…)"></textarea>
+            <div id="problemTriageResult" class="text-xs text-slate-400 hidden"></div>
+            <div class="flex gap-2">
+                <button type="button" onclick="runProblemTriage()" class="flex-1 btn-vanty py-2.5 rounded-xl text-xs font-bold">Analisar</button>
+                <button type="button" id="problemGoRmaBtn" onclick="goRmaFromTriage()" class="flex-1 hidden py-2.5 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 text-xs font-bold">Abrir assistência</button>
+            </div>
+        </div>
+    </div>
+    <div id="buyIntentModal" class="fixed inset-0 modal-backdrop z-[70] hidden flex items-center justify-center p-4">
+        <div class="card modal-panel w-full max-w-md p-5 space-y-3 border border-violet-500/20">
+            <div class="flex items-center justify-between">
+                <h3 class="text-sm font-bold text-white"><i class="fa-solid fa-bell text-violet-400 mr-2"></i>Procura / Watch</h3>
+                <button type="button" onclick="closeBuyIntentModal()" class="text-slate-500 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <p class="text-[11px] text-slate-400">Guardamos a tua intenção. Quando surgir um produto compatível no Vanty, avisamos. Match com outros users só com consentimento dos dois.</p>
+            <select id="buyIntentCat" class="w-full input-field p-2.5 text-sm text-white">
+                <option value="">Categoria…</option>
+                <option value="telemoveis">Smartphone</option>
+                <option value="portateis">Portátil</option>
+                <option value="tvs">TV</option>
+                <option value="grandes_eletro">Grandes eletrodomésticos</option>
+                <option value="climatizacao">Climatização</option>
+                <option value="audio">Áudio</option>
+                <option value="gaming">Gaming</option>
+                <option value="outros">Outros</option>
+            </select>
+            <input type="text" id="buyIntentQuery" class="w-full input-field p-2.5 text-sm text-white" placeholder="Ex.: iPhone 13, Bosch lavar…">
+            <div class="grid grid-cols-2 gap-2">
+                <input type="number" id="buyIntentBudget" class="input-field p-2.5 text-sm text-white" placeholder="Orçamento máx. €">
+                <label class="flex items-center gap-2 text-[11px] text-slate-400 px-1"><input type="checkbox" id="buyIntentZeroFail" class="rounded"> 0 avarias registadas</label>
+            </div>
+            <button type="button" onclick="saveBuyIntent()" class="w-full btn-vanty py-2.5 rounded-xl text-xs font-bold">Ativar Watch</button>
+        </div>
+    </div>
+
     <div id="systemPromptModal" class="fixed inset-0 modal-backdrop z-[90] hidden flex items-center justify-center p-4">
         <div class="card modal-panel w-full max-w-sm p-5 space-y-4 border border-orange-500/20">
             <h3 id="systemPromptTitle" class="text-sm font-bold text-white">—</h3>
@@ -3993,6 +4057,319 @@
             lines.push(`<p class="text-[11px] text-slate-500 mt-2">Isto reflete a comunidade Vanty Care, não marketing das marcas. Cruza sempre com a fatura e a tua garantia.</p>`);
             return lines.join('');
         }
+
+        // ========== FASE 1–2: Confidence · Fim de vida · Ask Vanty · RMA triage · Trade Watch ==========
+        function dataConfidence(n) {
+            const N = Number(n) || 0;
+            if (N >= 50) return { level: 'alta', label: 'Confiança alta', cls: 'conf-alta', n: N };
+            if (N >= 15) return { level: 'media', label: 'Confiança média', cls: 'conf-media', n: N };
+            if (N >= 5) return { level: 'baixa', label: 'Confiança baixa', cls: 'conf-baixa', n: N };
+            return { level: 'insuf', label: 'Amostra insuficiente', cls: 'conf-insuf', n: N };
+        }
+        function confBadgeHtml(n) {
+            const c = dataConfidence(n);
+            return `<span class="conf-badge ${c.cls}" title="N=${c.n}">${c.label} · N=${c.n}</span>`;
+        }
+
+        const EOL_REASONS = [
+            { id: 'irreparavel', label: 'Avaria irreparável' },
+            { id: 'caro', label: 'Reparação demasiado cara' },
+            { id: 'desgaste', label: 'Desgaste normal' },
+            { id: 'upgrade', label: 'Substituição por produto novo' },
+            { id: 'pecas', label: 'Falta de peças' },
+            { id: 'obsoleto', label: 'Produto obsoleto' },
+            { id: 'outro', label: 'Outro' }
+        ];
+
+        function getBuyIntents() {
+            try { return JSON.parse(localStorage.getItem('vanty_buy_intents') || '[]'); } catch { return []; }
+        }
+        function setBuyIntents(list) {
+            localStorage.setItem('vanty_buy_intents', JSON.stringify(list));
+        }
+        function getTradeMatches() {
+            try { return JSON.parse(localStorage.getItem('vanty_trade_matches') || '[]'); } catch { return []; }
+        }
+        function setTradeMatches(list) {
+            localStorage.setItem('vanty_trade_matches', JSON.stringify(list));
+        }
+
+        function openBuyIntentModal() {
+            document.getElementById('buyIntentModal')?.classList.remove('hidden');
+        }
+        function closeBuyIntentModal() {
+            document.getElementById('buyIntentModal')?.classList.add('hidden');
+        }
+        function saveBuyIntent() {
+            const cat = document.getElementById('buyIntentCat')?.value || '';
+            const q = (document.getElementById('buyIntentQuery')?.value || '').trim();
+            const budget = parseFloat(document.getElementById('buyIntentBudget')?.value || '');
+            const zeroFail = !!document.getElementById('buyIntentZeroFail')?.checked;
+            if (!cat && !q) {
+                showToast('Indica categoria ou pesquisa.', 'Watch', 'warn');
+                return;
+            }
+            const intent = {
+                id: 'intent_' + Date.now(),
+                cat, query: q,
+                budget: budget > 0 ? budget : null,
+                zero_failures: zeroFail,
+                country: userProfile.country || 'PT',
+                zone: userProfile.zone || '',
+                active: true,
+                created_at: new Date().toISOString()
+            };
+            const list = getBuyIntents();
+            list.unshift(intent);
+            setBuyIntents(list.slice(0, 20));
+            closeBuyIntentModal();
+            showToast('Watch ativo. Avisamos se surgir match no Vanty.', 'Procura', 'success');
+            scanTradeMatches();
+            renderBuyIntents();
+            renderTradeMatches();
+        }
+        function removeBuyIntent(id) {
+            setBuyIntents(getBuyIntents().filter(x => x.id !== id));
+            renderBuyIntents();
+        }
+        function renderBuyIntents() {
+            const feed = document.getElementById('buyIntentsFeed');
+            if (!feed) return;
+            const list = getBuyIntents().filter(x => x.active !== false);
+            feed.innerHTML = list.length ? list.map(i =>
+                `<div class="flex justify-between gap-2 p-2 rounded-lg bg-[#0a0a0b]/50 border border-white/[0.05]">
+                    <div><strong class="text-slate-200">${escapeHtml(i.query || i.cat || 'Procura')}</strong>
+                    <p class="text-[9px] text-slate-500">${escapeHtml(i.cat || '')}${i.budget ? ' · ≤' + i.budget + '€' : ''}${i.zero_failures ? ' · 0 avarias' : ''}</p></div>
+                    <button type="button" onclick="removeBuyIntent('${i.id}')" class="text-slate-500 hover:text-red-400 text-xs"><i class="fa-solid fa-xmark"></i></button>
+                </div>`
+            ).join('') : '<p class="text-slate-600">Sem procuras ativas. Cria um Watch.</p>';
+        }
+
+        function listingMatchesIntent(listing, intent) {
+            if (!listing || !intent) return false;
+            const name = (listing.product_name || '').toLowerCase();
+            const q = (intent.query || '').toLowerCase();
+            if (q && !name.includes(q) && !(intent.cat && name.includes(intent.cat))) {
+                // category on listing via product
+                const p = (currentProducts || []).find(x => String(x.id) === String(listing.product_id));
+                const cat = p ? (p.categoria || detectCategory(p.nome_produto)) : null;
+                if (intent.cat && cat !== intent.cat) {
+                    if (!q || !name.includes(q.split(' ')[0])) return false;
+                } else if (!intent.cat && q && !name.includes(q.split(/\s+/)[0])) return false;
+            }
+            if (intent.cat) {
+                const p = (currentProducts || []).find(x => String(x.id) === String(listing.product_id));
+                const cat = p ? (p.categoria || detectCategory(p.nome_produto)) : detectCategory(listing.product_name);
+                if (cat && cat !== intent.cat && !(q && name.includes(q))) return false;
+            }
+            if (intent.budget != null && listing.price > intent.budget * 1.05) return false;
+            if (intent.zero_failures) {
+                const p = (currentProducts || []).find(x => String(x.id) === String(listing.product_id));
+                if (p) {
+                    const s = computeVantyScores(p);
+                    if (s.assistN > 0) return false;
+                }
+            }
+            return true;
+        }
+
+        function scanTradeMatches() {
+            const intents = getBuyIntents().filter(x => x.active !== false);
+            const listings = typeof getListingsStore === 'function' ? getListingsStore() : [];
+            const existing = getTradeMatches();
+            const myName = (userProfile && userProfile.name) || '';
+            intents.forEach(intent => {
+                listings.forEach(L => {
+                    if ((L.seller_name || '') === myName) return; // não match contigo
+                    if (!listingMatchesIntent(L, intent)) return;
+                    const id = 'match_' + intent.id + '_' + L.id;
+                    if (existing.some(m => m.id === id)) return;
+                    existing.unshift({
+                        id,
+                        intent_id: intent.id,
+                        listing_id: L.id,
+                        product_name: L.product_name,
+                        price: L.price,
+                        seller_name: L.seller_name,
+                        status: 'proposed', // proposed → seller_ok → buyer_ok → open
+                        seller_consent: null,
+                        buyer_consent: null,
+                        created_at: new Date().toISOString()
+                    });
+                });
+            });
+            // Upgrade intent: user viewed/search newer phone - soft signal via recent intents
+            setTradeMatches(existing.slice(0, 40));
+        }
+
+        function respondTradeMatch(matchId, asRole, accept) {
+            const list = getTradeMatches();
+            const m = list.find(x => x.id === matchId);
+            if (!m) return;
+            if (asRole === 'seller') m.seller_consent = !!accept;
+            if (asRole === 'buyer') m.buyer_consent = !!accept;
+            if (m.seller_consent === false || m.buyer_consent === false) m.status = 'declined';
+            else if (m.seller_consent && m.buyer_consent) m.status = 'open';
+            else if (m.seller_consent || m.buyer_consent) m.status = 'partial';
+            setTradeMatches(list);
+            if (m.status === 'open') {
+                showToast('Match aberto.\nPodem usar o chat de ofertas no Mercado.', 'Trade', 'success');
+            } else if (!accept) {
+                showToast('Match recusado. Identidades não foram partilhadas.', 'Trade', 'info');
+            } else {
+                showToast('Consentimento registado. Aguarda a outra parte.', 'Trade', 'success');
+            }
+            renderTradeMatches();
+        }
+
+        function renderTradeMatches() {
+            const feed = document.getElementById('tradeMatchesFeed');
+            if (!feed) return;
+            scanTradeMatches();
+            const list = getTradeMatches().filter(m => m.status !== 'declined').slice(0, 10);
+            feed.innerHTML = list.length ? list.map(m =>
+                `<div class="p-2.5 rounded-lg border border-violet-500/15 bg-violet-500/[0.04] space-y-1.5">
+                    <p class="text-slate-200 font-semibold">${escapeHtml(m.product_name)} · <span class="text-emerald-400">${typeof formatMoney === 'function' ? formatMoney(m.price) : m.price + '€'}</span></p>
+                    <p class="text-[9px] text-slate-500">Match anónimo · estado: ${escapeHtml(m.status)} · vendedor só após duplo SIM</p>
+                    <div class="flex flex-wrap gap-1">
+                        <button type="button" onclick="respondTradeMatch('${m.id}','buyer',true)" class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-bold">Sou comprador · SIM</button>
+                        <button type="button" onclick="respondTradeMatch('${m.id}','seller',true)" class="px-2 py-0.5 rounded bg-violet-500/20 text-violet-300 text-[10px] font-bold">Sou vendedor · SIM</button>
+                        <button type="button" onclick="respondTradeMatch('${m.id}','buyer',false)" class="px-2 py-0.5 rounded bg-surface-800 text-slate-500 text-[10px] font-bold">Não</button>
+                    </div>
+                </div>`
+            ).join('') : '<p class="text-slate-600">Sem matches. Ativa Watch e/ou põe produtos à venda.</p>';
+        }
+
+        let _triageProductIndex = null;
+        function openProblemTriage() {
+            const sel = document.getElementById('problemProductSelect');
+            if (!sel) return;
+            sel.innerHTML = (currentProducts || []).map((p, i) =>
+                `<option value="${i}">${escapeHtml(p.nome_produto || 'Produto')}</option>`
+            ).join('') || '<option value="">Sem produtos</option>';
+            document.getElementById('problemDesc').value = '';
+            document.getElementById('problemTriageResult').classList.add('hidden');
+            document.getElementById('problemGoRmaBtn')?.classList.add('hidden');
+            _triageProductIndex = null;
+            document.getElementById('problemTriageModal')?.classList.remove('hidden');
+        }
+        function closeProblemTriage() {
+            document.getElementById('problemTriageModal')?.classList.add('hidden');
+        }
+        function runProblemTriage() {
+            const idx = parseInt(document.getElementById('problemProductSelect')?.value, 10);
+            const desc = (document.getElementById('problemDesc')?.value || '').trim();
+            if (isNaN(idx) || !currentProducts[idx]) {
+                showToast('Escolhe um produto.', 'Problema', 'warn');
+                return;
+            }
+            if (!desc) {
+                showToast('Descreve o problema.', 'Problema', 'warn');
+                return;
+            }
+            const prod = currentProducts[idx];
+            _triageProductIndex = idx;
+            const inW = typeof isProductInWarranty === 'function' ? isProductInWarranty(prod) :
+                (prod.fim_garantia ? new Date(prod.fim_garantia) >= new Date() : false);
+            const s = typeof computeVantyScores === 'function' ? computeVantyScores(prod) : { total: 0, years: 0 };
+            const box = document.getElementById('problemTriageResult');
+            let path = '';
+            if (inW) {
+                path = `<p class="text-emerald-300 font-bold">Garantia ATIVA</p>
+                    <p class="mt-1 text-slate-400">Recomendação: abrir pedido de assistência com a marca. A fatura no sistema pode seguir em anexo.</p>`;
+            } else if (s.years >= (s.life || 8) * 0.85) {
+                path = `<p class="text-amber-300 font-bold">Fora de garantia · idade avançada</p>
+                    <p class="mt-1 text-slate-400">Podes ainda registar o caso e procurar parceiro local. Avalia reparar vs substituir no detalhe do produto (Decision).</p>`;
+            } else {
+                path = `<p class="text-orange-300 font-bold">Fora de garantia</p>
+                    <p class="mt-1 text-slate-400">O sistema pode encaminhar para parceiros / contacto de marca quando disponível.</p>`;
+            }
+            box.innerHTML = path + `<p class="mt-2 text-[10px] text-slate-500">Não é diagnóstico técnico. Em risco de segurança, interrompe o uso e contacta assistência.</p>`;
+            box.classList.remove('hidden');
+            document.getElementById('problemGoRmaBtn')?.classList.remove('hidden');
+            // prefill rma description via session
+            try { sessionStorage.setItem('vanty_rma_prefill', desc); } catch (_) {}
+        }
+        function goRmaFromTriage() {
+            closeProblemTriage();
+            if (_triageProductIndex == null) return;
+            if (typeof openRmaModal === 'function') openRmaModal(_triageProductIndex);
+            setTimeout(() => {
+                const ta = document.getElementById('rmaDescription');
+                try {
+                    const pre = sessionStorage.getItem('vanty_rma_prefill');
+                    if (ta && pre) ta.value = pre;
+                } catch (_) {}
+            }, 200);
+        }
+
+        function runHouseBrainHtml() {
+            const products = currentProducts || [];
+            const n = products.length;
+            let expiring = 0, lowHealth = 0, totalVal = 0, activeW = 0;
+            const alerts = [];
+            products.forEach(p => {
+                const s = computeVantyScores(p);
+                const v = estimateResaleValue(p);
+                totalVal += v.mid || 0;
+                if (s.w > 0) activeW++;
+                if (s.w > 0 && s.w < 3) {
+                    expiring++;
+                    alerts.push('Garantia a terminar: ' + (p.nome_produto || '') + ' (~' + Math.ceil(s.w) + ' meses)');
+                }
+                if (s.total < 55) {
+                    lowHealth++;
+                    alerts.push('Score baixo: ' + (p.nome_produto || '') + ' (' + s.total + '/100)');
+                }
+            });
+            const conf = dataConfidence(n);
+            let html = `<p class="text-slate-300">Carteira: <strong>${n}</strong> produtos · valor estimado ~ <strong class="text-emerald-400">${formatMoney(totalVal)}</strong> · garantias ativas <strong>${activeW}</strong></p>`;
+            html += `<p class="mt-1">${confBadgeHtml(n)} — métricas da <em>tua</em> casa, não ranking global.</p>`;
+            if (alerts.length) {
+                html += `<p class="text-amber-200/90 font-semibold mt-2">Atenção</p><ul class="list-disc list-inside text-slate-400 text-xs">`;
+                alerts.slice(0, 6).forEach(a => { html += `<li>${escapeHtml(a)}</li>`; });
+                html += `</ul>`;
+            } else {
+                html += `<p class="text-emerald-300/90 mt-2 text-xs">Sem alertas críticos de garantia/score neste momento.</p>`;
+            }
+            return html;
+        }
+
+        function enhanceAskVanty(question) {
+            const q = String(question || '').toLowerCase();
+            if (/minha casa|carteira|como est[aá]|house|patrim[oó]nio|quantos produtos/i.test(q)) {
+                return runHouseBrainHtml();
+            }
+            if (/garantia.*(acab|expir|termin)|vão expirar|expiram/i.test(q)) {
+                const lines = [];
+                (currentProducts || []).forEach(p => {
+                    const w = warrantyMonthsLeft(p);
+                    if (w > 0 && w <= 6) lines.push(`${p.nome_produto}: ~${Math.ceil(w)} meses`);
+                });
+                if (!lines.length) return '<p class="text-slate-300">Nenhuma garantia a expirar nos próximos 6 meses (com os dados registados).</p>';
+                return '<p class="text-slate-300 font-semibold">Garantias a terminar (≤6 meses)</p><ul class="list-disc list-inside text-xs text-slate-400 mt-1">' +
+                    lines.map(l => '<li>' + escapeHtml(l) + '</li>').join('') + '</ul>';
+            }
+            if (/tenho um problema|avari|n[aã]o liga|estrag/i.test(q) && !/direito|reclama/i.test(q)) {
+                return `<p class="text-slate-300">Para avarias, usa a triagem <strong class="text-orange-300">Tenho um problema</strong> — verifica garantia e abre assistência com a descrição.</p>
+                    <p class="mt-2"><button type="button" onclick="openProblemTriage()" class="px-3 py-1.5 rounded-lg bg-orange-500/20 text-orange-300 text-xs font-bold">Abrir triagem</button></p>`;
+            }
+            if (/quero comprar|procuro|watch|avis[ae]r quando/i.test(q)) {
+                return `<p class="text-slate-300">Podes ativar um <strong>Watch</strong> (procura ativa). Se surgir produto compatível no Mercado Vanty, criamos match anónimo — contacto só com consentimento dos dois.</p>
+                    <p class="mt-2"><button type="button" onclick="openBuyIntentModal()" class="px-3 py-1.5 rounded-lg bg-violet-500/20 text-violet-300 text-xs font-bold">Criar procura</button></p>`;
+            }
+            if (/quanto vale|valuation|valor do meu/i.test(q)) {
+                const list = (currentProducts || []).slice(0, 5).map(p => {
+                    const v = estimateResaleValue(p);
+                    return escapeHtml(p.nome_produto) + ': ~' + formatMoney(v.mid);
+                });
+                if (!list.length) return '<p class="text-slate-400">Sem produtos para estimar.</p>';
+                return '<p class="text-slate-300">Estimativas internas (não cotação de mercado):</p><ul class="list-disc list-inside text-xs text-slate-400 mt-1"><li>' + list.join('</li><li>') + '</li></ul><p class="text-[10px] text-slate-600 mt-1">Heurística por idade/categoria/garantia.</p>';
+            }
+            return null;
+        }
+
+
         function askAssistente(question) {
             const q = String(question || '').trim();
             if (!q) return;
@@ -4006,7 +4383,7 @@
                 if (typeof isRightsQuestion === 'function' && isRightsQuestion(q)) {
                     html = buildRightsAdvice(q);
                 } else {
-                    html = runLocalAdvisor(q);
+                    html = (typeof enhanceAskVanty === 'function' && enhanceAskVanty(q)) || runLocalAdvisor(q);
                 }
                 appendAiMsg('bot', html);
             }, 280);
@@ -5736,6 +6113,7 @@
         }
 
         function renderVantyMarket() {
+            try { renderBuyIntents(); renderTradeMatches(); } catch (_) {}
             const feed = document.getElementById('vantyMarketFeed');
             if (!feed) return;
             expireStaleOffers();
@@ -6401,9 +6779,9 @@
             if (bEl) {
                 bEl.innerHTML = brands.slice(0, 8).map(b =>
                     `<div class="p-3 rounded-xl bg-[#0a0a0b]/60 border border-white/[0.05]">
-                        <div class="flex justify-between"><strong class="text-xs text-slate-200">${escapeHtml(b.name)}</strong><span class="text-orange-300 font-black text-sm">${b.score}</span></div>
+                        <div class="flex justify-between items-start gap-2"><strong class="text-xs text-slate-200">${escapeHtml(b.name)}</strong><span class="text-orange-300 font-black text-sm">${b.score}</span></div>
                         <div class="intel-meter mt-2"><i style="width:${b.score}%"></i></div>
-                        <p class="text-[9px] text-slate-600 mt-1">${b.products.length} prod. · ${b.reviewCount} reviews</p>
+                        <p class="text-[9px] text-slate-600 mt-1">${b.products.length} prod. · ${b.reviewCount} reviews · ${confBadgeHtml(b.products.length + b.reviewCount)}</p>
                     </div>`
                 ).join('') || '<p class="text-xs text-slate-600 py-6 text-center">Sem marcas ainda.</p>';
             }
@@ -6688,9 +7066,12 @@
             if (detailProductIndex == null) return;
             const prod = currentProducts[detailProductIndex];
             if (!prod) return;
-            const yrs = yearsOwned(prod);
-            const yrsLabel = yrs != null ? yrs.toFixed(1) + ' anos' : 'tempo desconhecido';
-            if (!(await vantyConfirm('Dar baixa a este produto?\n\n' + (prod.nome_produto || '') + '\nTempo de uso ≈ ' + yrsLabel + '\n\nSai das garantias ativas e entra no Arquivo de vida.', 'Dar baixa'))) return;
+            const yrs = typeof yearsOwned === 'function' ? yearsOwned(prod) : yearsOwnedFloat(prod);
+            const yrsLabel = yrs != null ? Number(yrs).toFixed(1) + ' anos' : 'tempo desconhecido';
+            if (!(await vantyConfirm('Dar baixa a este produto?\n\n' + (prod.nome_produto || '') + '\nTempo de uso ≈ ' + yrsLabel + '\n\nSai das garantias ativas e entra no Arquivo (dado para estatísticas de vida útil).', 'Dar baixa'))) return;
+            const reasonId = await vantyChoose('Porque chega ao fim de vida? (dado anónimo para fiabilidade)', EOL_REASONS, 'Fim de vida');
+            if (reasonId == null) return;
+            const reasonLabel = (EOL_REASONS.find(r => r.id === reasonId) || {}).label || reasonId;
             const entry = {
                 id: prod.id,
                 nome_produto: prod.nome_produto,
@@ -6699,7 +7080,8 @@
                 preco_com_iva: prod.preco_com_iva || prod.preco,
                 categoria: prod.categoria || detectCategory(prod.nome_produto),
                 years_used: yrs,
-                reason: 'Já não em uso',
+                reason: reasonLabel,
+                reason_id: reasonId,
                 retired_at: new Date().toISOString(),
                 assist_count: getRmaStore().filter(r => String(r.produto_id) === String(prod.id)).length
             };
