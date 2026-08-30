@@ -542,7 +542,70 @@
             box-shadow: 0 0 20px rgba(255,90,0,0.08);
             transform: translateY(-1px);
         }
-        .home-action i { font-size: 16px; color: #FF7A00; }
+        .kpi-click {
+            cursor: pointer;
+            transition: border-color .2s, box-shadow .2s, transform .15s;
+        }
+        .kpi-click:hover {
+            border-color: rgba(255,90,0,0.38) !important;
+            box-shadow: 0 0 18px rgba(255,90,0,0.08);
+            transform: translateY(-1px);
+        }
+        .dash-goto {
+            cursor: pointer;
+            transition: border-color .2s, box-shadow .2s;
+        }
+        .dash-goto:hover {
+            border-color: rgba(255,90,0,0.3) !important;
+        }
+        .brand-motto {
+            font-size: 8px;
+            line-height: 1.35;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: #8B949D;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+        .brand-motto b { color: #FF7A00; font-weight: 700; }
+        /* Anel do logo: arco circular alinhado (sem hexágono deslocado) */
+        .brand-logo-wrap {
+            width: 48px !important;
+            height: 48px !important;
+            position: relative !important;
+            overflow: visible !important;
+            flex-shrink: 0;
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            background: transparent !important;
+        }
+        .brand-logo-static {
+            width: 36px !important;
+            height: 36px !important;
+            object-fit: contain !important;
+            position: relative;
+            z-index: 2;
+            border-radius: 0 !important;
+            background: transparent !important;
+        }
+        .brand-logo-hex-ring {
+            position: absolute !important;
+            inset: -3px !important;
+            width: auto !important;
+            height: auto !important;
+            border-radius: 50% !important;
+            clip-path: none !important;
+            padding: 0 !important;
+            -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2.2px), #000 calc(100% - 1.6px)) !important;
+            mask: radial-gradient(farthest-side, transparent calc(100% - 2.2px), #000 calc(100% - 1.6px)) !important;
+            background: conic-gradient(from 0deg, #2F6BFF 0%, transparent 22%, #FF5A00 48%, transparent 72%, #2F6BFF 100%) !important;
+            animation: hexSpin 9s linear infinite;
+            opacity: 0.95;
+            pointer-events: none;
+            box-shadow: none !important;
+            border: none !important;
+        }
         .home-action span { font-size: 10px; font-weight: 700; color: #c8d0d8; letter-spacing: 0.04em; text-transform: uppercase; }
         .home-kpi {
             padding: 14px 16px; border-radius: 12px;
@@ -1104,13 +1167,13 @@
         <!-- SIDEBAR (TerraFlux structure) -->
         <aside id="sidebar" class="sidebar flex flex-col shrink-0 h-full">
             <div class="brand-header-row px-4 py-4 flex items-center gap-3">
-                <div class="brand-logo-wrap" title="VANTY">
+                <div class="brand-logo-wrap" title="VANTY — Verified · Asset · Network · Trust · Yield">
                     <div class="brand-logo-hex-ring"></div>
-                    <img src="vanty-logo-icon.png" alt="VANTY" class="brand-logo-static" width="44" height="44">
+                    <img src="vanty-logo-icon.png" alt="VANTY" class="brand-logo-static" width="36" height="36">
                 </div>
                 <div class="min-w-0 leading-tight">
                     <div class="text-[13px] font-black tracking-[0.22em] text-white">VANTY</div>
-                    <div class="text-[9px] text-slate-500 font-semibold tracking-wide mt-0.5">Asset Network</div>
+                    <div class="brand-motto"><b>V</b>erified · <b>A</b>sset · <b>N</b>etwork<br><b>T</b>rust · <b>Y</b>ield</div>
                 </div>
             </div>
             
@@ -1174,7 +1237,7 @@
                     <div class="live-dot"></div>
                     <div>
                         <div class="text-[11px] font-semibold text-emerald-400">Supabase Live</div>
-                        <div class="text-[10px] text-slate-500">v5.2 · emblem clean</div>
+                        <div class="text-[10px] text-slate-500">v5.4 · dash links</div>
                     </div>
                 </div>
             </div>
@@ -1240,28 +1303,28 @@
                         <div id="anniversaryAlertList" class="space-y-2 text-xs text-slate-400"></div>
                     </div>
                     <div class="grid grid-cols-2 xl:grid-cols-4 gap-3">
-                        <div class="kpi p-4 flex items-center gap-3.5">
+                        <div class="kpi kpi-click p-4 flex items-center gap-3.5" role="button" tabindex="0" onclick="switchPanel('garantias')" onkeydown="if(event.key==='Enter')switchPanel('garantias')" title="Abrir produtos / garantias">
                             <div class="kpi-icon-hex bg-orange-500/10 text-orange-400"><i class="fa-solid fa-shield-halved"></i></div>
                             <div>
                                 <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Garantias ativas</p>
                                 <p class="text-2xl font-black text-white tabular-nums leading-tight" id="stat-active">0</p>
                             </div>
                         </div>
-                        <div class="kpi p-4 flex items-center gap-3.5">
+                        <div class="kpi kpi-click p-4 flex items-center gap-3.5" role="button" tabindex="0" onclick="switchPanel('financas')" onkeydown="if(event.key==='Enter')switchPanel('financas')" title="Abrir finanças">
                             <div class="kpi-icon-hex bg-indigo-500/10 text-indigo-400"><i class="fa-solid fa-coins"></i></div>
                             <div>
                                 <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Valor registado</p>
                                 <p class="text-2xl leading-tight money-vanty" id="stat-value">0,00 €</p>
                             </div>
                         </div>
-                        <div class="kpi p-4 flex items-center gap-3.5">
+                        <div class="kpi kpi-click p-4 flex items-center gap-3.5" role="button" tabindex="0" onclick="switchPanel('garantias')" onkeydown="if(event.key==='Enter')switchPanel('garantias')" title="Ver produtos com fatura">
                             <div class="kpi-icon-hex bg-amber-500/10 text-amber-400"><i class="fa-solid fa-file-invoice"></i></div>
                             <div>
                                 <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Faturas</p>
                                 <p class="text-2xl font-black text-white tabular-nums leading-tight" id="stat-invoices">0</p>
                             </div>
                         </div>
-                        <div class="kpi p-4 flex items-center gap-3.5">
+                        <div class="kpi kpi-click p-4 flex items-center gap-3.5" role="button" tabindex="0" onclick="switchPanel('perfil')" onkeydown="if(event.key==='Enter')switchPanel('perfil')" title="Perfil e país / jurisdição">
                             <div class="kpi-icon-hex bg-emerald-500/10 text-emerald-400"><i class="fa-solid fa-scale-balanced"></i></div>
                             <div>
                                 <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Jurisdição</p>
@@ -1286,26 +1349,26 @@
                             <div class="card p-5">
                                 <h2 class="panel-title text-sm mb-3"><span class="hex-bullet"><i class="fa-solid fa-bolt"></i></span> O que queres fazer?</h2>
                                 <div class="grid grid-cols-2 gap-2">
-                                    <button type="button" onclick="switchPanel('assistente')" class="home-action"><i class="fa-solid fa-bag-shopping"></i><span>Comprar</span></button>
-                                    <button type="button" onclick="switchPanel('mercado')" class="home-action"><i class="fa-solid fa-tags"></i><span>Vender</span></button>
-                                    <button type="button" onclick="switchPanel('mercado')" class="home-action"><i class="fa-solid fa-right-left"></i><span>Trocar</span></button>
-                                    <button type="button" onclick="openProblemTriage()" class="home-action"><i class="fa-solid fa-triangle-exclamation"></i><span>Problema</span></button>
+                                    <button type="button" onclick="switchPanel('stats')" class="home-action" title="Pesquisar produtos e reputação"><i class="fa-solid fa-bag-shopping"></i><span>Comprar</span></button>
+                                    <button type="button" onclick="switchPanel('mercado')" class="home-action" title="Vender no Mercado VANTY"><i class="fa-solid fa-tags"></i><span>Vender</span></button>
+                                    <button type="button" onclick="openClaimTransferModal()" class="home-action" title="Receber / transferir produto"><i class="fa-solid fa-right-left"></i><span>Trocar</span></button>
+                                    <button type="button" onclick="openProblemTriage()" class="home-action" title="Abrir assistência / RMA"><i class="fa-solid fa-triangle-exclamation"></i><span>Problema</span></button>
                                 </div>
-                                <button onclick="switchPanel('registar')" class="btn-ghost-vanty w-full flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl text-xs mt-2">
+                                <button type="button" onclick="switchPanel('registar')" class="btn-ghost-vanty w-full flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl text-xs mt-2">
                                     <i class="fa-solid fa-plus"></i> Adicionar produto
                                 </button>
                             </div>
-                            <div class="card p-4">
+                            <div class="card p-4 dash-goto" role="button" tabindex="0" onclick="switchPanel('assistente')" onkeydown="if(event.key==='Enter')switchPanel('assistente')">
                                 <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Ask VANTY</p>
-                                <button type="button" onclick="switchPanel('assistente')" class="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl bg-surface-800 border border-white/[0.06] text-slate-300 text-xs hover:border-orange-500/30 transition-all">
+                                <div class="w-full flex items-center gap-2 px-3 py-2.5 rounded-xl bg-surface-800 border border-white/[0.06] text-slate-300 text-xs">
                                     <i class="fa-solid fa-robot text-orange-400"></i>
                                     <span class="flex-1 text-left">Pergunta à AI…</span>
-                                    <i class="fa-solid fa-microphone text-slate-600"></i>
-                                </button>
+                                    <i class="fa-solid fa-arrow-right text-slate-600"></i>
+                                </div>
                             </div>
-                            <div class="card p-5">
-                                <h2 class="text-sm font-bold text-white mb-3 flex items-center gap-2"><i class="fa-solid fa-house-user text-orange-400 text-xs"></i> Titular</h2>
-                                <div class="space-y-2.5 text-sm">
+                            <div class="card p-5 dash-goto" role="button" tabindex="0" onclick="switchPanel('perfil')" onkeydown="if(event.key==='Enter')switchPanel('perfil')" title="Abrir perfil / casa">
+                                <h2 class="text-sm font-bold text-white mb-3 flex items-center gap-2"><i class="fa-solid fa-house-user text-orange-400 text-xs"></i> Titular <span class="ml-auto text-[10px] text-orange-400 font-semibold">Editar →</span></h2>
+                                <div class="space-y-2.5 text-sm pointer-events-none">
                                     <div class="flex justify-between"><span class="text-slate-500 text-xs">Nome</span><span class="font-semibold text-slate-200" id="dashName">—</span></div>
                                     <div class="flex justify-between"><span class="text-slate-500 text-xs">NIF</span><span class="font-mono text-slate-300" id="dashNif">—</span></div>
                                     <div class="flex justify-between gap-2"><span class="text-slate-500 text-xs shrink-0">Morada</span><span class="font-medium text-slate-300 text-right text-[11px] leading-snug" id="dashAddress">—</span></div>
@@ -2231,7 +2294,7 @@
                 <div class="auth-brand-hero flex-1">
                     <img class="shield" src="vanty-logo-icon.png" alt="VANTY" width="80" height="80">
                     <div class="text-sm font-black tracking-[0.28em] text-white">VANTY</div>
-                    <div class="text-[9px] text-slate-500 font-semibold tracking-[0.12em] uppercase">Verified · Asset · Network</div>
+                    <div class="text-[9px] text-slate-500 font-semibold tracking-[0.08em] uppercase text-center leading-relaxed">Verified · Asset · Network<br>Trust · Yield</div>
                 </div>
                 <button type="button" onclick="closeAuthModal()" class="text-slate-500 hover:text-white p-1 shrink-0"><i class="fa-solid fa-xmark"></i></button>
             </div>
@@ -2596,12 +2659,21 @@
         }
 
         function getRmaStore() {
-            try { return JSON.parse(localStorage.getItem('vanty_rma_local') || '[]'); } catch { return []; }
+            if (window.__rmaCache && (Date.now() - (window.__rmaCacheAt || 0)) < 2500) return window.__rmaCache;
+            try {
+                window.__rmaCache = JSON.parse(localStorage.getItem('vanty_rma_local') || '[]');
+                window.__rmaCacheAt = Date.now();
+                return window.__rmaCache;
+            } catch { return []; }
         }
         function saveRmaLocal(entry) {
             const list = getRmaStore();
             list.unshift(entry);
             localStorage.setItem('vanty_rma_local', JSON.stringify(list.slice(0, 100)));
+            window.__rmaCache = list.slice(0, 100);
+            window.__rmaCacheAt = Date.now();
+            window.__vantyScoreCache = null;
+            window.__brandScoreCache = null;
         }
         function isProductInWarranty(prod) {
             if (!prod) return false;
@@ -2849,7 +2921,12 @@
             if (!prod) return false;
             if (prod.fatura_url || prod.fatura_path) return true;
             try {
-                if (typeof getInvoice === 'function' && getInvoice(prod.id)) return true;
+                if (!window.__invKeys || Date.now() - (window.__invKeysAt || 0) > 4000) {
+                    const store = (typeof getInvoicesStore === 'function') ? getInvoicesStore() : {};
+                    window.__invKeys = new Set(Object.keys(store || {}));
+                    window.__invKeysAt = Date.now();
+                }
+                return window.__invKeys.has(String(prod.id));
             } catch (_) {}
             return false;
         }
@@ -4587,7 +4664,8 @@
         }
 
         function switchPanel(id) {
-            window.__intelToken = (window.__intelToken || 0) + 1; // cancela calc Intelligence se sair
+            window.__intelToken = (window.__intelToken || 0) + 1;
+            const panelToken = window.__intelToken;
             ['dashboard', 'garantias', 'registar', 'rma', 'arquivo', 'perfil', 'stats', 'inteligencia', 'financas', 'consumiveis', 'b2b', 'iot', 'assistente', 'mercado', 'cartoes'].forEach(p => {
                 const el = document.getElementById('panel-' + p);
                 if (el) el.classList.toggle('panel-hidden', p !== id);
@@ -4604,21 +4682,15 @@
             if (id === 'mercado') renderVantyMarket();
             if (id === 'inteligencia') {
                 const ov = document.getElementById('intelligenceOverview');
-                const list = document.getElementById('intelProducts');
-                if (ov) ov.innerHTML = '<div class="card p-5 text-xs text-slate-400 flex items-center gap-2"><i class="fa-solid fa-spinner animate-spin text-orange-400"></i> A calcular inteligência…</div>';
-                if (list) list.innerHTML = '';
-                const bEl = document.getElementById('intelBrands');
-                if (bEl) bEl.innerHTML = '';
-                window.__intelToken = (window.__intelToken || 0) + 1;
-                const token = window.__intelToken;
+                if (ov) ov.innerHTML = '<div class="card p-4 text-xs text-slate-400 flex items-center gap-2"><i class="fa-solid fa-spinner animate-spin text-orange-400"></i> A carregar…</div>';
                 setTimeout(() => {
-                    if (token !== window.__intelToken) return;
+                    if (panelToken !== window.__intelToken) return;
                     try { renderVantyIntelligence(); }
                     catch (err) {
                         console.error('Intelligence error', err);
-                        if (ov) ov.innerHTML = '<div class="card p-4 text-xs text-amber-200">Não foi possível calcular a inteligência.<br><span class="text-slate-500">' + (err && err.message ? String(err.message).slice(0,120) : '') + '</span></div>';
+                        if (ov) ov.innerHTML = '<div class="card p-4 text-xs text-amber-200">Não foi possível calcular a inteligência.<br><span class="text-slate-500">' + (err && err.message ? String(err.message).slice(0, 120) : '') + '</span></div>';
                     }
-                }, 30);
+                }, 16);
             }
             if (id === 'financas') renderFinancePanel();
             if (id === 'consumiveis') renderConsumablesPanel();
@@ -5284,6 +5356,7 @@
             const store = getInvoicesStore();
             store[productId] = { name: receipt.name, type: receipt.type, data: receipt.data, size: receipt.size || 0, savedAt: new Date().toISOString() };
             localStorage.setItem('vanty_invoices_v2', JSON.stringify(store));
+            window.__invKeys = null;
         }
         function getInvoice(productId) { return getInvoicesStore()[productId] || null; }
 
@@ -6818,26 +6891,27 @@
         function computeVantyScores(prod) {
             const empty = { total: 0, reliability: 0, health: 0, longevity: 0, repairability: 0, resale: 0, satisfaction: 0, brand: 0, stars: 0, starCount: 0, years: 0, w: 0, life: 7, hasInv: false, hasSn: false, assistN: 0 };
             if (!prod || typeof prod !== 'object') return empty;
+            if (!window.__vantyScoreCache) window.__vantyScoreCache = new Map();
+            const cacheKey = prod.id != null ? String(prod.id) : null;
+            if (cacheKey && window.__vantyScoreCache.has(cacheKey)) return window.__vantyScoreCache.get(cacheKey);
 
             const years = (typeof yearsOwnedFloat === 'function' ? yearsOwnedFloat(prod) : 0) || 0;
             const w = (typeof warrantyMonthsLeft === 'function' ? warrantyMonthsLeft(prod) : 0) || 0;
             const life = productLongevity(prod);
             let rs = { count: 0, average: 0 };
             try { if (typeof ratingStats === 'function') rs = ratingStats(prod, { verifiedOnly: true }) || rs; } catch (_) { rs = { count: 0, average: 0 }; }
-            const hasInv = (() => { try { return !!productHasInvoice(prod); } catch (_) { return false; } })();
+            let hasInv = false;
+            try { hasInv = !!productHasInvoice(prod); } catch (_) {}
             const hasSn = !!(prod.numero_serie && String(prod.numero_serie).trim());
-            const assistN = (() => {
-                try { return (getRmaStore() || []).filter(r => String(r.produto_id) === String(prod.id)).length; } catch (_) { return 0; }
-            })();
+            let assistN = 0;
+            try { assistN = (getRmaStore() || []).filter(r => String(r.produto_id) === String(prod.id)).length; } catch (_) {}
 
-            // Fiabilidade: idade + assistências + reviews
             let reliability = 90;
             reliability -= Math.min(25, years * 3.5);
             reliability -= Math.min(20, assistN * 12);
             if (rs.count) reliability += (rs.average - 3.2) * 6;
             reliability = Math.max(0, Math.min(100, Math.round(reliability)));
 
-            // Saúde atual
             let health = 88;
             health -= Math.min(28, years * 4.5);
             if (w > 0) health += Math.min(10, w / 12 * 5);
@@ -6847,19 +6921,16 @@
             if (rs.count) health += (rs.average - 3) * 4;
             health = Math.max(0, Math.min(100, Math.round(health)));
 
-            // Longevidade (quanto da vida útil ainda faz sentido)
             const lifeLeftRatio = Math.max(0, Math.min(1, (life - years) / life));
             let longevity = Math.round(55 + lifeLeftRatio * 40);
             if (w > 6) longevity = Math.min(100, longevity + 5);
 
-            // Reparabilidade (heurística por categoria)
             const cat = prod.categoria || (typeof detectCategory === 'function' ? detectCategory(prod.nome_produto || '') : 'outros');
             const repairBase = { telemoveis: 55, portateis: 62, tvs: 58, grandes_eletro: 78, climatizacao: 72, audio: 60, gaming: 50, redes: 65, outros: 65 };
             let repairability = repairBase[cat] || 65;
             if (years > life * 0.7) repairability -= 8;
             repairability = Math.max(20, Math.min(95, repairability));
 
-            // Retenção de valor
             let resale = 70;
             try {
                 const v = estimateResaleValue(prod);
@@ -6867,17 +6938,14 @@
             } catch (_) {}
             if (w > 3) resale = Math.min(100, resale + 6);
 
-            // Satisfação (estrelas verificadas → escala 0–100)
             const stars = rs.count ? rs.average : 0;
             const satisfaction = rs.count ? Math.round((rs.average / 5) * 100) : 0;
 
-            // Marca
+            // Marca: heurística local — NÃO chamar brandReliabilityScores (isso criava recursão e bloqueava o UI)
             let brand = 70;
-            try {
-                const b = productBrand(prod);
-                const br = brandReliabilityScores().find(x => x.name === b);
-                if (br) brand = br.score;
-            } catch (_) {}
+            if (rs.count) brand = Math.max(40, Math.min(95, Math.round(48 + rs.average * 9)));
+            if (hasInv) brand = Math.min(100, brand + 4);
+            if (assistN >= 2) brand = Math.max(20, brand - 8);
 
             const total = Math.round(
                 reliability * 0.18 +
@@ -6889,12 +6957,14 @@
                 brand * 0.12
             );
 
-            return {
+            const out = {
                 total: Math.max(0, Math.min(100, total)),
                 reliability, health, longevity, repairability, resale,
                 satisfaction, brand, stars, starCount: rs.count || 0,
                 years, w, life, hasInv, hasSn, assistN
             };
+            if (cacheKey) window.__vantyScoreCache.set(cacheKey, out);
+            return out;
         }
         function isVantyVerified(prod) {
             const s = computeVantyScores(prod);
@@ -6931,6 +7001,9 @@
             return { key: 'keep', label: 'KEEP', color: 'text-emerald-300', bg: 'bg-emerald-500/15 border-emerald-500/25', tip: 'Manter por agora; monitoriza health e garantia.' };
         }
         function brandReliabilityScores() {
+            if (window.__brandScoreCache && (Date.now() - (window.__brandScoreCacheAt || 0)) < 2500) {
+                return window.__brandScoreCache;
+            }
             const groups = new Map();
             (currentProducts || []).forEach(p => {
                 const b = productBrand(p) || 'Marca não identificada';
@@ -6944,7 +7017,7 @@
                     if (b && groups.has(b) && r.rating) groups.get(b).ratings.push(Number(r.rating) || 0);
                 });
             } catch (_) {}
-            return [...groups.values()].map(g => {
+            const out = [...groups.values()].map(g => {
                 let productHealth = 70;
                 try {
                     productHealth = g.products.reduce((a, p) => {
@@ -6956,43 +7029,60 @@
                 const score = Math.max(0, Math.min(100, Math.round(productHealth * 0.72 + avg * 14 + reviewConfidence)));
                 return { ...g, score, avg, reviewCount: g.ratings.length };
             }).sort((a, b) => b.score - a.score);
+            window.__brandScoreCache = out;
+            window.__brandScoreCacheAt = Date.now();
+            return out;
         }
         function renderVantyIntelligence() {
-            const token = window.__intelToken;
-            const products = (currentProducts || []).slice(0, 40);
-            const scores = [];
-            for (let i = 0; i < products.length; i++) {
-                if (token !== window.__intelToken) return; // user left the panel
-                const p = products[i];
-                try {
-                    scores.push({
-                        p,
-                        score: (typeof computeVantyScores === 'function' ? computeVantyScores(p).total : 0) || 0,
-                        value: (typeof estimateResaleValue === 'function' ? estimateResaleValue(p) : { mid: 0 })
-                    });
-                } catch (e) {
-                    scores.push({ p, score: 0, value: { mid: 0 } });
-                }
-            }
-            scores.sort((a, b) => b.score - a.score);
-            const avgHealth = scores.length ? Math.round(scores.reduce((a, x) => a + x.score, 0) / scores.length) : 0;
-            const totalValue = scores.reduce((a, x) => a + (x.value.mid || 0), 0);
-            const guaranteed = products.filter(p => (typeof warrantyMonthsLeft === 'function' ? warrantyMonthsLeft(p) : 0) > 0).length;
+            const products = currentProducts || [];
             const ov = document.getElementById('intelligenceOverview');
+            const list = document.getElementById('intelProducts');
+            const bEl = document.getElementById('intelBrands');
+            const aEl = document.getElementById('intelAlerts');
+            const bd = document.getElementById('intelBrandDeep');
+            const pat = document.getElementById('intelPatterns');
+            const pc = document.getElementById('intelProductCount');
+
+            if (!products.length) {
+                if (ov) ov.innerHTML = [
+                    `<div class="card p-5"><p class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Vanty Score médio</p><p class="text-2xl font-black text-slate-500 mt-2">—</p><p class="text-[10px] text-slate-600 mt-1">sem produtos</p></div>`,
+                    `<div class="card p-5"><p class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Valor estimado</p><p class="text-2xl text-slate-500 mt-2">0,00 €</p></div>`,
+                    `<div class="card p-5"><p class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Garantias ativas</p><p class="text-2xl font-black text-slate-500 mt-2">0</p></div>`
+                ].join('');
+                if (pc) pc.textContent = '0 produtos';
+                const empty = '<p class="text-xs text-slate-500 py-6 text-center">Regista um produto com fatura para ver scores, marcas e alertas.</p>';
+                if (list) list.innerHTML = empty;
+                if (bEl) bEl.innerHTML = empty;
+                if (aEl) aEl.innerHTML = '<div class="md:col-span-2 p-4 rounded-xl bg-white/[0.03] border border-white/[0.06] text-xs text-slate-500">Sem alertas — a carteira está vazia.</div>';
+                if (bd) bd.innerHTML = '<p class="text-slate-600">Sem dados de marca.</p>';
+                if (pat) pat.innerHTML = '<p class="text-slate-600">Sem padrões ainda (precisas de pedidos de assistência).</p>';
+                return;
+            }
+
+            const scores = products.map(p => {
+                const s = computeVantyScores(p);
+                let value = { mid: 0 };
+                try { value = estimateResaleValue(p); } catch (_) {}
+                return { p, s, score: s.total || 0, value };
+            }).sort((a, b) => b.score - a.score);
+
+            const avgHealth = Math.round(scores.reduce((a, x) => a + x.score, 0) / scores.length);
+            const totalValue = scores.reduce((a, x) => a + (x.value.mid || 0), 0);
+            const guaranteed = scores.filter(x => (x.s.w || 0) > 0).length;
+
             if (ov) ov.innerHTML = [
                 `<div class="card p-5"><p class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Vanty Score médio</p><p class="text-2xl font-black text-orange-300 mt-2">${avgHealth}<span class="text-sm text-slate-600">/100</span></p><p class="text-[10px] text-slate-600 mt-1">carteira ativa</p></div>`,
                 `<div class="card p-5"><p class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Valor estimado</p><p class="text-2xl money-vanty mt-2">${typeof formatMoney === 'function' ? formatMoney(totalValue) : totalValue + ' €'}</p><p class="text-[10px] text-slate-600 mt-1">heurística interna</p></div>`,
                 `<div class="card p-5"><p class="text-[10px] text-slate-500 uppercase font-bold tracking-wider">Garantias ativas</p><p class="text-2xl font-black text-emerald-400 mt-2">${guaranteed}</p></div>`
             ].join('');
-            const pc = document.getElementById('intelProductCount');
             if (pc) pc.textContent = products.length + ' produto' + (products.length === 1 ? '' : 's');
-            const list = document.getElementById('intelProducts');
+
             if (list) {
-                list.innerHTML = scores.slice(0, 8).map(x => {
-                    const s = computeVantyScores(x.p);
+                list.innerHTML = scores.slice(0, 12).map(x => {
+                    const s = x.s;
                     const life = Math.max(0, s.life - s.years);
-                    const idx = products.indexOf(x.p);
-                    const ver = isVantyVerified(x.p) ? '<span class="vanty-verified ml-1">Verified</span>' : '';
+                    const idx = currentProducts.indexOf(x.p);
+                    const ver = (s.hasInv && (s.hasSn || s.starCount > 0 || s.w > 0)) ? '<span class="vanty-verified ml-1">Verified</span>' : '';
                     return `<div class="p-3 rounded-xl bg-[#0a0a0b]/60 border border-white/[0.05] cursor-pointer hover:border-orange-500/20" onclick="openProductDetail(${idx})">
                         <div class="flex items-center gap-3">
                             <div class="intel-score" style="min-width:48px;height:48px"><strong style="font-size:14px">${x.score}</strong></div>
@@ -7006,37 +7096,38 @@
                             </div>
                         </div>
                     </div>`;
-                }).join('') || '<p class="text-xs text-slate-600 py-6 text-center">Regista produtos para o índice.</p>';
+                }).join('');
             }
+
             let brands = [];
             try { brands = brandReliabilityScores() || []; } catch (e) { console.warn('brands', e); brands = []; }
-            const bEl = document.getElementById('intelBrands');
             if (bEl) {
                 bEl.innerHTML = brands.slice(0, 8).map(b =>
                     `<div class="p-3 rounded-xl bg-[#0a0a0b]/60 border border-white/[0.05]">
                         <div class="flex justify-between items-start gap-2"><strong class="text-xs text-slate-200">${escapeHtml(b.name)}</strong><span class="text-orange-300 font-black text-sm">${b.score}</span></div>
                         <div class="intel-meter mt-2"><i style="width:${b.score}%"></i></div>
-                        <p class="text-[9px] text-slate-600 mt-1">${b.products.length} prod. · ${b.reviewCount} reviews · ${confBadgeHtml(b.products.length + b.reviewCount)}</p>
+                        <p class="text-[9px] text-slate-600 mt-1">${b.products.length} prod. · ${b.reviewCount} reviews · ${typeof confBadgeHtml === 'function' ? confBadgeHtml(b.products.length + b.reviewCount) : ''}</p>
                     </div>`
                 ).join('') || '<p class="text-xs text-slate-600 py-6 text-center">Sem marcas ainda.</p>';
             }
+
             const alerts = [];
-            products.forEach(p => {
-                const s = computeVantyScores(p);
-                if (s.w > 0 && s.w < 3) alerts.push({ icon: 'fa-clock', title: 'Garantia a terminar', text: (p.nome_produto || '') + ' · < 3 meses.' });
-                if (s.years >= s.life * 0.75) alerts.push({ icon: 'fa-heart-pulse', title: 'Vida útil avançada', text: (p.nome_produto || '') + ' · zona de atenção.' });
-                if (s.total < 55) alerts.push({ icon: 'fa-triangle-exclamation', title: 'Score baixo', text: (p.nome_produto || '') + ' · ' + s.total + '/100.' });
-                if (s.assistN >= 2) alerts.push({ icon: 'fa-wrench', title: 'Padrão de assistência', text: (p.nome_produto || '') + ' · ' + s.assistN + ' pedidos registados (padrão observado).' });
+            scores.forEach(x => {
+                const s = x.s;
+                const name = x.p.nome_produto || 'Produto';
+                if (s.w > 0 && s.w < 3) alerts.push({ icon: 'fa-clock', title: 'Garantia a terminar', text: name + ' · < 3 meses.' });
+                if (s.years >= s.life * 0.75) alerts.push({ icon: 'fa-heart-pulse', title: 'Vida útil avançada', text: name + ' · zona de atenção.' });
+                if (s.total < 55) alerts.push({ icon: 'fa-triangle-exclamation', title: 'Score baixo', text: name + ' · ' + s.total + '/100.' });
+                if (s.assistN >= 2) alerts.push({ icon: 'fa-wrench', title: 'Padrão de assistência', text: name + ' · ' + s.assistN + ' pedidos registados (padrão observado).' });
             });
-            const aEl = document.getElementById('intelAlerts');
             if (aEl) {
                 aEl.innerHTML = alerts.slice(0, 8).map(a =>
                     `<div class="p-3 rounded-xl bg-amber-500/[0.04] border border-amber-500/10"><div class="flex gap-2"><i class="fa-solid ${a.icon} text-amber-400 mt-0.5"></i><div><strong class="text-[11px] text-amber-100">${escapeHtml(a.title)}</strong><p class="text-[10px] text-slate-500 mt-1">${escapeHtml(a.text)}</p></div></div></div>`
                 ).join('') || '<div class="md:col-span-2 p-4 rounded-xl bg-emerald-500/[0.04] border border-emerald-500/10 text-xs text-emerald-200"><i class="fa-solid fa-check-circle mr-1"></i> Sem alertas críticos.</div>';
             }
-            const bd = document.getElementById('intelBrandDeep');
+
             if (bd) {
-                const top = brandReliabilityScores().slice(0, 5);
+                const top = brands.slice(0, 5);
                 bd.innerHTML = top.length ? top.map(b => {
                     const s = computeVantyScores(b.products[0] || {});
                     return `<div class="p-2.5 rounded-lg bg-[#0a0a0b]/50 border border-white/[0.05]">
@@ -7048,7 +7139,6 @@
                     </div>`;
                 }).join('') : '<p class="text-slate-600">Sem dados de marca.</p>';
             }
-            const pat = document.getElementById('intelPatterns');
             if (pat) {
                 let ps = [];
                 try { ps = (problemPatterns() || []).slice(0, 6); } catch (_) { ps = []; }
@@ -7605,6 +7695,8 @@
             const remoteIds = new Set(remote.map(p => String(p.id)));
             const localOnly = local.filter(p => !remoteIds.has(String(p.id)) && !retiredIds.has(String(p.id)));
             currentProducts = [...localOnly, ...remote].filter(p => !retiredIds.has(String(p.id)) && !(p.notas || '').startsWith('RETIRED:'));
+            window.__vantyScoreCache = null;
+            window.__brandScoreCache = null;
             await loadAllProductReviews();
 
             const invoiceStore = getInvoicesStore();
