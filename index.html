@@ -1120,7 +1120,93 @@
         }
         .ai-rec strong { color: #FFD8AD; }
 
+        /* ===== LIGHT / DAY MODE ===== */
+        html[data-theme="light"] body {
+            color: #1c232c !important;
+            background-color: #f3efe8 !important;
+            background-image:
+                radial-gradient(ellipse 70% 50% at 55% 0%, rgba(255, 90, 0, 0.08), transparent 50%),
+                linear-gradient(180deg, #faf7f2 0%, #efe8dc 100%) !important;
+        }
+        html[data-theme="light"] body::before {
+            opacity: 0.08;
+            background-image: radial-gradient(#c9bba8 0.55px, transparent 0.6px);
+        }
+        html[data-theme="light"] .ember-field,
+        html[data-theme="light"] #emberCanvas { display: none !important; }
+        html[data-theme="light"] .sidebar {
+            background: linear-gradient(180deg, #ffffff 0%, #f7f2ea 100%) !important;
+            border-right: 1px solid #e4d9cb !important;
+        }
+        html[data-theme="light"] .sidebar::after {
+            background: linear-gradient(180deg, transparent, rgba(255,90,0,0.45) 18%, rgba(255,90,0,0.15) 55%, transparent 90%);
+        }
+        html[data-theme="light"] header {
+            background: rgba(255,252,247,0.92) !important;
+            border-bottom-color: #e4d9cb !important;
+        }
+        html[data-theme="light"] .nav-item { color: #5c6570 !important; }
+        html[data-theme="light"] .nav-item:hover { color: #1c232c !important; background: rgba(255,90,0,0.08) !important; }
+        html[data-theme="light"] .nav-item.active {
+            background: linear-gradient(90deg, #fff4ea, #fff) !important;
+            color: #c2410c !important;
+            border-color: rgba(255,90,0,0.35) !important;
+        }
+        html[data-theme="light"] .nav-section-label { color: #9a8f82 !important; }
+        html[data-theme="light"] .brand-motto { color: #6b635a !important; }
+        html[data-theme="light"] .text-white,
+        html[data-theme="light"] h1, html[data-theme="light"] h2, html[data-theme="light"] h3 { color: #161b22 !important; }
+        html[data-theme="light"] .text-slate-100,
+        html[data-theme="light"] .text-slate-200 { color: #1c232c !important; }
+        html[data-theme="light"] .text-slate-300 { color: #3d4650 !important; }
+        html[data-theme="light"] .text-slate-400,
+        html[data-theme="light"] .text-slate-500,
+        html[data-theme="light"] .text-slate-600 { color: #6b7380 !important; }
+        html[data-theme="light"] .card,
+        html[data-theme="light"] .kpi,
+        html[data-theme="light"] .modal-panel {
+            background: linear-gradient(165deg, #ffffff, #f8f3ec) !important;
+            border-color: #e4d9cb !important;
+            box-shadow: 0 8px 24px rgba(40,24,8,0.06) !important;
+        }
+        html[data-theme="light"] .input-field,
+        html[data-theme="light"] input, html[data-theme="light"] textarea, html[data-theme="light"] select {
+            background: #fff !important;
+            color: #1c232c !important;
+            border-color: #e4d9cb !important;
+        }
+        html[data-theme="light"] .search-bar { background: #fff; border-color: #e4d9cb; }
+        html[data-theme="light"] .home-action {
+            background: #fff !important;
+            border-color: #e4d9cb !important;
+        }
+        html[data-theme="light"] .home-action span { color: #3d4650 !important; }
+        html[data-theme="light"] .intel-meter { background: rgba(0,0,0,0.08); }
+        html[data-theme="light"] .nav-icon-chip {
+            background: #fff !important;
+            border-color: #e4d9cb !important;
+            color: #6b7380 !important;
+        }
+        html[data-theme="light"] .live-core { background: rgba(255,255,255,0.7); }
+        html[data-theme="light"] #vantySplash { background: #f3efe8; }
+        html[data-theme="light"] .ai-bot { background: rgba(255,90,0,0.08); color: #1c232c; }
+        html[data-theme="light"] .ai-user { background: #fff; color: #1c232c; border-color: #e4d9cb; }
+        html[data-theme="light"] .ai-chip { background: #fff; border-color: #e4d9cb; color: #5c6570; }
+        html[data-theme="light"] header .bg-surface-800 {
+            background-color: #ffffff !important;
+            border-color: #e4d9cb !important;
+        }
+        html[data-theme="light"] .placeholder-slate-600::placeholder { color: #9a9086 !important; }
+
     </style>
+    <script>
+        (function () {
+            try {
+                var t = localStorage.getItem('vanty_theme') || 'dark';
+                document.documentElement.setAttribute('data-theme', t === 'light' ? 'light' : 'dark');
+            } catch (e) {}
+        })();
+    </script>
 </head>
 <body class="min-h-screen antialiased overflow-hidden">
     <canvas id="emberCanvas" aria-hidden="true"></canvas>
@@ -1227,7 +1313,7 @@
                 <div class="nav-item" onclick="openClaimTransferModal()">
                     <span class="nav-icon-chip"><i class="fa-solid fa-qrcode"></i></span><span>Receber produto</span>
                 </div>
-                <div class="nav-item" onclick="loadProducts()">
+                <div class="nav-item" onclick="refreshApp()">
                     <span class="nav-icon-chip"><i class="fa-solid fa-rotate"></i></span><span>Sincronizar</span>
                 </div>
             </nav>
@@ -1237,7 +1323,7 @@
                     <div class="live-dot"></div>
                     <div>
                         <div class="text-[11px] font-semibold text-emerald-400">Supabase Live</div>
-                        <div class="text-[10px] text-slate-500">v5.4 · dash links</div>
+                        <div class="text-[10px] text-slate-500">v5.5 · light + refresh</div>
                     </div>
                 </div>
             </div>
@@ -1264,7 +1350,10 @@
                         <i class="fa-solid fa-credit-card text-xs"></i>
                         <span id="headerBadgeCards" class="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-violet-500 text-[9px] font-bold text-white flex items-center justify-center leading-none hidden">0</span>
                     </button>
-                    <button type="button" onclick="loadProducts()" class="w-9 h-9 rounded-lg bg-surface-800 border border-white/[0.05] flex items-center justify-center text-slate-400 hover:text-orange-400 hover:border-orange-500/30 hover:shadow-[0_0_14px_rgba(255,90,0,0.18)] transition-all" title="Atualizar">
+                    <button type="button" id="themeToggleBtn" onclick="toggleVantyTheme()" class="w-9 h-9 rounded-lg bg-surface-800 border border-white/[0.05] flex items-center justify-center text-slate-300 hover:text-amber-300 hover:border-amber-400/40 transition-all" title="Modo claro">
+                        <i class="fa-solid fa-sun text-xs"></i>
+                    </button>
+                    <button type="button" id="refreshBtn" onclick="refreshApp()" class="w-9 h-9 rounded-lg bg-surface-800 border border-white/[0.05] flex items-center justify-center text-slate-400 hover:text-orange-400 hover:border-orange-500/30 hover:shadow-[0_0_14px_rgba(255,90,0,0.18)] transition-all" title="Atualizar dados">
                         <i class="fa-solid fa-rotate-right text-xs"></i>
                     </button>
                     <button id="authHeaderBtn" onclick="openAuthModal()" class="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-surface-800 border border-white/[0.06] text-[11px] font-semibold text-slate-300 hover:text-orange-300 hover:border-orange-500/30 transition-all">
@@ -7676,17 +7765,59 @@
             } else { recent.innerHTML = recentItems.map(p => buildCard(p)).join(''); }
         }
 
+        async function refreshApp() {
+            const btn = document.getElementById('refreshBtn');
+            const icon = btn && btn.querySelector('i');
+            if (icon) icon.classList.add('fa-spin');
+            if (btn) btn.disabled = true;
+            try {
+                await loadProducts();
+                try { if (typeof renderLoyaltyCards === 'function') renderLoyaltyCards(); } catch (_) {}
+                try { if (typeof renderRmaFeed === 'function') renderRmaFeed(); } catch (_) {}
+                try { if (typeof renderArchiveFeed === 'function') renderArchiveFeed(); } catch (_) {}
+                if (typeof showToast === 'function') showToast('Produtos, faturas e cartões atualizados.', 'Sincronizado', 'success');
+            } catch (err) {
+                console.error('refreshApp', err);
+                if (typeof showToast === 'function') showToast((err && err.message) || 'Não foi possível atualizar.', 'Refresh', 'error');
+            } finally {
+                if (icon) icon.classList.remove('fa-spin');
+                if (btn) btn.disabled = false;
+            }
+        }
+
+        function applyVantyTheme(theme) {
+            const t = theme === 'light' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', t);
+            try { localStorage.setItem('vanty_theme', t); } catch (_) {}
+            const btn = document.getElementById('themeToggleBtn');
+            if (btn) {
+                btn.innerHTML = t === 'light'
+                    ? '<i class="fa-solid fa-moon text-xs"></i>'
+                    : '<i class="fa-solid fa-sun text-xs"></i>';
+                btn.title = t === 'light' ? 'Mudar para modo escuro' : 'Mudar para modo claro';
+            }
+            const meta = document.querySelector('meta[name="theme-color"]');
+            if (meta) meta.setAttribute('content', t === 'light' ? '#F3EFE8' : '#050608');
+        }
+        function toggleVantyTheme() {
+            const cur = document.documentElement.getAttribute('data-theme') || 'dark';
+            applyVantyTheme(cur === 'light' ? 'dark' : 'light');
+        }
+
         async function loadProducts() {
             const loading = `<div class="text-center py-12 text-slate-600 text-sm"><i class="fa-solid fa-spinner animate-spin text-orange-400 mb-2"></i><p>A carregar...</p></div>`;
-            document.getElementById('productsFeed').innerHTML = loading;
-            document.getElementById('recentFeed').innerHTML = loading;
+            const pf = document.getElementById('productsFeed');
+            const rf = document.getElementById('recentFeed');
+            if (pf) pf.innerHTML = loading;
+            if (rf) rf.innerHTML = loading;
 
             let remote = [];
-            const { data, error } = await supabaseClient.from('produtos_garantias').select('*').order('created_at', { ascending: false });
-            if (error) {
-                console.warn('Supabase select:', error.message);
-            } else {
-                remote = data || [];
+            try {
+                const { data, error } = await supabaseClient.from('produtos_garantias').select('*').order('created_at', { ascending: false });
+                if (error) console.warn('Supabase select:', error.message);
+                else remote = data || [];
+            } catch (err) {
+                console.warn('Supabase select fail:', err);
             }
 
             const local = getLocalProducts();
@@ -7705,10 +7836,14 @@
                 totalSum += parseFloat(prod.preco_com_iva || prod.preco || 0);
                 if (invoiceStore[prod.id] || prod.fatura_url) totalInvoices++;
             });
-            document.getElementById('stat-active').innerText = currentProducts.length;
-            document.getElementById('stat-value').innerText = totalSum.toLocaleString('pt-PT', { minimumFractionDigits: 2 }) + ' €';
-            document.getElementById('stat-invoices').innerText = totalInvoices;
-            document.getElementById('navBadgeCount').innerText = currentProducts.length;
+            const sa = document.getElementById('stat-active');
+            const sv = document.getElementById('stat-value');
+            const si = document.getElementById('stat-invoices');
+            const nb = document.getElementById('navBadgeCount');
+            if (sa) sa.innerText = currentProducts.length;
+            if (sv) sv.innerText = totalSum.toLocaleString('pt-PT', { minimumFractionDigits: 2 }) + ' €';
+            if (si) si.innerText = totalInvoices;
+            if (nb) nb.innerText = currentProducts.length;
             renderProductLists();
             updateExpiryAlerts();
             updateAnniversaryAlerts();
@@ -8428,6 +8563,7 @@ ${addr}`;
 
         renderProfile();
         try { applyLocale(); } catch (_) {}
+        try { applyVantyTheme(localStorage.getItem('vanty_theme') || 'dark'); } catch (_) { applyVantyTheme('dark'); }
         initAuth().then(() => loadProducts());
         (function initCardsBadge() {
             const n = getLoyaltyCards().length;
