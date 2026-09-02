@@ -815,7 +815,7 @@
         .life-curve .track { position:absolute; left:0; right:0; top:12px; height:3px; border-radius:99px; background:linear-gradient(90deg,#2A3138,#FF5A00 70%,#3A424A); }
         .life-curve .dot { position:absolute; top:6px; width:14px; height:14px; margin-left:-7px; border-radius:50%; border:2px solid #FF5A00; background:#0a0a0b; box-shadow:0 0 10px rgba(255,90,0,.45); }
         .life-curve .label { position:absolute; top:22px; font-size:8px; color:#6b7683; transform:translateX(-50%); white-space:nowrap; }
-        .vanty-verified { display:inline-flex; align-items:center; gap:4px; font-size:9px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:#34d399; background:rgba(52,211,153,.08); border:1px solid rgba(52,211,153,.25); padding:3px 7px; border-radius:7px; }
+        .vanty-verified { display:inline-flex; align-items:center; gap:4px; font-size:9px; font-weight:800; letter-spacing:.06em; text-transform:uppercase; color:#6ee7b7; background:rgba(16,185,129,.16); border:1px solid rgba(52,211,153,.4); padding:3px 7px; border-radius:7px; }
         
         .passport-step { display:flex; gap:10px; padding:6px 0; border-left:2px solid rgba(255,90,0,.25); margin-left:6px; padding-left:12px; position:relative; }
         .passport-step::before { content:''; position:absolute; left:-5px; top:10px; width:8px; height:8px; border-radius:50%; background:#FF5A00; box-shadow:0 0 8px rgba(255,90,0,.5); }
@@ -1260,6 +1260,47 @@
             border-color: #e4d9cb !important;
         }
 
+        /* Verdes legíveis (não néon suave) */
+        .vanty-ok-banner {
+            padding: 10px 12px;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            font-size: 12px;
+            line-height: 1.5;
+            font-weight: 600;
+            background: rgba(6, 95, 70, 0.35);
+            border: 1px solid rgba(52, 211, 153, 0.45);
+            color: #d1fae5;
+        }
+        .vanty-ok-banner i { color: #6ee7b7; }
+        .vanty-ok-banner strong { color: #ecfdf5; font-weight: 800; }
+        html[data-theme="light"] .vanty-ok-banner {
+            background: #e7f5ee !important;
+            border: 1px solid #0f766e !important;
+            color: #065f46 !important;
+        }
+        html[data-theme="light"] .vanty-ok-banner i,
+        html[data-theme="light"] .vanty-ok-banner strong { color: #047857 !important; }
+        html[data-theme="light"] .vanty-verified {
+            color: #065f46 !important;
+            background: #d8f3e6 !important;
+            border-color: #0f766e !important;
+        }
+        html[data-theme="light"] .text-emerald-200,
+        html[data-theme="light"] .text-emerald-300,
+        html[data-theme="light"] .text-emerald-400,
+        html[data-theme="light"] [class*="text-emerald-"] {
+            color: #0f766e !important;
+        }
+        html[data-theme="light"] [class*="bg-emerald-500/"],
+        html[data-theme="light"] [class*="bg-emerald-400/"] {
+            background-color: #e7f5ee !important;
+        }
+        html[data-theme="light"] [class*="border-emerald-"] {
+            border-color: #2a9a78 !important;
+        }
+        html[data-theme="light"] .live-core .text-emerald-400 { color: #0f766e !important; }
+
     </style>
     <script>
         (function () {
@@ -1385,7 +1426,7 @@
                     <div class="live-dot"></div>
                     <div>
                         <div class="text-[11px] font-semibold text-emerald-400">Supabase Live</div>
-                        <div class="text-[10px] text-slate-500">v5.6 · light polish</div>
+                        <div class="text-[10px] text-slate-500">v5.7 · verde ok</div>
                     </div>
                 </div>
             </div>
@@ -3168,8 +3209,8 @@
                     gate.className = 'p-3 rounded-xl bg-amber-500/10 border border-amber-500/25 text-[11px] text-amber-100/90 leading-relaxed mb-2';
                     gate.innerHTML = '<i class="fa-solid fa-shield-halved text-amber-400 mr-1"></i> <strong>Só compras verificadas</strong> podem avaliar este produto no ranking público.<br>É preciso <strong>fatura no sistema</strong> (prova de compra). O nº de série reforça a confiança, mas a fatura é obrigatória.';
                 } else {
-                    gate.className = 'p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-[11px] text-emerald-200/90 mb-2';
-                    gate.innerHTML = '<i class="fa-solid fa-badge-check text-emerald-400 mr-1"></i> Compra verificada' +
+                    gate.className = 'vanty-ok-banner';
+                    gate.innerHTML = '<i class="fa-solid fa-badge-check mr-1.5"></i> <strong>Compra verificada</strong>' +
                         (trust >= 2 ? ' · fatura + nº de série' : ' · fatura no sistema') +
                         ' — a tua opinião conta no ranking.';
                 }
@@ -3197,7 +3238,7 @@
             list.innerHTML = reviews.slice(0, 30).map(r => {
                 const date = new Date(r.updated_at || r.created_at || Date.now()).toLocaleDateString('pt-PT');
                 const badge = isReviewVerified(r)
-                    ? '<span class="text-[9px] font-bold text-emerald-400 border border-emerald-500/25 bg-emerald-500/10 px-1.5 py-0.5 rounded-md">Verificado</span>'
+                    ? '<span class="vanty-verified">Verificado</span>'
                     : '';
                 return `<article class="p-2.5 rounded-lg bg-[#0a0a0b]/60 border border-white/[0.05]">
                     <div class="flex justify-between gap-2 items-start">
@@ -8830,6 +8871,14 @@ ${addr}`;
         }
         html[data-theme="light"] #cardScanModal { background:#111 !important; }
         html[data-theme="light"] #cardScanReader { background:#000 !important; }
+        html[data-theme="light"] .text-emerald-200,
+        html[data-theme="light"] .text-emerald-300,
+        html[data-theme="light"] .text-emerald-400,
+        html[data-theme="light"] [class*="text-emerald-"] { color: #0f766e !important; }
+        html[data-theme="light"] [class*="bg-emerald-500/"] { background-color: #e7f5ee !important; }
+        html[data-theme="light"] [class*="border-emerald-"] { border-color: #2a9a78 !important; }
+        html[data-theme="light"] .vanty-ok-banner { background:#e7f5ee !important; border-color:#0f766e !important; color:#065f46 !important; }
+        html[data-theme="light"] .vanty-verified { color:#065f46 !important; background:#d8f3e6 !important; border-color:#0f766e !important; }
     </style>
 </body>
 </html>
